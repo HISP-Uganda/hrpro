@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/middleware"
 	"hrpro/internal/models"
 
@@ -20,10 +21,19 @@ var allowedRoles = map[string]struct{}{
 
 type Service struct {
 	repository Repository
+	audit      audit.Recorder
 }
 
 func NewService(repository Repository) *Service {
-	return &Service{repository: repository}
+	return &Service{repository: repository, audit: audit.NewNoopRecorder()}
+}
+
+func (s *Service) SetAuditRecorder(recorder audit.Recorder) {
+	if recorder == nil {
+		s.audit = audit.NewNoopRecorder()
+		return
+	}
+	s.audit = recorder
 }
 
 func (s *Service) ListUsers(ctx context.Context, _ *models.Claims, query ListUsersQuery) (*ListUsersResult, error) {
@@ -60,7 +70,7 @@ func (s *Service) GetUser(ctx context.Context, _ *models.Claims, id int64) (*Use
 	return user, nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, _ *models.Claims, input CreateUserInput) (*User, error) {
+func (s *Service) CreateUser(ctx context.Context, claims *models.Claims, input CreateUserInput) (*User, error) {
 	username := strings.TrimSpace(input.Username)
 	if username == "" {
 		return nil, fmt.Errorf("%w: username is required", ErrValidation)
@@ -88,7 +98,15 @@ func (s *Service) CreateUser(ctx context.Context, _ *models.Claims, input Create
 		return nil, fmt.Errorf("hash password: %w", err)
 	}
 
-	return s.repository.Create(ctx, username, string(hash), role)
+	user, err := s.repository.Create(ctx, username, string(hash), role)
+	if err != nil {
+		return nil, err
+	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "user.create", stringPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+		"role":     user.Role,
+	})
+	return user, nil
 }
 
 func (s *Service) UpdateUser(ctx context.Context, claims *models.Claims, id int64, input UpdateUserInput) (*User, error) {
@@ -125,10 +143,14 @@ func (s *Service) UpdateUser(ctx context.Context, claims *models.Claims, id int6
 	if user == nil {
 		return nil, ErrNotFound
 	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "user.update", stringPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+		"role":     user.Role,
+	})
 	return user, nil
 }
 
-func (s *Service) ResetUserPassword(ctx context.Context, _ *models.Claims, id int64, input ResetUserPasswordInput) error {
+func (s *Service) ResetUserPassword(ctx context.Context, claims *models.Claims, id int64, input ResetUserPasswordInput) error {
 	if id <= 0 {
 		return fmt.Errorf("%w: id must be positive", ErrValidation)
 	}
@@ -148,6 +170,10 @@ func (s *Service) ResetUserPassword(ctx context.Context, _ *models.Claims, id in
 	if !updated {
 		return ErrNotFound
 	}
+	entityID := id
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "user.reset_password", stringPtr("user"), &entityID, map[string]any{
+		"user_id": id,
+	})
 	return nil
 }
 
@@ -166,6 +192,14 @@ func (s *Service) SetUserActive(ctx context.Context, claims *models.Claims, id i
 	if user == nil {
 		return nil, ErrNotFound
 	}
+	action := "user.deactivate"
+	if active {
+		action = "user.activate"
+	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), action, stringPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+		"active":   user.IsActive,
+	})
 	return user, nil
 }
 
@@ -175,4 +209,16 @@ func validateAndNormalizeRole(role string) (string, error) {
 		return "", fmt.Errorf("%w: role must be one of admin, hr_officer, finance_officer, viewer", ErrValidation)
 	}
 	return normalized, nil
+}
+
+func claimsUserID(claims *models.Claims) *int64 {
+	if claims == nil || claims.UserID <= 0 {
+		return nil
+	}
+	actor := claims.UserID
+	return &actor
+}
+
+func stringPtr(value string) *string {
+	return &value
 }

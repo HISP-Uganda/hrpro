@@ -17,6 +17,14 @@ type fakeRepository struct {
 	failEmployeeID  int64
 }
 
+type captureAuditRecorder struct {
+	actions []string
+}
+
+func (c *captureAuditRecorder) RecordAuditEvent(_ context.Context, _ *int64, action string, _ *string, _ *int64, _ map[string]any) {
+	c.actions = append(c.actions, action)
+}
+
 func (f *fakeRepository) CreateBatch(_ context.Context, month string, createdBy int64) (*PayrollBatch, error) {
 	batch := &PayrollBatch{ID: int64(len(f.batches) + 1), Month: month, Status: StatusDraft, CreatedBy: createdBy, CreatedAt: time.Now().UTC()}
 	f.batches[batch.ID] = batch
@@ -250,5 +258,27 @@ func TestGeneratePayrollEntriesRollsBackOnInsertFailure(t *testing.T) {
 
 	if repo.entryToBatch[99] != 7 {
 		t.Fatalf("expected original entry mapping to remain after rollback")
+	}
+}
+
+func TestCreatePayrollBatchRecordsAuditEvent(t *testing.T) {
+	repo := &fakeRepository{
+		batches:        map[int64]*PayrollBatch{},
+		entriesByBatch: map[int64][]PayrollEntry{},
+		entryToBatch:   map[int64]int64{},
+	}
+	service := NewService(repo)
+	recorder := &captureAuditRecorder{}
+	service.SetAuditRecorder(recorder)
+
+	_, err := service.CreatePayrollBatch(context.Background(), &models.Claims{UserID: 99, Role: "Admin"}, CreateBatchInput{
+		Month: "2026-02",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(recorder.actions) != 1 || recorder.actions[0] != "payroll.batch.create" {
+		t.Fatalf("expected payroll.batch.create audit action, got %v", recorder.actions)
 	}
 }

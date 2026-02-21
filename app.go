@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/config"
 	"hrpro/internal/db"
 	"hrpro/internal/departments"
@@ -86,6 +87,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 		cfg.AccessTokenExpiry,
 		cfg.RefreshTokenExpiry,
 	)
+	auditRepo := audit.NewRepository(database)
+	auditService := audit.NewService(auditRepo)
+	authService.SetAuditRecorder(auditService)
 
 	if err := authService.SeedInitialAdmin(
 		ctx,
@@ -107,12 +111,15 @@ func (a *App) bootstrap(ctx context.Context) error {
 	a.departmentsHandler = handlers.NewDepartmentsHandler(authService, departmentsService)
 	leaveRepo := leave.NewRepository(database)
 	leaveService := leave.NewService(leaveRepo)
+	leaveService.SetAuditRecorder(auditService)
 	a.leaveHandler = handlers.NewLeaveHandler(authService, leaveService)
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
+	payrollService.SetAuditRecorder(auditService)
 	a.payrollHandler = handlers.NewPayrollHandler(authService, payrollService)
 	usersRepo := users.NewRepository(database)
 	usersService := users.NewService(usersRepo)
+	usersService.SetAuditRecorder(auditService)
 	a.usersHandler = handlers.NewUsersHandler(authService, usersService)
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/middleware"
 	"hrpro/internal/models"
 	"hrpro/internal/users"
@@ -66,6 +67,7 @@ func (h *UsersHandler) ListUsers(ctx context.Context, request ListUsersRequest) 
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	result, err := h.service.ListUsers(ctx, claims, users.ListUsersQuery{Page: request.Page, PageSize: request.PageSize, Q: request.Q})
 	if err != nil {
@@ -82,6 +84,7 @@ func (h *UsersHandler) GetUser(ctx context.Context, request GetUserRequest) (*us
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.GetUser(ctx, claims, request.ID)
 	if err != nil {
@@ -98,6 +101,7 @@ func (h *UsersHandler) CreateUser(ctx context.Context, request CreateUserRequest
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.CreateUser(ctx, claims, request.Payload)
 	if err != nil {
@@ -114,6 +118,7 @@ func (h *UsersHandler) UpdateUser(ctx context.Context, request UpdateUserRequest
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.UpdateUser(ctx, claims, request.ID, request.Payload)
 	if err != nil {
@@ -130,6 +135,7 @@ func (h *UsersHandler) ResetUserPassword(ctx context.Context, request ResetUserP
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	if err := h.service.ResetUserPassword(ctx, claims, request.ID, request.Payload); err != nil {
 		return mapUsersError(err)
@@ -145,6 +151,7 @@ func (h *UsersHandler) SetUserActive(ctx context.Context, request SetUserActiveR
 	if err := middleware.RequireRoles(claims, "admin"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.SetUserActive(ctx, claims, request.ID, request.Active)
 	if err != nil {

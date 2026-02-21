@@ -8,7 +8,7 @@ Last Updated: 2026-02-21
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, and user management modules are implemented. User management now includes SQLX repository/service/handler layers, admin-only RBAC enforcement, create/update/reset/activate-deactivate flows, case-insensitive username checks, bcrypt password hashing, and `last_login_at` tracking. Routing remains stable with root redirects, protected routes, and root-level notFound handling; navigation tests continue to pass, including `/users`.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, and audit logging modules are implemented. Audit logging now includes schema normalization, a centralized service-layer recorder, actor propagation through context, and automatic event recording for auth, users, leave, and payroll actions. Routing remains stable with root redirects, protected routes, and root-level notFound handling; navigation tests continue to pass, including `/users`.
 
 ---
 
@@ -30,8 +30,9 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/leave`: leave types, entitlements, locked dates, request lifecycle, pure rules, and typed errors.
 - `internal/payroll`: payroll batches/entries lifecycle, server-side calculations, transactional regenerate strategy (delete + recreate in one transaction), and CSV export.
 - `internal/users`: admin-only user listing, create/update/reset-password/set-active operations with validation, self-protection checks, and typed errors.
+- `internal/audit`: SQLX audit repository + centralized recorder with context actor extraction and graceful failure handling.
 - `internal/handlers`: auth, employees, departments, leave, payroll, and users bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, and users.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, and users; shared audit recorder wired into key services.
 
 ## Frontend
 
@@ -79,21 +80,21 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Leave Module               | Completed                                  | Leave types, entitlements, locked dates, requests lifecycle, server-side rules/RBAC, and `/leave` frontend implemented with tests. |
 | Payroll Module             | Completed                                  | End-to-end payroll lifecycle, transactional generation, RBAC, CSV export, and frontend pages completed. |
 | User Management            | Completed                                  | Admin-only backend + `/users` frontend implemented with validation, RBAC, and tests. |
-| Audit Logging              | Not Started                                | Next planned module. |
-| Hardening Phase            | Not Started                                | Pending validation, monitoring, and production hardening tasks. |
+| Audit Logging              | Completed                                  | Centralized service-layer recorder with automatic auth/users/leave/payroll events and tests. |
+| Hardening Phase            | Not Started                                | Next planned module. |
 
 ---
 
 # 4. In Progress
 
-No active in-progress work at this milestone close. Next module is Audit Logging.
+No active in-progress work at this milestone close. Next module is Hardening Phase.
 
 ---
 
 # 5. Next Steps
 
-- Implement Audit Logging module.
-- Expand route and interaction tests for more multi-module integration coverage.
+- Implement Hardening Phase tasks.
+- Expand integration and resilience testing around audit + business event coverage.
 
 ---
 

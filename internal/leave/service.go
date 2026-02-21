@@ -6,16 +6,26 @@ import (
 	"strings"
 	"time"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/middleware"
 	"hrpro/internal/models"
 )
 
 type Service struct {
 	repository Repository
+	audit      audit.Recorder
 }
 
 func NewService(repository Repository) *Service {
-	return &Service{repository: repository}
+	return &Service{repository: repository, audit: audit.NewNoopRecorder()}
+}
+
+func (s *Service) SetAuditRecorder(recorder audit.Recorder) {
+	if recorder == nil {
+		s.audit = audit.NewNoopRecorder()
+		return
+	}
+	s.audit = recorder
 }
 
 func (s *Service) ListLeaveTypes(ctx context.Context, activeOnly bool) ([]LeaveType, error) {
@@ -249,7 +259,19 @@ func (s *Service) ApplyLeave(ctx context.Context, claims *models.Claims, input A
 	requestInput.EndDate = endDate.Format("2006-01-02")
 	requestInput.Reason = normalizeOptionalPtr(input.Reason)
 
-	return s.repository.CreateLeaveRequest(ctx, employeeID, requestInput, workingDays)
+	created, err := s.repository.CreateLeaveRequest(ctx, employeeID, requestInput, workingDays)
+	if err != nil {
+		return nil, err
+	}
+
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "leave.request.create", stringPtr("leave_request"), &created.ID, map[string]any{
+		"employee_id":   created.EmployeeID,
+		"leave_type_id": created.LeaveTypeID,
+		"start_date":    requestInput.StartDate,
+		"end_date":      requestInput.EndDate,
+	})
+
+	return created, nil
 }
 
 func (s *Service) ListMyLeaveRequests(ctx context.Context, claims *models.Claims, filter ListLeaveRequestsFilter) ([]LeaveRequest, error) {
@@ -280,7 +302,15 @@ func (s *Service) ApproveLeave(ctx context.Context, claims *models.Claims, reque
 	}
 
 	now := time.Now().UTC()
-	return s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusApproved, &claims.UserID, &now, nil)
+	updated, err := s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusApproved, &claims.UserID, &now, nil)
+	if err != nil {
+		return nil, err
+	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "leave.request.approve", stringPtr("leave_request"), &updated.ID, map[string]any{
+		"employee_id": updated.EmployeeID,
+		"status":      updated.Status,
+	})
+	return updated, nil
 }
 
 func (s *Service) RejectLeave(ctx context.Context, claims *models.Claims, requestID int64, reason *string) (*LeaveRequest, error) {
@@ -304,7 +334,16 @@ func (s *Service) RejectLeave(ctx context.Context, claims *models.Claims, reques
 		empty := "Rejected"
 		normalizedReason = &empty
 	}
-	return s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusRejected, &claims.UserID, nil, normalizedReason)
+	updated, err := s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusRejected, &claims.UserID, nil, normalizedReason)
+	if err != nil {
+		return nil, err
+	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "leave.request.reject", stringPtr("leave_request"), &updated.ID, map[string]any{
+		"employee_id": updated.EmployeeID,
+		"reason":      normalizeReasonValue(normalizedReason),
+		"status":      updated.Status,
+	})
+	return updated, nil
 }
 
 func (s *Service) CancelLeave(ctx context.Context, claims *models.Claims, requestID int64) (*LeaveRequest, error) {
@@ -333,7 +372,15 @@ func (s *Service) CancelLeave(ctx context.Context, claims *models.Claims, reques
 		approvedAt = &now
 	}
 
-	return s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusCancelled, approverID, approvedAt, nil)
+	updated, err := s.repository.UpdateLeaveRequestStatus(ctx, requestID, StatusCancelled, approverID, approvedAt, nil)
+	if err != nil {
+		return nil, err
+	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "leave.request.cancel", stringPtr("leave_request"), &updated.ID, map[string]any{
+		"employee_id": updated.EmployeeID,
+		"status":      updated.Status,
+	})
+	return updated, nil
 }
 
 func normalizeLeaveTypeInput(input LeaveTypeUpsertInput) (LeaveTypeUpsertInput, error) {
@@ -386,4 +433,23 @@ func hasLockedWorkingDate(workingDates []time.Time, lockedDates []time.Time) boo
 func hasAdminOrHRRole(role string) bool {
 	normalized := middleware.NormalizeRole(role)
 	return normalized == "admin" || normalized == "hr_officer"
+}
+
+func claimsUserID(claims *models.Claims) *int64 {
+	if claims == nil || claims.UserID <= 0 {
+		return nil
+	}
+	actor := claims.UserID
+	return &actor
+}
+
+func stringPtr(value string) *string {
+	return &value
+}
+
+func normalizeReasonValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(*value)
 }

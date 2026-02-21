@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/leave"
 	"hrpro/internal/middleware"
 	"hrpro/internal/models"
@@ -250,6 +251,7 @@ func (h *LeaveHandler) ApplyLeave(ctx context.Context, request ApplyLeaveRequest
 	if err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.ApplyLeave(ctx, claims, request.Payload)
 	if err != nil {
@@ -295,6 +297,7 @@ func (h *LeaveHandler) ApproveLeave(ctx context.Context, request LeaveActionRequ
 	if err := middleware.RequireRoles(claims, "Admin", "HR Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.ApproveLeave(ctx, claims, request.ID)
 	if err != nil {
@@ -311,6 +314,7 @@ func (h *LeaveHandler) RejectLeave(ctx context.Context, request RejectLeaveReque
 	if err := middleware.RequireRoles(claims, "Admin", "HR Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.RejectLeave(ctx, claims, request.ID, request.Reason)
 	if err != nil {
@@ -324,6 +328,7 @@ func (h *LeaveHandler) CancelLeave(ctx context.Context, request LeaveActionReque
 	if err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	item, err := h.service.CancelLeave(ctx, claims, request.ID)
 	if err != nil {

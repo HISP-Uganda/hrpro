@@ -21,6 +21,14 @@ type fakeRepository struct {
 	createdRequest *LeaveRequest
 }
 
+type captureAuditRecorder struct {
+	actions []string
+}
+
+func (c *captureAuditRecorder) RecordAuditEvent(_ context.Context, _ *int64, action string, _ *string, _ *int64, _ map[string]any) {
+	c.actions = append(c.actions, action)
+}
+
 func (f *fakeRepository) EmployeeExists(_ context.Context, _ int64) (bool, error) {
 	return f.employeeExists, nil
 }
@@ -213,5 +221,28 @@ func TestStatusTransitionsAndRBAC(t *testing.T) {
 
 	if CanTransitionStatus(StatusPending, StatusApproved, false, true) {
 		t.Fatalf("expected non-admin/non-hr approve transition to be rejected")
+	}
+}
+
+func TestApplyLeaveRecordsAuditEvent(t *testing.T) {
+	repo := &fakeRepository{
+		employeeExists: true,
+		leaveType:      &LeaveType{ID: 1, Active: true, CountsTowardEntitlement: false},
+	}
+	service := NewService(repo)
+	recorder := &captureAuditRecorder{}
+	service.SetAuditRecorder(recorder)
+
+	_, err := service.ApplyLeave(context.Background(), &models.Claims{UserID: 10, Role: "Viewer"}, ApplyLeaveInput{
+		LeaveTypeID: 1,
+		StartDate:   "2026-02-23",
+		EndDate:     "2026-02-24",
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(recorder.actions) != 1 || recorder.actions[0] != "leave.request.create" {
+		t.Fatalf("expected leave.request.create audit action, got %v", recorder.actions)
 	}
 }

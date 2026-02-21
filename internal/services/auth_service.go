@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/models"
 	"hrpro/internal/repositories"
 
@@ -28,6 +29,7 @@ type AuthService struct {
 	tokenService       *TokenService
 	accessTokenExpiry  time.Duration
 	refreshTokenExpiry time.Duration
+	auditRecorder      audit.Recorder
 }
 
 type LoginResult struct {
@@ -49,12 +51,25 @@ func NewAuthService(
 		tokenService:       tokenService,
 		accessTokenExpiry:  accessTokenExpiry,
 		refreshTokenExpiry: refreshTokenExpiry,
+		auditRecorder:      audit.NewNoopRecorder(),
 	}
+}
+
+func (s *AuthService) SetAuditRecorder(recorder audit.Recorder) {
+	if recorder == nil {
+		s.auditRecorder = audit.NewNoopRecorder()
+		return
+	}
+
+	s.auditRecorder = recorder
 }
 
 func (s *AuthService) Login(ctx context.Context, username, password string) (*LoginResult, error) {
 	cleanedUsername := strings.TrimSpace(username)
 	if cleanedUsername == "" || password == "" {
+		s.auditRecorder.RecordAuditEvent(ctx, nil, "user.login.fail", nil, nil, map[string]any{
+			"username": cleanedUsername,
+		})
 		return nil, ErrInvalidCredentials
 	}
 
@@ -64,14 +79,23 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*Lo
 	}
 
 	if user == nil {
+		s.auditRecorder.RecordAuditEvent(ctx, nil, "user.login.fail", nil, nil, map[string]any{
+			"username": cleanedUsername,
+		})
 		return nil, ErrInvalidCredentials
 	}
 
 	if !user.IsActive {
+		s.auditRecorder.RecordAuditEvent(ctx, &user.ID, "user.login.fail", strPtr("user"), &user.ID, map[string]any{
+			"username": user.Username,
+		})
 		return nil, ErrInactiveUser
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		s.auditRecorder.RecordAuditEvent(ctx, &user.ID, "user.login.fail", strPtr("user"), &user.ID, map[string]any{
+			"username": user.Username,
+		})
 		return nil, ErrInvalidCredentials
 	}
 
@@ -97,6 +121,13 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*Lo
 		return nil, err
 	}
 	user.LastLoginAt = &now
+	s.auditRecorder.RecordAuditEvent(ctx, &user.ID, "user.login.success", strPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+	})
+	s.auditRecorder.RecordAuditEvent(ctx, &user.ID, "token.refresh", strPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+		"source":   "login",
+	})
 
 	return &LoginResult{
 		AccessToken:  accessToken,
@@ -183,4 +214,8 @@ func generateSecureToken() (string, error) {
 func hashToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
+}
+
+func strPtr(value string) *string {
+	return &value
 }

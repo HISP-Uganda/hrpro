@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/middleware"
 	"hrpro/internal/models"
 	"hrpro/internal/payroll"
@@ -57,6 +58,7 @@ func (h *PayrollHandler) ListPayrollBatches(ctx context.Context, request ListPay
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	result, err := h.service.ListPayrollBatches(ctx, request.Filter)
 	if err != nil {
@@ -73,6 +75,7 @@ func (h *PayrollHandler) CreatePayrollBatch(ctx context.Context, request CreateP
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	batch, err := h.service.CreatePayrollBatch(ctx, claims, request.Payload)
 	if err != nil {
@@ -89,6 +92,7 @@ func (h *PayrollHandler) GetPayrollBatch(ctx context.Context, request GetPayroll
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	detail, err := h.service.GetPayrollBatch(ctx, request.BatchID)
 	if err != nil {
@@ -105,6 +109,7 @@ func (h *PayrollHandler) GeneratePayrollEntries(ctx context.Context, request Pay
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	if err := h.service.GeneratePayrollEntries(ctx, request.BatchID); err != nil {
 		return mapPayrollError(err)
@@ -120,6 +125,7 @@ func (h *PayrollHandler) UpdatePayrollEntryAmounts(ctx context.Context, request 
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	entry, err := h.service.UpdatePayrollEntryAmounts(ctx, request.EntryID, request.Payload)
 	if err != nil {
@@ -136,6 +142,7 @@ func (h *PayrollHandler) ApprovePayrollBatch(ctx context.Context, request Payrol
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	batch, err := h.service.ApprovePayrollBatch(ctx, claims, request.BatchID)
 	if err != nil {
@@ -152,6 +159,7 @@ func (h *PayrollHandler) LockPayrollBatch(ctx context.Context, request PayrollBa
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return nil, err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	batch, err := h.service.LockPayrollBatch(ctx, request.BatchID)
 	if err != nil {
@@ -168,6 +176,7 @@ func (h *PayrollHandler) ExportPayrollBatchCSV(ctx context.Context, request Payr
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
 		return "", err
 	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	csvText, err := h.service.ExportPayrollBatchCSV(ctx, request.BatchID)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"hrpro/internal/audit"
 	"hrpro/internal/models"
 )
 
@@ -16,10 +17,19 @@ var payrollMonthPattern = regexp.MustCompile(`^\d{4}-\d{2}$`)
 
 type Service struct {
 	repository Repository
+	audit      audit.Recorder
 }
 
 func NewService(repository Repository) *Service {
-	return &Service{repository: repository}
+	return &Service{repository: repository, audit: audit.NewNoopRecorder()}
+}
+
+func (s *Service) SetAuditRecorder(recorder audit.Recorder) {
+	if recorder == nil {
+		s.audit = audit.NewNoopRecorder()
+		return
+	}
+	s.audit = recorder
 }
 
 func (s *Service) ListPayrollBatches(ctx context.Context, filter ListBatchesFilter) (*ListBatchesResult, error) {
@@ -54,6 +64,9 @@ func (s *Service) CreatePayrollBatch(ctx context.Context, claims *models.Claims,
 	if err != nil {
 		return nil, err
 	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "payroll.batch.create", stringPtr("payroll_batch"), &batch.ID, map[string]any{
+		"month": month,
+	})
 
 	return batch, nil
 }
@@ -95,7 +108,8 @@ func (s *Service) GeneratePayrollEntries(ctx context.Context, batchID int64) err
 		return ErrImmutableBatch
 	}
 
-	return s.repository.WithTx(ctx, func(tx TxRepository) error {
+	entriesGenerated := 0
+	err = s.repository.WithTx(ctx, func(tx TxRepository) error {
 		if err := tx.DeleteEntriesByBatchID(ctx, batchID); err != nil {
 			return err
 		}
@@ -119,10 +133,19 @@ func (s *Service) GeneratePayrollEntries(ctx context.Context, batchID int64) err
 			}); err != nil {
 				return err
 			}
+			entriesGenerated++
 		}
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	s.audit.RecordAuditEvent(ctx, nil, "payroll.batch.generate", stringPtr("payroll_batch"), &batchID, map[string]any{
+		"month":             batch.Month,
+		"entries_generated": entriesGenerated,
+	})
+	return nil
 }
 
 func (s *Service) UpdatePayrollEntryAmounts(ctx context.Context, entryID int64, input UpdateEntryAmountsInput) (*PayrollEntry, error) {
@@ -168,6 +191,13 @@ func (s *Service) UpdatePayrollEntryAmounts(ctx context.Context, entryID int64, 
 	if updated == nil {
 		return nil, ErrNotFound
 	}
+	s.audit.RecordAuditEvent(ctx, nil, "payroll.entry.update", stringPtr("payroll_entry"), &updated.ID, map[string]any{
+		"batch_id":         updated.BatchID,
+		"employee_id":      updated.EmployeeID,
+		"allowances_total": updated.AllowancesTotal,
+		"deductions_total": updated.DeductionsTotal,
+		"tax_total":        updated.TaxTotal,
+	})
 	return updated, nil
 }
 
@@ -197,6 +227,10 @@ func (s *Service) ApprovePayrollBatch(ctx context.Context, claims *models.Claims
 	if updated == nil {
 		return nil, ErrNotFound
 	}
+	s.audit.RecordAuditEvent(ctx, claimsUserID(claims), "payroll.batch.approve", stringPtr("payroll_batch"), &updated.ID, map[string]any{
+		"month":  updated.Month,
+		"status": updated.Status,
+	})
 	return updated, nil
 }
 
@@ -223,6 +257,10 @@ func (s *Service) LockPayrollBatch(ctx context.Context, batchID int64) (*Payroll
 	if updated == nil {
 		return nil, ErrNotFound
 	}
+	s.audit.RecordAuditEvent(ctx, nil, "payroll.batch.lock", stringPtr("payroll_batch"), &updated.ID, map[string]any{
+		"month":  updated.Month,
+		"status": updated.Status,
+	})
 	return updated, nil
 }
 
@@ -292,4 +330,16 @@ func isAllowedStatus(status string) bool {
 
 func formatMoney(value float64) string {
 	return strconv.FormatFloat(value, 'f', 2, 64)
+}
+
+func claimsUserID(claims *models.Claims) *int64 {
+	if claims == nil || claims.UserID <= 0 {
+		return nil
+	}
+	actor := claims.UserID
+	return &actor
+}
+
+func stringPtr(value string) *string {
+	return &value
 }
