@@ -14,6 +14,7 @@ type Employee struct {
 	NationalID       *string    `db:"national_id" json:"nationalId,omitempty"`
 	Address          *string    `db:"address" json:"address,omitempty"`
 	DepartmentID     *int64     `db:"department_id" json:"departmentId,omitempty"`
+	DepartmentName   *string    `db:"department_name" json:"departmentName,omitempty"`
 	Position         string     `db:"position" json:"position"`
 	EmploymentStatus string     `db:"employment_status" json:"employmentStatus"`
 	DateOfHire       time.Time  `db:"date_of_hire" json:"dateOfHire"`

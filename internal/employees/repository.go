@@ -159,11 +159,12 @@ func (r *SQLXRepository) Delete(ctx context.Context, id int64) (bool, error) {
 
 func (r *SQLXRepository) GetByID(ctx context.Context, id int64) (*Employee, error) {
 	query := `
-        SELECT id, first_name, last_name, other_name, gender, dob, phone, email, national_id,
-            address, department_id, position, employment_status, date_of_hire,
-            base_salary_amount, created_at, updated_at
-        FROM employees
-        WHERE id = $1
+        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.email, e.national_id,
+            e.address, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
+            e.base_salary_amount, e.created_at, e.updated_at
+        FROM employees e
+        LEFT JOIN departments d ON d.id = e.department_id
+        WHERE e.id = $1
     `
 
 	var employee Employee
@@ -234,12 +235,13 @@ func (r *SQLXRepository) List(ctx context.Context, query ListEmployeesQuery) ([]
 	offsetPlaceholder := addArg(offset)
 
 	listQuery := `
-        SELECT id, first_name, last_name, other_name, gender, dob, phone, email, national_id,
-            address, department_id, position, employment_status, date_of_hire,
-            base_salary_amount, created_at, updated_at
-        FROM employees
-    ` + whereClause + `
-        ORDER BY created_at DESC
+        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.email, e.national_id,
+            e.address, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
+            e.base_salary_amount, e.created_at, e.updated_at
+        FROM employees e
+        LEFT JOIN departments d ON d.id = e.department_id
+    ` + strings.ReplaceAll(whereClause, "first_name", "e.first_name") + `
+        ORDER BY e.created_at DESC
         LIMIT ` + limitPlaceholder + ` OFFSET ` + offsetPlaceholder
 
 	items := make([]Employee, 0)

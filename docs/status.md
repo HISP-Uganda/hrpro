@@ -8,7 +8,7 @@ Last Updated: 2026-02-21
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, and the initial shell are complete. The Employees module is now implemented end-to-end with migration, clean backend layers, Wails bindings, RBAC enforcement, and a production-ready frontend page using MUI DataGrid with CRUD and server-driven listing.
+Phase A foundation, authentication, shell, employees, and departments modules are implemented. Routing remains stable with root redirects, protected routes, and root-level notFound handling. Departments now support backend CRUD with integrity rules and frontend CRUD screens, and Employees now use real department options.
 
 ---
 
@@ -20,29 +20,31 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 
 - `internal/config`: env-driven config loader for DB connection string, JWT secret, token expiry, and initial admin seed variables.
 - `internal/db`: SQLX pool creation + ping validation and golang-migrate runner with embedded migrations.
-- `internal/db/migrations`: users, refresh tokens, audit logs, and employees schema.
-- `internal/repositories`: SQLX repositories for users and refresh token persistence.
-- `internal/services`: token service (JWT issue/validate), auth service (login/logout/get-me), initial admin seed.
-- `internal/employees`: SQLX repository + business service for employee CRUD/list/search/pagination and validation.
-- `internal/handlers`: auth handlers and employees handlers with server-side RBAC enforcement.
-- `internal/middleware`: JWT validation helper + role gate helper (`RequireRoles`).
-- `app.go`: startup bootstrap + Wails bindings for auth and employees APIs.
+- `internal/db/migrations`:
+  - users, refresh tokens, audit logs
+  - employees
+  - departments table + employees FK (`ON DELETE RESTRICT`)
+- `internal/services`: JWT/auth services and admin seeding.
+- `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
+- `internal/departments`: CRUD/list/search with duplicate-name protection and delete-with-employees prevention in service layer.
+- `internal/handlers`: auth, employees, departments bindings with server-side RBAC enforcement.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, and departments.
 
 ## Frontend
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/access-denied`, and placeholder module routes.
-- Auth-aware route guards and root-level `notFoundComponent` are intact.
-- Dashboard shell remains stable with AppBar, Drawer, and placeholders.
-- `/employees` now has:
-  - DataGrid listing from backend
-  - search + status filter + pagination
-  - create/edit/view dialog
-  - delete confirmation
-  - loading/error/success states
-  - query invalidation on mutations
-- Navigation tests now also assert `/employees` route and sidebar entry.
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/access-denied`, and placeholder routes.
+- Auth guards and root `notFoundComponent` remain intact.
+- `/employees`:
+  - DataGrid with CRUD, search, status filter, department filter, pagination
+  - department select integrated in create/edit form
+  - department name shown in listing
+- `/departments`:
+  - DataGrid list with search and pagination
+  - create/edit dialog
+  - delete confirmation with friendly integrity-error snackbar
+- Navigation tests pass and include `/employees` and `/departments` route/sidebar checks.
 
 ---
 
@@ -55,8 +57,8 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Login UI + Dashboard Shell | Completed                                  | TanStack Router auth redirects and full MUI shell with dashboard placeholders completed. |
 | Main Shell                 | Not Started                                | Will expand shell behavior and module-specific UX in later milestones. |
 | Employees Module           | Completed                                  | Employees table + backend CRUD/list + RBAC + frontend DataGrid CRUD/list/search/pagination completed. |
-| Departments Module         | Not Started                                | Next module to implement. |
-| Leave Module               | Not Started                                | Placeholder route only. |
+| Departments Module         | Completed                                  | Departments CRUD with case-insensitive uniqueness, delete-with-employees prevention, and frontend DataGrid CRUD completed. |
+| Leave Module               | Not Started                                | Next planned module. |
 | Payroll Module             | Not Started                                | Placeholder route only. |
 | User Management            | Not Started                                | Placeholder route only. |
 | Audit Logging              | Not Started                                | Minimal table created; operational events pending. |
@@ -68,15 +70,15 @@ Update the `Status` column with the appropriate state and provide short notes in
 
 # 4. In Progress
 
-No active in-progress tasks at milestone close. Employees module implementation and regression checks for navigation are complete.
+No active in-progress work at this milestone close.
 
 ---
 
 # 5. Next Steps
 
-- Implement Departments module (CRUD + assignment integration with employees).
-- Add Department filter integration on Employees page when departments backend is available.
-- Add richer test coverage for employees UI mutation flows.
+- Implement Leave module end-to-end.
+- Expand department assignment UX as other modules mature.
+- Add deeper frontend interaction tests for departments/employees mutations.
 
 ---
 

@@ -11,6 +11,7 @@ import type { AuthStore } from '../auth/authStore'
 import type { AppGateway } from '../types/api'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { DashboardPage } from '../pages/DashboardPage'
+import { DepartmentsPage } from '../pages/DepartmentsPage'
 import { EmployeesPage } from '../pages/EmployeesPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
@@ -58,7 +59,7 @@ const employeesRoute = createRoute({
 const departmentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/departments',
-  component: () => <PlaceholderPage title="Departments" />,
+  component: DepartmentsPage,
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 

@@ -10,6 +10,7 @@ export type Employee = {
   nationalId?: string
   address?: string
   departmentId?: number
+  departmentName?: string
   position: string
   employmentStatus: string
   dateOfHire: string

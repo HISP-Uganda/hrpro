@@ -25,6 +25,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import type { Department } from '../types/departments'
 import type { Employee, UpsertEmployeeInput } from '../types/employees'
 
 type FormState = {
@@ -37,6 +38,7 @@ type FormState = {
   email: string
   nationalId: string
   address: string
+  departmentId: string
   position: string
   employmentStatus: string
   dateOfHire: string
@@ -55,6 +57,7 @@ const initialFormState: FormState = {
   email: '',
   nationalId: '',
   address: '',
+  departmentId: '',
   position: '',
   employmentStatus: 'Active',
   dateOfHire: '',
@@ -72,6 +75,7 @@ function toPayload(state: FormState): UpsertEmployeeInput {
     email: state.email || undefined,
     nationalId: state.nationalId || undefined,
     address: state.address || undefined,
+    departmentId: state.departmentId ? Number(state.departmentId) : undefined,
     position: state.position,
     employmentStatus: state.employmentStatus,
     dateOfHire: state.dateOfHire,
@@ -90,6 +94,7 @@ function employeeToFormState(employee: Employee): FormState {
     email: employee.email ?? '',
     nationalId: employee.nationalId ?? '',
     address: employee.address ?? '',
+    departmentId: employee.departmentId?.toString() ?? '',
     position: employee.position,
     employmentStatus: employee.employmentStatus,
     dateOfHire: employee.dateOfHire.slice(0, 10),
@@ -131,6 +136,7 @@ export function EmployeesPage() {
 
   const [searchInput, setSearchInput] = useState('')
   const [status, setStatus] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
   const [dialogMode, setDialogMode] = useState<DialogMode>('create')
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -141,13 +147,24 @@ export function EmployeesPage() {
   const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
 
   const listQuery = useQuery({
-    queryKey: ['employees', searchInput, status, paginationModel.page, paginationModel.pageSize],
+    queryKey: ['employees', searchInput, status, departmentFilter, paginationModel.page, paginationModel.pageSize],
     queryFn: () =>
       router.options.context.api.listEmployees(accessToken, {
         page: paginationModel.page + 1,
         pageSize: paginationModel.pageSize,
         q: searchInput,
         status: status || undefined,
+        departmentId: departmentFilter ? Number(departmentFilter) : undefined,
+      }),
+    enabled: Boolean(accessToken),
+  })
+
+  const departmentsQuery = useQuery({
+    queryKey: ['departments', 'options'],
+    queryFn: () =>
+      router.options.context.api.listDepartments(accessToken, {
+        page: 1,
+        pageSize: 200,
       }),
     enabled: Boolean(accessToken),
   })
@@ -265,7 +282,7 @@ export function EmployeesPage() {
         headerName: 'Department',
         minWidth: 140,
         flex: 0.8,
-        valueGetter: (params) => (params.row.departmentId ? `#${params.row.departmentId}` : '-'),
+        valueGetter: (params) => params.row.departmentName ?? '-',
       },
       {
         field: 'employmentStatus',
@@ -356,7 +373,22 @@ export function EmployeesPage() {
               <MenuItem value="Terminated">Terminated</MenuItem>
             </Select>
           </FormControl>
-          <TextField label="Department" value="Coming soon" disabled sx={{ minWidth: 180 }} />
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel id="department-filter-label">Department</InputLabel>
+            <Select
+              labelId="department-filter-label"
+              label="Department"
+              value={departmentFilter}
+              onChange={(event) => setDepartmentFilter(event.target.value)}
+            >
+              <MenuItem value="">All</MenuItem>
+              {(departmentsQuery.data?.items ?? []).map((department: Department) => (
+                <MenuItem key={department.id} value={department.id.toString()}>
+                  {department.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
 
         {listQuery.isError ? <Alert severity="error">Failed to load employees</Alert> : null}
@@ -460,6 +492,24 @@ export function EmployeesPage() {
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth disabled={dialogMode === 'view'}>
+                <InputLabel id="employee-department-label">Department</InputLabel>
+                <Select
+                  labelId="employee-department-label"
+                  label="Department"
+                  value={formState.departmentId}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, departmentId: event.target.value }))
+                  }
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {(departmentsQuery.data?.items ?? []).map((department: Department) => (
+                    <MenuItem key={department.id} value={department.id.toString()}>
+                      {department.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <TextField
                 label="Position"
                 value={formState.position}

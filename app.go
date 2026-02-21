@@ -7,6 +7,7 @@ import (
 
 	"hrpro/internal/config"
 	"hrpro/internal/db"
+	"hrpro/internal/departments"
 	"hrpro/internal/employees"
 	"hrpro/internal/handlers"
 	"hrpro/internal/repositories"
@@ -18,10 +19,11 @@ import (
 
 // App struct
 type App struct {
-	ctx              context.Context
-	db               *sqlx.DB
-	authHandler      *handlers.AuthHandler
-	employeesHandler *handlers.EmployeesHandler
+	ctx                context.Context
+	db                 *sqlx.DB
+	authHandler        *handlers.AuthHandler
+	employeesHandler   *handlers.EmployeesHandler
+	departmentsHandler *handlers.DepartmentsHandler
 }
 
 // NewApp creates a new App application struct
@@ -94,6 +96,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	employeesRepo := employees.NewRepository(database)
 	employeesService := employees.NewService(employeesRepo)
 	a.employeesHandler = handlers.NewEmployeesHandler(authService, employeesService)
+	departmentsRepo := departments.NewRepository(database)
+	departmentsService := departments.NewService(departmentsRepo)
+	a.departmentsHandler = handlers.NewDepartmentsHandler(authService, departmentsService)
 	return nil
 }
 
@@ -143,4 +148,34 @@ func (a *App) ListEmployees(request handlers.ListEmployeesRequest) (*handlers.Em
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.employeesHandler.ListEmployees(ctx, request)
+}
+
+func (a *App) CreateDepartment(request handlers.CreateDepartmentRequest) (*departments.Department, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.departmentsHandler.CreateDepartment(ctx, request)
+}
+
+func (a *App) UpdateDepartment(request handlers.UpdateDepartmentRequest) (*departments.Department, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.departmentsHandler.UpdateDepartment(ctx, request)
+}
+
+func (a *App) DeleteDepartment(request handlers.DeleteDepartmentRequest) error {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.departmentsHandler.DeleteDepartment(ctx, request)
+}
+
+func (a *App) GetDepartment(request handlers.GetDepartmentRequest) (*departments.Department, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.departmentsHandler.GetDepartment(ctx, request)
+}
+
+func (a *App) ListDepartments(request handlers.ListDepartmentsRequest) (*handlers.DepartmentListResponse, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.departmentsHandler.ListDepartments(ctx, request)
 }

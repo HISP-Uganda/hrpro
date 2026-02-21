@@ -1,3 +1,64 @@
+export namespace departments {
+	
+	export class Department {
+	    id: number;
+	    name: string;
+	    description?: string;
+	    employeeCount: number;
+	    // Go type: time
+	    createdAt: any;
+	    // Go type: time
+	    updatedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new Department(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.employeeCount = source["employeeCount"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UpsertDepartmentInput {
+	    name: string;
+	    description?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpsertDepartmentInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.description = source["description"];
+	    }
+	}
+
+}
+
 export namespace employees {
 	
 	export class Employee {
@@ -13,6 +74,7 @@ export namespace employees {
 	    nationalId?: string;
 	    address?: string;
 	    departmentId?: number;
+	    departmentName?: string;
 	    position: string;
 	    employmentStatus: string;
 	    // Go type: time
@@ -40,6 +102,7 @@ export namespace employees {
 	        this.nationalId = source["nationalId"];
 	        this.address = source["address"];
 	        this.departmentId = source["departmentId"];
+	        this.departmentName = source["departmentName"];
 	        this.position = source["position"];
 	        this.employmentStatus = source["employmentStatus"];
 	        this.dateOfHire = this.convertValues(source["dateOfHire"], null);
@@ -109,6 +172,38 @@ export namespace employees {
 
 export namespace handlers {
 	
+	export class CreateDepartmentRequest {
+	    accessToken: string;
+	    payload: departments.UpsertDepartmentInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateDepartmentRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.payload = this.convertValues(source["payload"], departments.UpsertDepartmentInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class CreateEmployeeRequest {
 	    accessToken: string;
 	    payload: employees.UpsertEmployeeInput;
@@ -141,6 +236,20 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class DeleteDepartmentRequest {
+	    accessToken: string;
+	    id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeleteDepartmentRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	    }
+	}
 	export class DeleteEmployeeRequest {
 	    accessToken: string;
 	    id: number;
@@ -154,6 +263,42 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.id = source["id"];
 	    }
+	}
+	export class DepartmentListResponse {
+	    items: departments.Department[];
+	    totalCount: number;
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DepartmentListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], departments.Department);
+	        this.totalCount = source["totalCount"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class EmployeeListResponse {
 	    items: employees.Employee[];
@@ -190,6 +335,20 @@ export namespace handlers {
 		    }
 		    return a;
 		}
+	}
+	export class GetDepartmentRequest {
+	    accessToken: string;
+	    id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetDepartmentRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	    }
 	}
 	export class GetEmployeeRequest {
 	    accessToken: string;
@@ -250,6 +409,24 @@ export namespace handlers {
 		    }
 		    return a;
 		}
+	}
+	export class ListDepartmentsRequest {
+	    accessToken: string;
+	    page: number;
+	    pageSize: number;
+	    q: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListDepartmentsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	        this.q = source["q"];
+	    }
 	}
 	export class ListEmployeesRequest {
 	    accessToken: string;
@@ -332,6 +509,40 @@ export namespace handlers {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.refreshToken = source["refreshToken"];
 	    }
+	}
+	export class UpdateDepartmentRequest {
+	    accessToken: string;
+	    id: number;
+	    payload: departments.UpsertDepartmentInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateDepartmentRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	        this.payload = this.convertValues(source["payload"], departments.UpsertDepartmentInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class UpdateEmployeeRequest {
 	    accessToken: string;

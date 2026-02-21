@@ -55,8 +55,10 @@ describe('Router navigation logic', () => {
     expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument()
   })
 
-  it('includes /employees route and sidebar navigation item', () => {
+  it('includes /employees and /departments routes with sidebar navigation items', () => {
     expect(appRoutePaths).toContain('/employees')
+    expect(appRoutePaths).toContain('/departments')
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/departments')
   })
 })
