@@ -10,6 +10,7 @@ import { createBrowserHistory, type RouterHistory } from '@tanstack/history'
 import type { AuthStore } from '../auth/authStore'
 import type { AppGateway } from '../types/api'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
+import { AttendancePage } from '../pages/AttendancePage'
 import { AuditPage } from '../pages/AuditPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DepartmentsPage } from '../pages/DepartmentsPage'
@@ -74,6 +75,13 @@ const leaveRoute = createRoute({
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 
+const attendanceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/attendance',
+  component: AttendancePage,
+  beforeLoad: ({ context }) => requireAuth(context.auth),
+})
+
 const payrollRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/payroll',
@@ -115,6 +123,7 @@ const routeTree = rootRoute.addChildren([
   employeesRoute,
   departmentsRoute,
   leaveRoute,
+  attendanceRoute,
   payrollRoute,
   payrollDetailRoute,
   usersRoute,
@@ -129,6 +138,7 @@ export const appRoutePaths = [
   '/employees',
   '/departments',
   '/leave',
+  '/attendance',
   '/payroll',
   '/payroll/$batchId',
   '/users',

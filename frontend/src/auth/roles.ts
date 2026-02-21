@@ -15,3 +15,12 @@ export function isFinanceOrAdminRole(role: string | null | undefined): boolean {
   const normalized = normalizeRole(role)
   return normalized === 'admin' || normalized === 'finance_officer'
 }
+
+export function isStaffRole(role: string | null | undefined): boolean {
+  return normalizeRole(role) === 'staff'
+}
+
+export function isAttendanceManagerRole(role: string | null | undefined): boolean {
+  const normalized = normalizeRole(role)
+  return normalized === 'admin' || normalized === 'hr_officer'
+}

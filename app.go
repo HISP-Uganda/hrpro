@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"hrpro/internal/attendance"
 	"hrpro/internal/audit"
 	"hrpro/internal/config"
 	"hrpro/internal/dashboard"
@@ -34,6 +35,7 @@ type App struct {
 	usersHandler       *handlers.UsersHandler
 	auditHandler       *handlers.AuditHandler
 	dashboardHandler   *handlers.DashboardHandler
+	attendanceHandler  *handlers.AttendanceHandler
 }
 
 // NewApp creates a new App application struct
@@ -116,6 +118,10 @@ func (a *App) bootstrap(ctx context.Context) error {
 	leaveService := leave.NewService(leaveRepo)
 	leaveService.SetAuditRecorder(auditService)
 	a.leaveHandler = handlers.NewLeaveHandler(authService, leaveService)
+	attendanceRepo := attendance.NewRepository(database)
+	attendanceService := attendance.NewService(attendanceRepo, leaveService)
+	attendanceService.SetAuditRecorder(auditService)
+	a.attendanceHandler = handlers.NewAttendanceHandler(authService, attendanceService)
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
 	payrollService.SetAuditRecorder(auditService)
@@ -399,4 +405,40 @@ func (a *App) GetDashboardSummary(request handlers.GetDashboardSummaryRequest) (
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.dashboardHandler.GetDashboardSummary(ctx, request)
+}
+
+func (a *App) ListAttendanceByDate(request handlers.ListAttendanceByDateRequest) ([]attendance.AttendanceRow, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.ListAttendanceByDate(ctx, request)
+}
+
+func (a *App) UpsertAttendance(request handlers.UpsertAttendanceRequest) (*attendance.AttendanceRecord, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.UpsertAttendance(ctx, request)
+}
+
+func (a *App) GetMyAttendanceRange(request handlers.GetMyAttendanceRangeRequest) ([]attendance.AttendanceRecord, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.GetMyAttendanceRange(ctx, request)
+}
+
+func (a *App) GetLunchSummary(request handlers.GetLunchSummaryRequest) (*attendance.LunchSummary, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.GetLunchSummary(ctx, request)
+}
+
+func (a *App) UpsertLunchVisitors(request handlers.UpsertLunchVisitorsRequest) (*attendance.LunchSummary, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.UpsertLunchVisitors(ctx, request)
+}
+
+func (a *App) PostAbsentToLeave(request handlers.PostAbsentToLeaveRequest) (*attendance.PostAbsentToLeaveResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.attendanceHandler.PostAbsentToLeave(ctx, request)
 }

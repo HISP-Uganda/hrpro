@@ -2,6 +2,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
 import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined'
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined'
+import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined'
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
@@ -29,6 +30,7 @@ export const appShellNavItems = [
   { to: '/employees', label: 'Employees', icon: GroupsOutlinedIcon, adminOnly: false },
   { to: '/departments', label: 'Departments', icon: ApartmentOutlinedIcon, adminOnly: false },
   { to: '/leave', label: 'Leave', icon: EventNoteOutlinedIcon, adminOnly: false },
+  { to: '/attendance', label: 'Attendance', icon: TodayOutlinedIcon, adminOnly: false },
   { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon, adminOnly: false },
   { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon, adminOnly: true },
   { to: '/audit', label: 'Audit Logs', icon: FactCheckOutlinedIcon, adminOnly: true },

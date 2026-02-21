@@ -1,3 +1,159 @@
+export namespace attendance {
+	
+	export class AttendanceRecord {
+	    id: number;
+	    // Go type: time
+	    attendanceDate: any;
+	    employeeId: number;
+	    status: string;
+	    markedByUserId: number;
+	    // Go type: time
+	    markedAt: any;
+	    isLocked: boolean;
+	    lockReason?: string;
+	    // Go type: time
+	    createdAt: any;
+	    // Go type: time
+	    updatedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AttendanceRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.attendanceDate = this.convertValues(source["attendanceDate"], null);
+	        this.employeeId = source["employeeId"];
+	        this.status = source["status"];
+	        this.markedByUserId = source["markedByUserId"];
+	        this.markedAt = this.convertValues(source["markedAt"], null);
+	        this.isLocked = source["isLocked"];
+	        this.lockReason = source["lockReason"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AttendanceRow {
+	    employeeId: number;
+	    employeeName: string;
+	    departmentName?: string;
+	    attendanceId?: number;
+	    status: string;
+	    isLocked: boolean;
+	    canPostToLeave: boolean;
+	    canEdit: boolean;
+	    markedByUserId?: number;
+	    // Go type: time
+	    markedAt?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AttendanceRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.employeeId = source["employeeId"];
+	        this.employeeName = source["employeeName"];
+	        this.departmentName = source["departmentName"];
+	        this.attendanceId = source["attendanceId"];
+	        this.status = source["status"];
+	        this.isLocked = source["isLocked"];
+	        this.canPostToLeave = source["canPostToLeave"];
+	        this.canEdit = source["canEdit"];
+	        this.markedByUserId = source["markedByUserId"];
+	        this.markedAt = this.convertValues(source["markedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class LunchSummary {
+	    attendanceDate: string;
+	    staffPresentCount: number;
+	    staffFieldCount: number;
+	    visitorsCount: number;
+	    totalPlates: number;
+	    plateCostAmount: number;
+	    totalCostAmount: number;
+	    staffContributionAmount: number;
+	    staffContributionTotal: number;
+	    organizationBalance: number;
+	    canEditVisitors: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new LunchSummary(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.attendanceDate = source["attendanceDate"];
+	        this.staffPresentCount = source["staffPresentCount"];
+	        this.staffFieldCount = source["staffFieldCount"];
+	        this.visitorsCount = source["visitorsCount"];
+	        this.totalPlates = source["totalPlates"];
+	        this.plateCostAmount = source["plateCostAmount"];
+	        this.totalCostAmount = source["totalCostAmount"];
+	        this.staffContributionAmount = source["staffContributionAmount"];
+	        this.staffContributionTotal = source["staffContributionTotal"];
+	        this.organizationBalance = source["organizationBalance"];
+	        this.canEditVisitors = source["canEditVisitors"];
+	    }
+	}
+	export class PostAbsentToLeaveResult {
+	    success: boolean;
+	    message: string;
+	    leaveId?: number;
+	    status: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PostAbsentToLeaveResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.success = source["success"];
+	        this.message = source["message"];
+	        this.leaveId = source["leaveId"];
+	        this.status = source["status"];
+	    }
+	}
+
+}
+
 export namespace audit {
 	
 	export class AuditLog {
@@ -59,6 +215,118 @@ export namespace audit {
 	        this.totalCount = source["totalCount"];
 	        this.page = source["page"];
 	        this.pageSize = source["pageSize"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace dashboard {
+	
+	export class AuditEvent {
+	    id: number;
+	    actorUserId?: number;
+	    actorUsername?: string;
+	    action: string;
+	    entityType?: string;
+	    entityId?: number;
+	    // Go type: time
+	    createdAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuditEvent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.actorUserId = source["actorUserId"];
+	        this.actorUsername = source["actorUsername"];
+	        this.action = source["action"];
+	        this.entityType = source["entityType"];
+	        this.entityId = source["entityId"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DepartmentHeadcount {
+	    departmentName: string;
+	    count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DepartmentHeadcount(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.departmentName = source["departmentName"];
+	        this.count = source["count"];
+	    }
+	}
+	export class SummaryDTO {
+	    totalEmployees: number;
+	    activeEmployees: number;
+	    inactiveEmployees: number;
+	    pendingLeaveRequests: number;
+	    approvedLeaveThisMonth: number;
+	    employeesOnLeaveToday: number;
+	    currentPayrollStatus?: string;
+	    currentPayrollTotal?: number;
+	    activeUsers?: number;
+	    employeesPerDepartment: DepartmentHeadcount[];
+	    recentAuditEvents: AuditEvent[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SummaryDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.totalEmployees = source["totalEmployees"];
+	        this.activeEmployees = source["activeEmployees"];
+	        this.inactiveEmployees = source["inactiveEmployees"];
+	        this.pendingLeaveRequests = source["pendingLeaveRequests"];
+	        this.approvedLeaveThisMonth = source["approvedLeaveThisMonth"];
+	        this.employeesOnLeaveToday = source["employeesOnLeaveToday"];
+	        this.currentPayrollStatus = source["currentPayrollStatus"];
+	        this.currentPayrollTotal = source["currentPayrollTotal"];
+	        this.activeUsers = source["activeUsers"];
+	        this.employeesPerDepartment = this.convertValues(source["employeesPerDepartment"], DepartmentHeadcount);
+	        this.recentAuditEvents = this.convertValues(source["recentAuditEvents"], AuditEvent);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -548,6 +816,18 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class GetDashboardSummaryRequest {
+	    accessToken: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetDashboardSummaryRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	    }
+	}
 	export class GetDepartmentRequest {
 	    accessToken: string;
 	    id: number;
@@ -574,6 +854,20 @@ export namespace handlers {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.accessToken = source["accessToken"];
 	        this.id = source["id"];
+	    }
+	}
+	export class GetLunchSummaryRequest {
+	    accessToken: string;
+	    date: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetLunchSummaryRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.date = source["date"];
 	    }
 	}
 	export class UserDTO {
@@ -621,6 +915,22 @@ export namespace handlers {
 		    }
 		    return a;
 		}
+	}
+	export class GetMyAttendanceRangeRequest {
+	    accessToken: string;
+	    startDate: string;
+	    endDate: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetMyAttendanceRangeRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.startDate = source["startDate"];
+	        this.endDate = source["endDate"];
+	    }
 	}
 	export class GetPayrollBatchRequest {
 	    accessToken: string;
@@ -678,6 +988,20 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.employeeId = source["employeeId"];
 	        this.year = source["year"];
+	    }
+	}
+	export class ListAttendanceByDateRequest {
+	    accessToken: string;
+	    date: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListAttendanceByDateRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.date = source["date"];
 	    }
 	}
 	export class ListAuditLogsRequest {
@@ -936,6 +1260,22 @@ export namespace handlers {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.accessToken = source["accessToken"];
 	        this.batchId = source["batchId"];
+	    }
+	}
+	export class PostAbsentToLeaveRequest {
+	    accessToken: string;
+	    date: string;
+	    employeeId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PostAbsentToLeaveRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.date = source["date"];
+	        this.employeeId = source["employeeId"];
 	    }
 	}
 	export class RejectLeaveRequest {
@@ -1204,6 +1544,26 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class UpsertAttendanceRequest {
+	    accessToken: string;
+	    date: string;
+	    employeeId: number;
+	    status: string;
+	    reason?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpsertAttendanceRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.date = source["date"];
+	        this.employeeId = source["employeeId"];
+	        this.status = source["status"];
+	        this.reason = source["reason"];
+	    }
+	}
 	export class UpsertEntitlementRequest {
 	    accessToken: string;
 	    payload: leave.UpsertEntitlementInput;
@@ -1235,6 +1595,22 @@ export namespace handlers {
 		    }
 		    return a;
 		}
+	}
+	export class UpsertLunchVisitorsRequest {
+	    accessToken: string;
+	    date: string;
+	    visitorsCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpsertLunchVisitorsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.date = source["date"];
+	        this.visitorsCount = source["visitorsCount"];
+	    }
 	}
 
 }

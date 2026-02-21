@@ -54,6 +54,10 @@ export function GeneratePayrollEntries(arg1) {
   return window['go']['main']['App']['GeneratePayrollEntries'](arg1);
 }
 
+export function GetDashboardSummary(arg1) {
+  return window['go']['main']['App']['GetDashboardSummary'](arg1);
+}
+
 export function GetDepartment(arg1) {
   return window['go']['main']['App']['GetDepartment'](arg1);
 }
@@ -66,8 +70,16 @@ export function GetLeaveBalance(arg1) {
   return window['go']['main']['App']['GetLeaveBalance'](arg1);
 }
 
+export function GetLunchSummary(arg1) {
+  return window['go']['main']['App']['GetLunchSummary'](arg1);
+}
+
 export function GetMe(arg1) {
   return window['go']['main']['App']['GetMe'](arg1);
+}
+
+export function GetMyAttendanceRange(arg1) {
+  return window['go']['main']['App']['GetMyAttendanceRange'](arg1);
 }
 
 export function GetMyLeaveBalance(arg1) {
@@ -84,6 +96,10 @@ export function GetUser(arg1) {
 
 export function ListAllLeaveRequests(arg1) {
   return window['go']['main']['App']['ListAllLeaveRequests'](arg1);
+}
+
+export function ListAttendanceByDate(arg1) {
+  return window['go']['main']['App']['ListAttendanceByDate'](arg1);
 }
 
 export function ListAuditLogs(arg1) {
@@ -134,6 +150,10 @@ export function Logout(arg1) {
   return window['go']['main']['App']['Logout'](arg1);
 }
 
+export function PostAbsentToLeave(arg1) {
+  return window['go']['main']['App']['PostAbsentToLeave'](arg1);
+}
+
 export function RejectLeave(arg1) {
   return window['go']['main']['App']['RejectLeave'](arg1);
 }
@@ -174,6 +194,14 @@ export function UpdateUser(arg1) {
   return window['go']['main']['App']['UpdateUser'](arg1);
 }
 
+export function UpsertAttendance(arg1) {
+  return window['go']['main']['App']['UpsertAttendance'](arg1);
+}
+
 export function UpsertEntitlement(arg1) {
   return window['go']['main']['App']['UpsertEntitlement'](arg1);
+}
+
+export function UpsertLunchVisitors(arg1) {
+  return window['go']['main']['App']['UpsertLunchVisitors'](arg1);
 }

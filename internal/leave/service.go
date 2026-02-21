@@ -383,6 +383,90 @@ func (s *Service) CancelLeave(ctx context.Context, claims *models.Claims, reques
 	return updated, nil
 }
 
+func (s *Service) CreateSingleDayLeaveFromAttendance(ctx context.Context, claims *models.Claims, employeeID int64, date string) (int64, error) {
+	if claims == nil || employeeID <= 0 {
+		return 0, ErrValidation
+	}
+	if !hasAdminOrHRRole(claims.Role) {
+		return 0, ErrForbidden
+	}
+
+	targetDate, err := ParseISODate(date)
+	if err != nil {
+		return 0, err
+	}
+
+	exists, err := s.repository.EmployeeExists(ctx, employeeID)
+	if err != nil {
+		return 0, err
+	}
+	if !exists {
+		return 0, ErrNotFound
+	}
+
+	leaveTypes, err := s.repository.ListLeaveTypes(ctx, true)
+	if err != nil {
+		return 0, err
+	}
+	if len(leaveTypes) == 0 {
+		return 0, fmt.Errorf("%w: no active leave types configured", ErrValidation)
+	}
+
+	leaveTypeID := leaveTypes[0].ID
+	countsTowardEntitlement := leaveTypes[0].CountsTowardEntitlement
+	for _, item := range leaveTypes {
+		if strings.EqualFold(strings.TrimSpace(item.Name), "annual leave") {
+			leaveTypeID = item.ID
+			countsTowardEntitlement = item.CountsTowardEntitlement
+			break
+		}
+	}
+
+	lockedDates, err := s.repository.ListLockedDatesInRange(ctx, targetDate, targetDate)
+	if err != nil {
+		return 0, err
+	}
+	if hasLockedWorkingDate([]time.Time{targetDate}, lockedDates) {
+		return 0, ErrLockedDateConflict
+	}
+
+	overlap, err := s.repository.ExistsApprovedOverlap(ctx, employeeID, targetDate, targetDate, nil)
+	if err != nil {
+		return 0, err
+	}
+	if overlap {
+		return 0, ErrOverlapApproved
+	}
+
+	if countsTowardEntitlement {
+		balance, err := s.GetLeaveBalance(ctx, employeeID, targetDate.Year())
+		if err != nil {
+			return 0, err
+		}
+		if balance.AvailableDays < 1 {
+			return 0, ErrInsufficientBalance
+		}
+	}
+
+	request, err := s.repository.CreateLeaveRequest(ctx, employeeID, ApplyLeaveInput{
+		LeaveTypeID: leaveTypeID,
+		StartDate:   targetDate.Format("2006-01-02"),
+		EndDate:     targetDate.Format("2006-01-02"),
+		Reason:      stringPtr("Posted from attendance absence"),
+	}, 1)
+	if err != nil {
+		return 0, err
+	}
+
+	now := time.Now().UTC()
+	approved, err := s.repository.UpdateLeaveRequestStatus(ctx, request.ID, StatusApproved, &claims.UserID, &now, request.Reason)
+	if err != nil {
+		return 0, err
+	}
+
+	return approved.ID, nil
+}
+
 func normalizeLeaveTypeInput(input LeaveTypeUpsertInput) (LeaveTypeUpsertInput, error) {
 	name := strings.TrimSpace(input.Name)
 	if name == "" {

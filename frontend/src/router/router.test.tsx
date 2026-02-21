@@ -48,6 +48,20 @@ function createMockApi(): AppGateway {
       recentAuditEvents: [],
     })),
     listUsers: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 10 })),
+    listAttendanceByDate: vi.fn(async () => []),
+    getLunchSummary: vi.fn(async () => ({
+      attendanceDate: '2026-02-21',
+      staffPresentCount: 0,
+      staffFieldCount: 0,
+      visitorsCount: 0,
+      totalPlates: 0,
+      plateCostAmount: 12000,
+      totalCostAmount: 0,
+      staffContributionAmount: 4000,
+      staffContributionTotal: 0,
+      organizationBalance: 0,
+      canEditVisitors: false,
+    })),
   } as unknown as AppGateway
 }
 
@@ -90,6 +104,7 @@ describe('Router navigation logic', () => {
     expect(appRoutePaths).toContain('/employees')
     expect(appRoutePaths).toContain('/departments')
     expect(appRoutePaths).toContain('/leave')
+    expect(appRoutePaths).toContain('/attendance')
     expect(appRoutePaths).toContain('/payroll')
     expect(appRoutePaths).toContain('/payroll/$batchId')
     expect(appRoutePaths).toContain('/users')
@@ -97,6 +112,7 @@ describe('Router navigation logic', () => {
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
     expect(appShellNavItems.map((item) => item.to)).toContain('/departments')
     expect(appShellNavItems.map((item) => item.to)).toContain('/leave')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/attendance')
     expect(appShellNavItems.map((item) => item.to)).toContain('/payroll')
     expect(appShellNavItems.map((item) => item.to)).toContain('/users')
     expect(appShellNavItems.map((item) => item.to)).toContain('/audit')
@@ -151,6 +167,23 @@ describe('Router navigation logic', () => {
     await router.load()
     renderWithQueryClient(<RouterProvider router={router} />, queryClient)
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+  })
+
+  it('"/attendance" renders for authenticated users', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/attendance'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(true, 'viewer'),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: 'Attendance' })).toBeInTheDocument()
   })
 
 })

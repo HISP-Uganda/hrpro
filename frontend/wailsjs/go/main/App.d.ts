@@ -6,6 +6,8 @@ import {payroll} from '../models';
 import {departments} from '../models';
 import {employees} from '../models';
 import {users} from '../models';
+import {dashboard} from '../models';
+import {attendance} from '../models';
 import {audit} from '../models';
 
 export function ApplyLeave(arg1:handlers.ApplyLeaveRequest):Promise<leave.LeaveRequest>;
@@ -34,13 +36,19 @@ export function ExportPayrollBatchCSV(arg1:handlers.PayrollBatchActionRequest):P
 
 export function GeneratePayrollEntries(arg1:handlers.PayrollBatchActionRequest):Promise<void>;
 
+export function GetDashboardSummary(arg1:handlers.GetDashboardSummaryRequest):Promise<dashboard.SummaryDTO>;
+
 export function GetDepartment(arg1:handlers.GetDepartmentRequest):Promise<departments.Department>;
 
 export function GetEmployee(arg1:handlers.GetEmployeeRequest):Promise<employees.Employee>;
 
 export function GetLeaveBalance(arg1:handlers.LeaveBalanceRequest):Promise<leave.LeaveBalance>;
 
+export function GetLunchSummary(arg1:handlers.GetLunchSummaryRequest):Promise<attendance.LunchSummary>;
+
 export function GetMe(arg1:string):Promise<handlers.GetMeResponse>;
+
+export function GetMyAttendanceRange(arg1:handlers.GetMyAttendanceRangeRequest):Promise<Array<attendance.AttendanceRecord>>;
 
 export function GetMyLeaveBalance(arg1:handlers.LeaveBalanceRequest):Promise<leave.LeaveBalance>;
 
@@ -49,6 +57,8 @@ export function GetPayrollBatch(arg1:handlers.GetPayrollBatchRequest):Promise<pa
 export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
 
 export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
+
+export function ListAttendanceByDate(arg1:handlers.ListAttendanceByDateRequest):Promise<Array<attendance.AttendanceRow>>;
 
 export function ListAuditLogs(arg1:handlers.ListAuditLogsRequest):Promise<audit.ListAuditLogsResult>;
 
@@ -74,6 +84,8 @@ export function Login(arg1:handlers.LoginRequest):Promise<handlers.LoginResponse
 
 export function Logout(arg1:handlers.LogoutRequest):Promise<void>;
 
+export function PostAbsentToLeave(arg1:handlers.PostAbsentToLeaveRequest):Promise<attendance.PostAbsentToLeaveResult>;
+
 export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.LeaveRequest>;
 
 export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
@@ -94,4 +106,8 @@ export function UpdatePayrollEntryAmounts(arg1:handlers.UpdatePayrollEntryAmount
 
 export function UpdateUser(arg1:handlers.UpdateUserRequest):Promise<users.User>;
 
+export function UpsertAttendance(arg1:handlers.UpsertAttendanceRequest):Promise<attendance.AttendanceRecord>;
+
 export function UpsertEntitlement(arg1:handlers.UpsertEntitlementRequest):Promise<leave.LeaveEntitlement>;
+
+export function UpsertLunchVisitors(arg1:handlers.UpsertLunchVisitorsRequest):Promise<attendance.LunchSummary>;

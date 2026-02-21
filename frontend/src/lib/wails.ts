@@ -1,6 +1,7 @@
 import type { LoginInput, LoginResult, User } from '../types/auth'
 import type { AppGateway } from '../types/api'
 import type { ListAuditLogsQuery, ListAuditLogsResult } from '../types/audit'
+import type { AttendanceRecord, AttendanceRow, LunchSummary, PostAbsentToLeaveResult } from '../types/attendance'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from '../types/departments'
 import type { DashboardSummary } from '../types/dashboard'
 import type { Employee, ListEmployeesQuery, ListEmployeesResult, UpsertEmployeeInput } from '../types/employees'
@@ -96,6 +97,13 @@ type WailsAppBinding = {
 
   ListAuditLogs: (input: { accessToken: string; page: number; pageSize: number; q?: string }) => Promise<ListAuditLogsResult>
   GetDashboardSummary: (input: { accessToken: string }) => Promise<DashboardSummary>
+
+  ListAttendanceByDate: (input: { accessToken: string; date: string }) => Promise<AttendanceRow[]>
+  UpsertAttendance: (input: { accessToken: string; date: string; employeeId: number; status: string; reason?: string }) => Promise<AttendanceRecord>
+  GetMyAttendanceRange: (input: { accessToken: string; startDate: string; endDate: string }) => Promise<AttendanceRecord[]>
+  GetLunchSummary: (input: { accessToken: string; date: string }) => Promise<LunchSummary>
+  UpsertLunchVisitors: (input: { accessToken: string; date: string; visitorsCount: number }) => Promise<LunchSummary>
+  PostAbsentToLeave: (input: { accessToken: string; date: string; employeeId: number }) => Promise<PostAbsentToLeaveResult>
 }
 
 declare global {
@@ -323,5 +331,35 @@ export class WailsGateway implements AppGateway {
 
   async getDashboardSummary(accessToken: string): Promise<DashboardSummary> {
     return getAppBinding().GetDashboardSummary({ accessToken })
+  }
+
+  async listAttendanceByDate(accessToken: string, date: string): Promise<AttendanceRow[]> {
+    return getAppBinding().ListAttendanceByDate({ accessToken, date })
+  }
+
+  async upsertAttendance(
+    accessToken: string,
+    date: string,
+    employeeId: number,
+    status: string,
+    reason?: string,
+  ): Promise<AttendanceRecord> {
+    return getAppBinding().UpsertAttendance({ accessToken, date, employeeId, status, reason })
+  }
+
+  async getMyAttendanceRange(accessToken: string, startDate: string, endDate: string): Promise<AttendanceRecord[]> {
+    return getAppBinding().GetMyAttendanceRange({ accessToken, startDate, endDate })
+  }
+
+  async getLunchSummary(accessToken: string, date: string): Promise<LunchSummary> {
+    return getAppBinding().GetLunchSummary({ accessToken, date })
+  }
+
+  async upsertLunchVisitors(accessToken: string, date: string, visitorsCount: number): Promise<LunchSummary> {
+    return getAppBinding().UpsertLunchVisitors({ accessToken, date, visitorsCount })
+  }
+
+  async postAbsentToLeave(accessToken: string, date: string, employeeId: number): Promise<PostAbsentToLeaveResult> {
+    return getAppBinding().PostAbsentToLeave({ accessToken, date, employeeId })
   }
 }

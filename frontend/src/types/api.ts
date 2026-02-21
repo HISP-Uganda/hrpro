@@ -1,4 +1,5 @@
 import type { LoginInput, LoginResult, User } from './auth'
+import type { AttendanceRecord, AttendanceRow, LunchSummary, PostAbsentToLeaveResult } from './attendance'
 import type { ListAuditLogsQuery, ListAuditLogsResult } from './audit'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from './departments'
 import type { DashboardSummary } from './dashboard'
@@ -83,4 +84,11 @@ export type AppGateway = {
 
   listAuditLogs: (accessToken: string, query: ListAuditLogsQuery) => Promise<ListAuditLogsResult>
   getDashboardSummary: (accessToken: string) => Promise<DashboardSummary>
+
+  listAttendanceByDate: (accessToken: string, date: string) => Promise<AttendanceRow[]>
+  upsertAttendance: (accessToken: string, date: string, employeeId: number, status: string, reason?: string) => Promise<AttendanceRecord>
+  getMyAttendanceRange: (accessToken: string, startDate: string, endDate: string) => Promise<AttendanceRecord[]>
+  getLunchSummary: (accessToken: string, date: string) => Promise<LunchSummary>
+  upsertLunchVisitors: (accessToken: string, date: string, visitorsCount: number) => Promise<LunchSummary>
+  postAbsentToLeave: (accessToken: string, date: string, employeeId: number) => Promise<PostAbsentToLeaveResult>
 }
