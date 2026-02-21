@@ -22,7 +22,7 @@ import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-ro
 
 const drawerWidth = 260
 
-const navItems = [
+export const appShellNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: DashboardOutlinedIcon },
   { to: '/employees', label: 'Employees', icon: GroupsOutlinedIcon },
   { to: '/departments', label: 'Departments', icon: ApartmentOutlinedIcon },
@@ -100,7 +100,7 @@ export function AppShell({ title, children }: { title: string; children: React.R
           </Typography>
         </Toolbar>
         <List>
-          {navItems.map((item) => {
+          {appShellNavItems.map((item) => {
             const Icon = item.icon
             return (
               <ListItemButton

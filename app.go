@@ -7,6 +7,7 @@ import (
 
 	"hrpro/internal/config"
 	"hrpro/internal/db"
+	"hrpro/internal/employees"
 	"hrpro/internal/handlers"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
@@ -17,9 +18,10 @@ import (
 
 // App struct
 type App struct {
-	ctx         context.Context
-	db          *sqlx.DB
-	authHandler *handlers.AuthHandler
+	ctx              context.Context
+	db               *sqlx.DB
+	authHandler      *handlers.AuthHandler
+	employeesHandler *handlers.EmployeesHandler
 }
 
 // NewApp creates a new App application struct
@@ -89,6 +91,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 
 	a.db = database
 	a.authHandler = handlers.NewAuthHandler(authService)
+	employeesRepo := employees.NewRepository(database)
+	employeesService := employees.NewService(employeesRepo)
+	a.employeesHandler = handlers.NewEmployeesHandler(authService, employeesService)
 	return nil
 }
 
@@ -108,4 +113,34 @@ func (a *App) GetMe(accessToken string) (*handlers.GetMeResponse, error) {
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.authHandler.GetMe(ctx, accessToken)
+}
+
+func (a *App) CreateEmployee(request handlers.CreateEmployeeRequest) (*employees.Employee, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.CreateEmployee(ctx, request)
+}
+
+func (a *App) UpdateEmployee(request handlers.UpdateEmployeeRequest) (*employees.Employee, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.UpdateEmployee(ctx, request)
+}
+
+func (a *App) DeleteEmployee(request handlers.DeleteEmployeeRequest) error {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.DeleteEmployee(ctx, request)
+}
+
+func (a *App) GetEmployee(request handlers.GetEmployeeRequest) (*employees.Employee, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.GetEmployee(ctx, request)
+}
+
+func (a *App) ListEmployees(request handlers.ListEmployeesRequest) (*handlers.EmployeeListResponse, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.ListEmployees(ctx, request)
 }

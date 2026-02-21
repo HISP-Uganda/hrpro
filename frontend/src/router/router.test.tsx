@@ -2,13 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { AuthStore } from '../auth/authStore'
+import { appShellNavItems } from '../components/AppShell'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import {
   getPostLoginRedirectPath,
   resolveDashboardRedirect,
   resolveRootRedirect,
 } from './guards'
-import { rootRoute } from './index'
+import { appRoutePaths, rootRoute } from './index'
 
 function createAuth(isAuthenticated: boolean): AuthStore {
   const auth = new AuthStore()
@@ -52,5 +53,10 @@ describe('Router navigation logic', () => {
 
     render(<NotFoundPage />)
     expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument()
+  })
+
+  it('includes /employees route and sidebar navigation item', () => {
+    expect(appRoutePaths).toContain('/employees')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
   })
 })

@@ -8,7 +8,7 @@ Last Updated: 2026-02-21
 
 # 1. Context Recovery Summary
 
-Phase A foundation is implemented on top of the Wails v2 scaffold. The backend now has configuration loading, SQLX database connectivity, golang-migrate migrations, startup migration execution (non-production), and initial admin seeding. A minimal JWT authentication flow is implemented end-to-end and bound through Wails methods. Frontend routing is now TanStack Router based with auth-aware redirects and a production-ready MUI dashboard shell.
+Phase A foundation, authentication, and the initial shell are complete. The Employees module is now implemented end-to-end with migration, clean backend layers, Wails bindings, RBAC enforcement, and a production-ready frontend page using MUI DataGrid with CRUD and server-driven listing.
 
 ---
 
@@ -16,32 +16,33 @@ Phase A foundation is implemented on top of the Wails v2 scaffold. The backend n
 
 ## Backend
 
-Implemented packages now follow clean layering: `handlers -> services -> repositories -> db`.
+Implemented packages follow clean layering: `handlers -> services -> repositories -> db`.
 
-- `internal/config`: env-driven config loader for DB connection string, JWT secret, access token expiry, refresh token expiry, and initial admin seed variables.
-- `internal/db`: SQLX pool creation + ping validation and golang-migrate runner using embedded migration files.
-- `internal/db/migrations`: added up/down migrations for `users`, `refresh_tokens`, and `audit_logs`.
-- `internal/repositories`: SQLX repositories for users and refresh token persistence (parameterized SQL queries).
-- `internal/services`: token service (JWT issue/validate), auth service (login/logout/get-me), refresh token hashing storage, initial admin seeding with bcrypt.
-- `internal/handlers`: auth binding handlers for `Login`, `Logout`, and `GetMe`.
-- `internal/middleware`: reusable JWT validation + RBAC helper (`RequireRoles`).
-- `app.go` startup now bootstraps config/db/migrations/admin seed and binds auth methods.
+- `internal/config`: env-driven config loader for DB connection string, JWT secret, token expiry, and initial admin seed variables.
+- `internal/db`: SQLX pool creation + ping validation and golang-migrate runner with embedded migrations.
+- `internal/db/migrations`: users, refresh tokens, audit logs, and employees schema.
+- `internal/repositories`: SQLX repositories for users and refresh token persistence.
+- `internal/services`: token service (JWT issue/validate), auth service (login/logout/get-me), initial admin seed.
+- `internal/employees`: SQLX repository + business service for employee CRUD/list/search/pagination and validation.
+- `internal/handlers`: auth handlers and employees handlers with server-side RBAC enforcement.
+- `internal/middleware`: JWT validation helper + role gate helper (`RequireRoles`).
+- `app.go`: startup bootstrap + Wails bindings for auth and employees APIs.
 
 ## Frontend
 
-Frontend stack now uses React + TypeScript + MUI + TanStack Router + TanStack Query.
+Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/access-denied`, placeholders (`/employees`, `/departments`, `/leave`, `/payroll`, `/users`) and root `notFoundComponent`.
-- Auth-aware route rules:
-  - `/` resolves to `/login` or `/dashboard` based on auth state.
-  - Protected routes require authentication.
-- Login UI implemented as centered MUI card with loading state and error snackbar.
-- Dashboard renders within a polished shell:
-  - Top AppBar with app name, username, role, logout.
-  - Permanent Drawer with required navigation entries.
-  - Main content heading and statistic placeholder cards.
-- Theme configured in light mode with consistent spacing and responsive layout.
-- Navigation tests added and passing (`frontend/src/router/router.test.tsx`).
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/access-denied`, and placeholder module routes.
+- Auth-aware route guards and root-level `notFoundComponent` are intact.
+- Dashboard shell remains stable with AppBar, Drawer, and placeholders.
+- `/employees` now has:
+  - DataGrid listing from backend
+  - search + status filter + pagination
+  - create/edit/view dialog
+  - delete confirmation
+  - loading/error/success states
+  - query invalidation on mutations
+- Navigation tests now also assert `/employees` route and sidebar entry.
 
 ---
 
@@ -52,13 +53,13 @@ Frontend stack now uses React + TypeScript + MUI + TanStack Router + TanStack Qu
 | Foundation                  | Completed                                  | Config, SQLX DB layer, migrations, startup migration runner, admin seeding completed. |
 | Authentication              | Completed                                  | Login/logout/get-me with JWT access token + hashed refresh token storage completed. |
 | Login UI + Dashboard Shell | Completed                                  | TanStack Router auth redirects and full MUI shell with dashboard placeholders completed. |
-| Main Shell                 | Not Started                                | Will expand shell behavior and module-specific UX in next milestones. |
-| Employees Module           | Not Started                                | Placeholder route only. |
-| Departments Module         | Not Started                                | Placeholder route only. |
+| Main Shell                 | Not Started                                | Will expand shell behavior and module-specific UX in later milestones. |
+| Employees Module           | Completed                                  | Employees table + backend CRUD/list + RBAC + frontend DataGrid CRUD/list/search/pagination completed. |
+| Departments Module         | Not Started                                | Next module to implement. |
 | Leave Module               | Not Started                                | Placeholder route only. |
 | Payroll Module             | Not Started                                | Placeholder route only. |
 | User Management            | Not Started                                | Placeholder route only. |
-| Audit Logging              | Not Started                                | Minimal table created; functional audit events pending. |
+| Audit Logging              | Not Started                                | Minimal table created; operational events pending. |
 | Hardening Phase            | Not Started                                | Pending validation, monitoring, and production hardening tasks. |
 
 Update the `Status` column with the appropriate state and provide short notes in the `Notes` column to highlight key achievements or outstanding issues.
@@ -67,16 +68,15 @@ Update the `Status` column with the appropriate state and provide short notes in
 
 # 4. In Progress
 
-No active feature work in progress at the end of this milestone. Foundation and authentication baseline are complete, navigation tests are green, and the app builds successfully.
+No active in-progress tasks at milestone close. Employees module implementation and regression checks for navigation are complete.
 
 ---
 
 # 5. Next Steps
 
-- Implement Employees module with CRUD flows and SQLX repositories.
-- Implement Departments module and relationships for employee assignment.
-- Add auth refresh flow and stricter RBAC enforcement per module route/operation.
-- Expand audit logging writes for privileged actions.
+- Implement Departments module (CRUD + assignment integration with employees).
+- Add Department filter integration on Employees page when departments backend is available.
+- Add richer test coverage for employees UI mutation flows.
 
 ---
 

@@ -8,9 +8,10 @@ import {
 import { createBrowserHistory, type RouterHistory } from '@tanstack/history'
 
 import type { AuthStore } from '../auth/authStore'
-import type { AuthGateway } from '../types/auth'
+import type { AppGateway } from '../types/api'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { DashboardPage } from '../pages/DashboardPage'
+import { EmployeesPage } from '../pages/EmployeesPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
@@ -18,7 +19,7 @@ import { redirectFromRoot, redirectIfAuthenticated, requireAuth } from './guards
 
 export type RouterContext = {
   auth: AuthStore
-  api: AuthGateway
+  api: AppGateway
   queryClient: QueryClient
 }
 
@@ -50,7 +51,7 @@ const dashboardRoute = createRoute({
 const employeesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/employees',
-  component: () => <PlaceholderPage title="Employees" />,
+  component: EmployeesPage,
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 
@@ -99,6 +100,18 @@ const routeTree = rootRoute.addChildren([
   usersRoute,
   accessDeniedRoute,
 ])
+
+export const appRoutePaths = [
+  '/',
+  '/login',
+  '/dashboard',
+  '/employees',
+  '/departments',
+  '/leave',
+  '/payroll',
+  '/users',
+  '/access-denied',
+] as const
 
 export function createAppRouter(context: RouterContext, history?: RouterHistory) {
   return createRouter({

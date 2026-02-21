@@ -4,11 +4,11 @@ import { RouterProvider } from '@tanstack/react-router'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 
 import { authStore } from './auth/authStore'
-import { WailsAuthGateway } from './lib/wails'
+import { WailsGateway } from './lib/wails'
 import { createAppRouter } from './router'
 import { appTheme } from './theme'
 
-const authApi = new WailsAuthGateway()
+const appApi = new WailsGateway()
 
 function App() {
   const queryClient = useMemo(() => new QueryClient(), [])
@@ -16,7 +16,7 @@ function App() {
     () =>
       createAppRouter({
         auth: authStore,
-        api: authApi,
+        api: appApi,
         queryClient,
       }),
     [queryClient],
