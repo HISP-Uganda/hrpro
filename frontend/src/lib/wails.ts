@@ -1,5 +1,6 @@
 import type { LoginInput, LoginResult, User } from '../types/auth'
 import type { AppGateway } from '../types/api'
+import type { ListAuditLogsQuery, ListAuditLogsResult } from '../types/audit'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from '../types/departments'
 import type { Employee, ListEmployeesQuery, ListEmployeesResult, UpsertEmployeeInput } from '../types/employees'
 import type {
@@ -91,6 +92,8 @@ type WailsAppBinding = {
   UpdateUser: (input: { accessToken: string; id: number; payload: UpdateUserInput }) => Promise<ManagedUser>
   ResetUserPassword: (input: { accessToken: string; id: number; payload: { newPassword: string } }) => Promise<void>
   SetUserActive: (input: { accessToken: string; id: number; active: boolean }) => Promise<ManagedUser>
+
+  ListAuditLogs: (input: { accessToken: string; page: number; pageSize: number; q?: string }) => Promise<ListAuditLogsResult>
 }
 
 declare global {
@@ -305,5 +308,14 @@ export class WailsGateway implements AppGateway {
 
   async setUserActive(accessToken: string, id: number, active: boolean): Promise<ManagedUser> {
     return getAppBinding().SetUserActive({ accessToken, id, active })
+  }
+
+  async listAuditLogs(accessToken: string, query: ListAuditLogsQuery): Promise<ListAuditLogsResult> {
+    return getAppBinding().ListAuditLogs({
+      accessToken,
+      page: query.page,
+      pageSize: query.pageSize,
+      q: query.q,
+    })
   }
 }

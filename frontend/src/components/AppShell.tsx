@@ -4,6 +4,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined'
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined'
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import {
   AppBar,
@@ -30,6 +31,7 @@ export const appShellNavItems = [
   { to: '/leave', label: 'Leave', icon: EventNoteOutlinedIcon, adminOnly: false },
   { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon, adminOnly: false },
   { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon, adminOnly: true },
+  { to: '/audit', label: 'Audit Logs', icon: FactCheckOutlinedIcon, adminOnly: true },
 ]
 
 export function AppShell({ title, children }: { title: string; children: React.ReactNode }) {

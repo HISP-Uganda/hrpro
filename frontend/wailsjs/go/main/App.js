@@ -86,6 +86,10 @@ export function ListAllLeaveRequests(arg1) {
   return window['go']['main']['App']['ListAllLeaveRequests'](arg1);
 }
 
+export function ListAuditLogs(arg1) {
+  return window['go']['main']['App']['ListAuditLogs'](arg1);
+}
+
 export function ListDepartments(arg1) {
   return window['go']['main']['App']['ListDepartments'](arg1);
 }

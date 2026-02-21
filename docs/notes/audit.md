@@ -111,3 +111,8 @@ Regression reruns:
 
 - `go test ./...` (with local `GOCACHE` override)
 - `frontend` router/navigation tests (`src/router/router.test.tsx`)
+
+Update:
+
+- Sidebar + route guard integration added.
+- Audit logs DataGrid integration added on `/audit` with admin-only listing.

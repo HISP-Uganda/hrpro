@@ -1,3 +1,87 @@
+export namespace audit {
+	
+	export class AuditLog {
+	    id: number;
+	    actorUserId?: number;
+	    action: string;
+	    entityType?: string;
+	    entityId?: number;
+	    metadata: string;
+	    // Go type: time
+	    createdAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuditLog(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.actorUserId = source["actorUserId"];
+	        this.action = source["action"];
+	        this.entityType = source["entityType"];
+	        this.entityId = source["entityId"];
+	        this.metadata = source["metadata"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ListAuditLogsResult {
+	    items: AuditLog[];
+	    totalCount: number;
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListAuditLogsResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], AuditLog);
+	        this.totalCount = source["totalCount"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace departments {
 	
 	export class Department {
@@ -594,6 +678,24 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.employeeId = source["employeeId"];
 	        this.year = source["year"];
+	    }
+	}
+	export class ListAuditLogsRequest {
+	    accessToken: string;
+	    page: number;
+	    pageSize: number;
+	    q: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListAuditLogsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	        this.q = source["q"];
 	    }
 	}
 	export class ListDepartmentsRequest {

@@ -38,7 +38,7 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/payroll/:batchId`, `/users`, and `/access-denied`.
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/payroll/:batchId`, `/users`, `/audit`, and `/access-denied`.
 - Auth guards and root `notFoundComponent` remain intact.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
@@ -63,7 +63,10 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - admin-only route guard with non-admin redirect to `/access-denied`
   - DataGrid list/search/server pagination with sticky headers, toolbar, column visibility, and resize support
   - create/edit/reset-password/activate-deactivate dialogs with validation and snackbar feedback
-- Navigation tests pass and include `/users` route and guard checks.
+- `/audit`:
+  - admin-only route guard with non-admin redirect to `/access-denied`
+  - DataGrid list/search/server pagination wired to backend audit logs
+- Navigation tests pass and include `/users` and `/audit` route and guard checks.
 
 ---
 
@@ -80,7 +83,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Leave Module               | Completed                                  | Leave types, entitlements, locked dates, requests lifecycle, server-side rules/RBAC, and `/leave` frontend implemented with tests. |
 | Payroll Module             | Completed                                  | End-to-end payroll lifecycle, transactional generation, RBAC, CSV export, and frontend pages completed. |
 | User Management            | Completed                                  | Admin-only backend + `/users` frontend implemented with validation, RBAC, and tests. |
-| Audit Logging              | Completed                                  | Centralized service-layer recorder with automatic auth/users/leave/payroll events and tests. |
+| Audit Logging              | Completed                                  | Centralized service-layer recorder with automatic auth/users/leave/payroll events and tests. Sidebar integration completed. |
 | Hardening Phase            | Not Started                                | Next planned module. |
 
 ---

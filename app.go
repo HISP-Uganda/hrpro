@@ -31,6 +31,7 @@ type App struct {
 	leaveHandler       *handlers.LeaveHandler
 	payrollHandler     *handlers.PayrollHandler
 	usersHandler       *handlers.UsersHandler
+	auditHandler       *handlers.AuditHandler
 }
 
 // NewApp creates a new App application struct
@@ -121,6 +122,7 @@ func (a *App) bootstrap(ctx context.Context) error {
 	usersService := users.NewService(usersRepo)
 	usersService.SetAuditRecorder(auditService)
 	a.usersHandler = handlers.NewUsersHandler(authService, usersService)
+	a.auditHandler = handlers.NewAuditHandler(authService, auditService)
 	return nil
 }
 
@@ -380,4 +382,10 @@ func (a *App) SetUserActive(request handlers.SetUserActiveRequest) (*users.User,
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.usersHandler.SetUserActive(ctx, request)
+}
+
+func (a *App) ListAuditLogs(request handlers.ListAuditLogsRequest) (*audit.ListAuditLogsResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.auditHandler.ListAuditLogs(ctx, request)
 }

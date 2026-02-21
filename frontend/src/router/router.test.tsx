@@ -59,7 +59,7 @@ describe('Router navigation logic', () => {
     expect(resolveDashboardRedirect(createAuth(true))).toBeNull()
   })
 
-  it('"/users" redirects non-admin to access denied', () => {
+  it('admin-only route guard redirects non-admin to access denied', () => {
     expect(resolveAdminRouteRedirect(createAuth(false))).toBe('/login')
     expect(resolveAdminRouteRedirect(createAuth(true, 'Viewer'))).toBe('/access-denied')
     expect(resolveAdminRouteRedirect(createAuth(true, 'admin'))).toBeNull()
@@ -83,11 +83,13 @@ describe('Router navigation logic', () => {
     expect(appRoutePaths).toContain('/payroll')
     expect(appRoutePaths).toContain('/payroll/$batchId')
     expect(appRoutePaths).toContain('/users')
+    expect(appRoutePaths).toContain('/audit')
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
     expect(appShellNavItems.map((item) => item.to)).toContain('/departments')
     expect(appShellNavItems.map((item) => item.to)).toContain('/leave')
     expect(appShellNavItems.map((item) => item.to)).toContain('/payroll')
     expect(appShellNavItems.map((item) => item.to)).toContain('/users')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/audit')
   })
 
   it('"/users" renders for admin', async () => {
@@ -105,6 +107,23 @@ describe('Router navigation logic', () => {
     await router.load()
     renderWithQueryClient(<RouterProvider router={router} />, queryClient)
     expect(await screen.findByRole('heading', { name: 'Users' })).toBeInTheDocument()
+  })
+
+  it('"/audit" renders for admin', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/audit'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(true, 'admin'),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: 'Audit Logs' })).toBeInTheDocument()
   })
 
 })

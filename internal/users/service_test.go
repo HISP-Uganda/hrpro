@@ -30,6 +30,10 @@ func (f *failingAuditRepository) Insert(_ context.Context, _ audit.CreateAuditLo
 	return errors.New("insert audit failed")
 }
 
+func (f *failingAuditRepository) List(_ context.Context, _ audit.ListAuditLogsQuery) ([]audit.AuditLog, int64, error) {
+	return nil, 0, errors.New("list audit failed")
+}
+
 func (f *fakeRepository) GetByID(_ context.Context, id int64) (*User, error) {
 	return &User{ID: id, Username: "john", Role: "viewer", IsActive: true}, nil
 }

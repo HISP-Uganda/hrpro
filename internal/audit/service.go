@@ -2,6 +2,8 @@ package audit
 
 import (
 	"context"
+	"fmt"
+	"hrpro/internal/models"
 	"log"
 	"strings"
 )
@@ -54,6 +56,34 @@ func (s *Service) RecordAuditEvent(ctx context.Context, actorUserID *int64, acti
 	if err != nil {
 		log.Printf("audit logging failed for action %q: %v", action, err)
 	}
+}
+
+func (s *Service) ListAuditLogs(ctx context.Context, _ *models.Claims, query ListAuditLogsQuery) (*ListAuditLogsResult, error) {
+	if query.Page <= 0 {
+		query.Page = 1
+	}
+	if query.PageSize <= 0 {
+		query.PageSize = 10
+	}
+	if query.PageSize > 100 {
+		query.PageSize = 100
+	}
+
+	if s == nil || s.repository == nil {
+		return nil, fmt.Errorf("audit repository is not configured")
+	}
+
+	items, total, err := s.repository.List(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ListAuditLogsResult{
+		Items:      items,
+		TotalCount: total,
+		Page:       query.Page,
+		PageSize:   query.PageSize,
+	}, nil
 }
 
 func WithActorUserID(ctx context.Context, actorUserID int64) context.Context {

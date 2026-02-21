@@ -6,6 +6,7 @@ import {payroll} from '../models';
 import {departments} from '../models';
 import {employees} from '../models';
 import {users} from '../models';
+import {audit} from '../models';
 
 export function ApplyLeave(arg1:handlers.ApplyLeaveRequest):Promise<leave.LeaveRequest>;
 
@@ -48,6 +49,8 @@ export function GetPayrollBatch(arg1:handlers.GetPayrollBatchRequest):Promise<pa
 export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
 
 export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
+
+export function ListAuditLogs(arg1:handlers.ListAuditLogsRequest):Promise<audit.ListAuditLogsResult>;
 
 export function ListDepartments(arg1:handlers.ListDepartmentsRequest):Promise<handlers.DepartmentListResponse>;
 
