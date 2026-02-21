@@ -55,12 +55,15 @@ describe('Router navigation logic', () => {
     expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument()
   })
 
-  it('includes /employees, /departments, and /leave routes with sidebar navigation items', () => {
+  it('includes core module routes with sidebar navigation items', () => {
     expect(appRoutePaths).toContain('/employees')
     expect(appRoutePaths).toContain('/departments')
     expect(appRoutePaths).toContain('/leave')
+    expect(appRoutePaths).toContain('/payroll')
+    expect(appRoutePaths).toContain('/payroll/$batchId')
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
     expect(appShellNavItems.map((item) => item.to)).toContain('/departments')
     expect(appShellNavItems.map((item) => item.to)).toContain('/leave')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/payroll')
   })
 })

@@ -11,6 +11,7 @@ import (
 	"hrpro/internal/employees"
 	"hrpro/internal/handlers"
 	"hrpro/internal/leave"
+	"hrpro/internal/payroll"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
 
@@ -26,6 +27,7 @@ type App struct {
 	employeesHandler   *handlers.EmployeesHandler
 	departmentsHandler *handlers.DepartmentsHandler
 	leaveHandler       *handlers.LeaveHandler
+	payrollHandler     *handlers.PayrollHandler
 }
 
 // NewApp creates a new App application struct
@@ -104,6 +106,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	leaveRepo := leave.NewRepository(database)
 	leaveService := leave.NewService(leaveRepo)
 	a.leaveHandler = handlers.NewLeaveHandler(authService, leaveService)
+	payrollRepo := payroll.NewRepository(database)
+	payrollService := payroll.NewService(payrollRepo)
+	a.payrollHandler = handlers.NewPayrollHandler(authService, payrollService)
 	return nil
 }
 
@@ -279,4 +284,52 @@ func (a *App) CancelLeave(request handlers.LeaveActionRequest) (*leave.LeaveRequ
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.leaveHandler.CancelLeave(ctx, request)
+}
+
+func (a *App) ListPayrollBatches(request handlers.ListPayrollBatchesRequest) (*payroll.ListBatchesResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.ListPayrollBatches(ctx, request)
+}
+
+func (a *App) CreatePayrollBatch(request handlers.CreatePayrollBatchRequest) (*payroll.PayrollBatch, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.CreatePayrollBatch(ctx, request)
+}
+
+func (a *App) GetPayrollBatch(request handlers.GetPayrollBatchRequest) (*payroll.PayrollBatchDetail, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.GetPayrollBatch(ctx, request)
+}
+
+func (a *App) GeneratePayrollEntries(request handlers.PayrollBatchActionRequest) error {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.GeneratePayrollEntries(ctx, request)
+}
+
+func (a *App) UpdatePayrollEntryAmounts(request handlers.UpdatePayrollEntryAmountsRequest) (*payroll.PayrollEntry, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.UpdatePayrollEntryAmounts(ctx, request)
+}
+
+func (a *App) ApprovePayrollBatch(request handlers.PayrollBatchActionRequest) (*payroll.PayrollBatch, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.ApprovePayrollBatch(ctx, request)
+}
+
+func (a *App) LockPayrollBatch(request handlers.PayrollBatchActionRequest) (*payroll.PayrollBatch, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.LockPayrollBatch(ctx, request)
+}
+
+func (a *App) ExportPayrollBatchCSV(request handlers.PayrollBatchActionRequest) (string, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.payrollHandler.ExportPayrollBatchCSV(ctx, request)
 }

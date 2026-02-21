@@ -12,6 +12,14 @@ import type {
   ListLeaveRequestsFilter,
   UpsertEntitlementInput,
 } from './leave'
+import type {
+  ListPayrollBatchesFilter,
+  ListPayrollBatchesResult,
+  PayrollBatch,
+  PayrollBatchDetail,
+  PayrollEntry,
+  UpdatePayrollEntryAmountsInput,
+} from './payroll'
 
 export type AppGateway = {
   login: (input: LoginInput) => Promise<LoginResult>
@@ -49,4 +57,17 @@ export type AppGateway = {
   approveLeave: (accessToken: string, id: number) => Promise<LeaveRequest>
   rejectLeave: (accessToken: string, id: number, reason?: string) => Promise<LeaveRequest>
   cancelLeave: (accessToken: string, id: number) => Promise<LeaveRequest>
+
+  listPayrollBatches: (accessToken: string, filter: ListPayrollBatchesFilter) => Promise<ListPayrollBatchesResult>
+  createPayrollBatch: (accessToken: string, month: string) => Promise<PayrollBatch>
+  getPayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatchDetail>
+  generatePayrollEntries: (accessToken: string, batchId: number) => Promise<void>
+  updatePayrollEntryAmounts: (
+    accessToken: string,
+    entryId: number,
+    payload: UpdatePayrollEntryAmountsInput,
+  ) => Promise<PayrollEntry>
+  approvePayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
+  lockPayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
+  exportPayrollBatchCSV: (accessToken: string, batchId: number) => Promise<string>
 }

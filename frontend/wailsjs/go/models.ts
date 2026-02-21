@@ -300,6 +300,38 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class CreatePayrollBatchRequest {
+	    accessToken: string;
+	    payload: payroll.CreateBatchInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreatePayrollBatchRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.payload = this.convertValues(source["payload"], payroll.CreateBatchInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class DeleteDepartmentRequest {
 	    accessToken: string;
 	    id: number;
@@ -474,6 +506,20 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class GetPayrollBatchRequest {
+	    accessToken: string;
+	    batchId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetPayrollBatchRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.batchId = source["batchId"];
+	    }
+	}
 	export class LeaveActionRequest {
 	    accessToken: string;
 	    id: number;
@@ -604,6 +650,38 @@ export namespace handlers {
 	        this.year = source["year"];
 	    }
 	}
+	export class ListPayrollBatchesRequest {
+	    accessToken: string;
+	    filter: payroll.ListBatchesFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListPayrollBatchesRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filter = this.convertValues(source["filter"], payroll.ListBatchesFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class LockDateRequest {
 	    accessToken: string;
 	    date: string;
@@ -678,6 +756,20 @@ export namespace handlers {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.refreshToken = source["refreshToken"];
+	    }
+	}
+	export class PayrollBatchActionRequest {
+	    accessToken: string;
+	    batchId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatchActionRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.batchId = source["batchId"];
 	    }
 	}
 	export class RejectLeaveRequest {
@@ -808,6 +900,40 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.id = source["id"];
 	        this.payload = this.convertValues(source["payload"], leave.LeaveTypeUpsertInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UpdatePayrollEntryAmountsRequest {
+	    accessToken: string;
+	    entryId: number;
+	    payload: payroll.UpdateEntryAmountsInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdatePayrollEntryAmountsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.entryId = source["entryId"];
+	        this.payload = this.convertValues(source["payload"], payroll.UpdateEntryAmountsInput);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1160,6 +1286,228 @@ export namespace leave {
 	        this.year = source["year"];
 	        this.totalDays = source["totalDays"];
 	        this.reservedDays = source["reservedDays"];
+	    }
+	}
+
+}
+
+export namespace payroll {
+	
+	export class CreateBatchInput {
+	    month: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateBatchInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.month = source["month"];
+	    }
+	}
+	export class ListBatchesFilter {
+	    month: string;
+	    status: string;
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListBatchesFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.month = source["month"];
+	        this.status = source["status"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	}
+	export class PayrollBatch {
+	    id: number;
+	    month: string;
+	    status: string;
+	    createdBy: number;
+	    // Go type: time
+	    createdAt: any;
+	    approvedBy?: number;
+	    // Go type: time
+	    approvedAt?: any;
+	    // Go type: time
+	    lockedAt?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatch(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.month = source["month"];
+	        this.status = source["status"];
+	        this.createdBy = source["createdBy"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.approvedBy = source["approvedBy"];
+	        this.approvedAt = this.convertValues(source["approvedAt"], null);
+	        this.lockedAt = this.convertValues(source["lockedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ListBatchesResult {
+	    items: PayrollBatch[];
+	    totalCount: number;
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListBatchesResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], PayrollBatch);
+	        this.totalCount = source["totalCount"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class PayrollEntry {
+	    id: number;
+	    batchId: number;
+	    employeeId: number;
+	    employeeName: string;
+	    baseSalary: number;
+	    allowancesTotal: number;
+	    deductionsTotal: number;
+	    taxTotal: number;
+	    grossPay: number;
+	    netPay: number;
+	    // Go type: time
+	    createdAt: any;
+	    // Go type: time
+	    updatedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.batchId = source["batchId"];
+	        this.employeeId = source["employeeId"];
+	        this.employeeName = source["employeeName"];
+	        this.baseSalary = source["baseSalary"];
+	        this.allowancesTotal = source["allowancesTotal"];
+	        this.deductionsTotal = source["deductionsTotal"];
+	        this.taxTotal = source["taxTotal"];
+	        this.grossPay = source["grossPay"];
+	        this.netPay = source["netPay"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PayrollBatchDetail {
+	    batch: PayrollBatch;
+	    entries: PayrollEntry[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatchDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.batch = this.convertValues(source["batch"], PayrollBatch);
+	        this.entries = this.convertValues(source["entries"], PayrollEntry);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class UpdateEntryAmountsInput {
+	    allowancesTotal: number;
+	    deductionsTotal: number;
+	    taxTotal: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateEntryAmountsInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.allowancesTotal = source["allowancesTotal"];
+	        this.deductionsTotal = source["deductionsTotal"];
+	        this.taxTotal = source["taxTotal"];
 	    }
 	}
 

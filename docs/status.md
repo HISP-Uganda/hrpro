@@ -8,7 +8,7 @@ Last Updated: 2026-02-21
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, and leave modules are implemented. Leave now includes schema + migrations, SQLX repository/service/handler layers, server-side RBAC enforcement, leave balance and overlap rules, locked-date enforcement, and a full `/leave` UI with role-aware tabs. Routing remains stable with root redirects, protected routes, and root-level notFound handling; navigation tests continue to pass.
+Phase A foundation, authentication, shell, employees, departments, leave, and payroll modules are implemented. Payroll now includes schema + migrations, SQLX repository/service/handler layers, transactional batch entry generation, server-side gross/net persistence, strict Finance/Admin RBAC, CSV export for approved/locked batches, and full `/payroll` + `/payroll/:batchId` UI flows. Routing remains stable with root redirects, protected routes, and root-level notFound handling; navigation tests continue to pass.
 
 ---
 
@@ -28,14 +28,15 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
 - `internal/departments`: CRUD/list/search with duplicate-name protection and delete-with-employees prevention in service layer.
 - `internal/leave`: leave types, entitlements, locked dates, request lifecycle, pure rules, and typed errors.
-- `internal/handlers`: auth, employees, departments, leave bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, and leave.
+- `internal/payroll`: payroll batches/entries lifecycle, server-side calculations, transactional regenerate strategy (delete + recreate in one transaction), and CSV export.
+- `internal/handlers`: auth, employees, departments, leave, payroll bindings with server-side RBAC enforcement.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, and payroll.
 
 ## Frontend
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/access-denied`, and placeholder routes.
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/payroll/:batchId`, `/access-denied`, and placeholder routes.
 - Auth guards and root `notFoundComponent` remain intact.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
@@ -49,7 +50,14 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - role-aware tabs for apply, my history, admin queue, and locked dates planner
   - server-connected apply/approve/reject/cancel actions
   - balance summary cards, status chips, and snackbar feedback
-- Navigation tests pass and include `/employees`, `/departments`, and `/leave` route/sidebar checks.
+- `/payroll`:
+  - server-backed batch listing with MUI DataGrid (toolbar, column visibility, resizing, sticky headers, server pagination)
+  - create batch dialog and filters
+- `/payroll/:batchId`:
+  - batch lifecycle actions (generate/regenerate, approve, lock, export CSV) with confirm dialogs
+  - inline entry editing for draft batches with mutation-backed recalculation persistence
+  - status-aware controls, skeleton loading, and snackbar feedback
+- Navigation tests pass and include payroll route/sidebar checks.
 
 ---
 
@@ -64,8 +72,8 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Employees Module           | Completed                                  | Employees table + backend CRUD/list + RBAC + frontend DataGrid CRUD/list/search/pagination completed. |
 | Departments Module         | Completed                                  | Departments CRUD with case-insensitive uniqueness, delete-with-employees prevention, and frontend DataGrid CRUD completed. |
 | Leave Module               | Completed                                  | Leave types, entitlements, locked dates, requests lifecycle, server-side rules/RBAC, and `/leave` frontend implemented with tests. |
-| Payroll Module             | Not Started                                | Placeholder route only. |
-| User Management            | Not Started                                | Placeholder route only. |
+| Payroll Module             | Completed                                  | End-to-end payroll lifecycle, transactional generation, RBAC, CSV export, and frontend pages completed. |
+| User Management            | Not Started                                | Next planned module. |
 | Audit Logging              | Not Started                                | Minimal table created; operational events pending. |
 | Hardening Phase            | Not Started                                | Pending validation, monitoring, and production hardening tasks. |
 
@@ -73,14 +81,14 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
 # 4. In Progress
 
-No active in-progress work at this milestone close. Next module is Payroll.
+No active in-progress work at this milestone close. Next module is User Management.
 
 ---
 
 # 5. Next Steps
 
-- Implement Payroll module end-to-end.
-- Add deeper UI interaction tests for leave workflows and existing module mutations.
+- Implement User Management module (Admin-only).
+- Expand route and interaction tests for payroll lifecycle mutations.
 
 ---
 

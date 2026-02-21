@@ -16,6 +16,8 @@ import { EmployeesPage } from '../pages/EmployeesPage'
 import { LeavePage } from '../pages/LeavePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { PayrollBatchDetailPage } from '../pages/PayrollBatchDetailPage'
+import { PayrollBatchesPage } from '../pages/PayrollBatchesPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { redirectFromRoot, redirectIfAuthenticated, requireAuth } from './guards'
 
@@ -74,7 +76,14 @@ const leaveRoute = createRoute({
 const payrollRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/payroll',
-  component: () => <PlaceholderPage title="Payroll" />,
+  component: PayrollBatchesPage,
+  beforeLoad: ({ context }) => requireAuth(context.auth),
+})
+
+const payrollDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/payroll/$batchId',
+  component: PayrollBatchDetailPage,
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 
@@ -99,6 +108,7 @@ const routeTree = rootRoute.addChildren([
   departmentsRoute,
   leaveRoute,
   payrollRoute,
+  payrollDetailRoute,
   usersRoute,
   accessDeniedRoute,
 ])
@@ -111,6 +121,7 @@ export const appRoutePaths = [
   '/departments',
   '/leave',
   '/payroll',
+  '/payroll/$batchId',
   '/users',
   '/access-denied',
 ] as const

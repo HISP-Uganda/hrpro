@@ -13,6 +13,14 @@ import type {
   ListLeaveRequestsFilter,
   UpsertEntitlementInput,
 } from '../types/leave'
+import type {
+  ListPayrollBatchesFilter,
+  ListPayrollBatchesResult,
+  PayrollBatch,
+  PayrollBatchDetail,
+  PayrollEntry,
+  UpdatePayrollEntryAmountsInput,
+} from '../types/payroll'
 
 type WailsAppBinding = {
   Login: (input: LoginInput) => Promise<LoginResult>
@@ -62,6 +70,19 @@ type WailsAppBinding = {
   ApproveLeave: (input: { accessToken: string; id: number }) => Promise<LeaveRequest>
   RejectLeave: (input: { accessToken: string; id: number; reason?: string }) => Promise<LeaveRequest>
   CancelLeave: (input: { accessToken: string; id: number }) => Promise<LeaveRequest>
+
+  ListPayrollBatches: (input: { accessToken: string; filter: ListPayrollBatchesFilter }) => Promise<ListPayrollBatchesResult>
+  CreatePayrollBatch: (input: { accessToken: string; payload: { month: string } }) => Promise<PayrollBatch>
+  GetPayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatchDetail>
+  GeneratePayrollEntries: (input: { accessToken: string; batchId: number }) => Promise<void>
+  UpdatePayrollEntryAmounts: (input: {
+    accessToken: string
+    entryId: number
+    payload: UpdatePayrollEntryAmountsInput
+  }) => Promise<PayrollEntry>
+  ApprovePayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
+  LockPayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
+  ExportPayrollBatchCSV: (input: { accessToken: string; batchId: number }) => Promise<string>
 }
 
 declare global {
@@ -211,5 +232,41 @@ export class WailsGateway implements AppGateway {
 
   async cancelLeave(accessToken: string, id: number): Promise<LeaveRequest> {
     return getAppBinding().CancelLeave({ accessToken, id })
+  }
+
+  async listPayrollBatches(accessToken: string, filter: ListPayrollBatchesFilter): Promise<ListPayrollBatchesResult> {
+    return getAppBinding().ListPayrollBatches({ accessToken, filter })
+  }
+
+  async createPayrollBatch(accessToken: string, month: string): Promise<PayrollBatch> {
+    return getAppBinding().CreatePayrollBatch({ accessToken, payload: { month } })
+  }
+
+  async getPayrollBatch(accessToken: string, batchId: number): Promise<PayrollBatchDetail> {
+    return getAppBinding().GetPayrollBatch({ accessToken, batchId })
+  }
+
+  async generatePayrollEntries(accessToken: string, batchId: number): Promise<void> {
+    await getAppBinding().GeneratePayrollEntries({ accessToken, batchId })
+  }
+
+  async updatePayrollEntryAmounts(
+    accessToken: string,
+    entryId: number,
+    payload: UpdatePayrollEntryAmountsInput,
+  ): Promise<PayrollEntry> {
+    return getAppBinding().UpdatePayrollEntryAmounts({ accessToken, entryId, payload })
+  }
+
+  async approvePayrollBatch(accessToken: string, batchId: number): Promise<PayrollBatch> {
+    return getAppBinding().ApprovePayrollBatch({ accessToken, batchId })
+  }
+
+  async lockPayrollBatch(accessToken: string, batchId: number): Promise<PayrollBatch> {
+    return getAppBinding().LockPayrollBatch({ accessToken, batchId })
+  }
+
+  async exportPayrollBatchCSV(accessToken: string, batchId: number): Promise<string> {
+    return getAppBinding().ExportPayrollBatchCSV({ accessToken, batchId })
   }
 }

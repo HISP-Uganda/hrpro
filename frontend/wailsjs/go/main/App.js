@@ -10,6 +10,10 @@ export function ApproveLeave(arg1) {
   return window['go']['main']['App']['ApproveLeave'](arg1);
 }
 
+export function ApprovePayrollBatch(arg1) {
+  return window['go']['main']['App']['ApprovePayrollBatch'](arg1);
+}
+
 export function CancelLeave(arg1) {
   return window['go']['main']['App']['CancelLeave'](arg1);
 }
@@ -26,12 +30,24 @@ export function CreateLeaveType(arg1) {
   return window['go']['main']['App']['CreateLeaveType'](arg1);
 }
 
+export function CreatePayrollBatch(arg1) {
+  return window['go']['main']['App']['CreatePayrollBatch'](arg1);
+}
+
 export function DeleteDepartment(arg1) {
   return window['go']['main']['App']['DeleteDepartment'](arg1);
 }
 
 export function DeleteEmployee(arg1) {
   return window['go']['main']['App']['DeleteEmployee'](arg1);
+}
+
+export function ExportPayrollBatchCSV(arg1) {
+  return window['go']['main']['App']['ExportPayrollBatchCSV'](arg1);
+}
+
+export function GeneratePayrollEntries(arg1) {
+  return window['go']['main']['App']['GeneratePayrollEntries'](arg1);
 }
 
 export function GetDepartment(arg1) {
@@ -52,6 +68,10 @@ export function GetMe(arg1) {
 
 export function GetMyLeaveBalance(arg1) {
   return window['go']['main']['App']['GetMyLeaveBalance'](arg1);
+}
+
+export function GetPayrollBatch(arg1) {
+  return window['go']['main']['App']['GetPayrollBatch'](arg1);
 }
 
 export function ListAllLeaveRequests(arg1) {
@@ -78,8 +98,16 @@ export function ListMyLeaveRequests(arg1) {
   return window['go']['main']['App']['ListMyLeaveRequests'](arg1);
 }
 
+export function ListPayrollBatches(arg1) {
+  return window['go']['main']['App']['ListPayrollBatches'](arg1);
+}
+
 export function LockDate(arg1) {
   return window['go']['main']['App']['LockDate'](arg1);
+}
+
+export function LockPayrollBatch(arg1) {
+  return window['go']['main']['App']['LockPayrollBatch'](arg1);
 }
 
 export function Login(arg1) {
@@ -112,6 +140,10 @@ export function UpdateEmployee(arg1) {
 
 export function UpdateLeaveType(arg1) {
   return window['go']['main']['App']['UpdateLeaveType'](arg1);
+}
+
+export function UpdatePayrollEntryAmounts(arg1) {
+  return window['go']['main']['App']['UpdatePayrollEntryAmounts'](arg1);
 }
 
 export function UpsertEntitlement(arg1) {

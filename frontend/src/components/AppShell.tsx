@@ -102,12 +102,13 @@ export function AppShell({ title, children }: { title: string; children: React.R
         <List>
           {appShellNavItems.map((item) => {
             const Icon = item.icon
+            const selected = location === item.to || location.startsWith(`${item.to}/`)
             return (
               <ListItemButton
                 key={item.to}
                 component={Link}
                 to={item.to}
-                selected={location === item.to}
+                selected={selected}
                 sx={{ mx: 1, borderRadius: 2 }}
               >
                 <ListItemIcon>
