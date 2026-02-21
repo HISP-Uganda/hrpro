@@ -2,6 +2,7 @@ import type { LoginInput, LoginResult, User } from '../types/auth'
 import type { AppGateway } from '../types/api'
 import type { ListAuditLogsQuery, ListAuditLogsResult } from '../types/audit'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from '../types/departments'
+import type { DashboardSummary } from '../types/dashboard'
 import type { Employee, ListEmployeesQuery, ListEmployeesResult, UpsertEmployeeInput } from '../types/employees'
 import type {
   ApplyLeaveInput,
@@ -94,6 +95,7 @@ type WailsAppBinding = {
   SetUserActive: (input: { accessToken: string; id: number; active: boolean }) => Promise<ManagedUser>
 
   ListAuditLogs: (input: { accessToken: string; page: number; pageSize: number; q?: string }) => Promise<ListAuditLogsResult>
+  GetDashboardSummary: (input: { accessToken: string }) => Promise<DashboardSummary>
 }
 
 declare global {
@@ -317,5 +319,9 @@ export class WailsGateway implements AppGateway {
       pageSize: query.pageSize,
       q: query.q,
     })
+  }
+
+  async getDashboardSummary(accessToken: string): Promise<DashboardSummary> {
+    return getAppBinding().GetDashboardSummary({ accessToken })
   }
 }

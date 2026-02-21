@@ -37,6 +37,16 @@ function createAuth(isAuthenticated: boolean, role = 'Admin'): AuthStore {
 
 function createMockApi(): AppGateway {
   return {
+    getDashboardSummary: vi.fn(async () => ({
+      totalEmployees: 0,
+      activeEmployees: 0,
+      inactiveEmployees: 0,
+      pendingLeaveRequests: 0,
+      approvedLeaveThisMonth: 0,
+      employeesOnLeaveToday: 0,
+      employeesPerDepartment: [],
+      recentAuditEvents: [],
+    })),
     listUsers: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 10 })),
   } as unknown as AppGateway
 }
@@ -124,6 +134,23 @@ describe('Router navigation logic', () => {
     await router.load()
     renderWithQueryClient(<RouterProvider router={router} />, queryClient)
     expect(await screen.findByRole('heading', { name: 'Audit Logs' })).toBeInTheDocument()
+  })
+
+  it('"/dashboard" renders for authenticated users', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/dashboard'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(true, 'viewer'),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
   })
 
 })

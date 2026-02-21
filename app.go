@@ -7,6 +7,7 @@ import (
 
 	"hrpro/internal/audit"
 	"hrpro/internal/config"
+	"hrpro/internal/dashboard"
 	"hrpro/internal/db"
 	"hrpro/internal/departments"
 	"hrpro/internal/employees"
@@ -32,6 +33,7 @@ type App struct {
 	payrollHandler     *handlers.PayrollHandler
 	usersHandler       *handlers.UsersHandler
 	auditHandler       *handlers.AuditHandler
+	dashboardHandler   *handlers.DashboardHandler
 }
 
 // NewApp creates a new App application struct
@@ -123,6 +125,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	usersService.SetAuditRecorder(auditService)
 	a.usersHandler = handlers.NewUsersHandler(authService, usersService)
 	a.auditHandler = handlers.NewAuditHandler(authService, auditService)
+	dashboardRepo := dashboard.NewRepository(database)
+	dashboardService := dashboard.NewService(dashboardRepo)
+	a.dashboardHandler = handlers.NewDashboardHandler(authService, dashboardService)
 	return nil
 }
 
@@ -388,4 +393,10 @@ func (a *App) ListAuditLogs(request handlers.ListAuditLogsRequest) (*audit.ListA
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.auditHandler.ListAuditLogs(ctx, request)
+}
+
+func (a *App) GetDashboardSummary(request handlers.GetDashboardSummaryRequest) (*dashboard.SummaryDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.dashboardHandler.GetDashboardSummary(ctx, request)
 }

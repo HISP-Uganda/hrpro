@@ -1,6 +1,7 @@
 import type { LoginInput, LoginResult, User } from './auth'
 import type { ListAuditLogsQuery, ListAuditLogsResult } from './audit'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from './departments'
+import type { DashboardSummary } from './dashboard'
 import type { Employee, ListEmployeesQuery, ListEmployeesResult, UpsertEmployeeInput } from './employees'
 import type {
   ApplyLeaveInput,
@@ -81,4 +82,5 @@ export type AppGateway = {
   setUserActive: (accessToken: string, id: number, active: boolean) => Promise<ManagedUser>
 
   listAuditLogs: (accessToken: string, query: ListAuditLogsQuery) => Promise<ListAuditLogsResult>
+  getDashboardSummary: (accessToken: string) => Promise<DashboardSummary>
 }
