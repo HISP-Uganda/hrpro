@@ -14,6 +14,7 @@ import (
 	"hrpro/internal/payroll"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
+	"hrpro/internal/users"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -28,6 +29,7 @@ type App struct {
 	departmentsHandler *handlers.DepartmentsHandler
 	leaveHandler       *handlers.LeaveHandler
 	payrollHandler     *handlers.PayrollHandler
+	usersHandler       *handlers.UsersHandler
 }
 
 // NewApp creates a new App application struct
@@ -109,6 +111,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
 	a.payrollHandler = handlers.NewPayrollHandler(authService, payrollService)
+	usersRepo := users.NewRepository(database)
+	usersService := users.NewService(usersRepo)
+	a.usersHandler = handlers.NewUsersHandler(authService, usersService)
 	return nil
 }
 
@@ -332,4 +337,40 @@ func (a *App) ExportPayrollBatchCSV(request handlers.PayrollBatchActionRequest) 
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.payrollHandler.ExportPayrollBatchCSV(ctx, request)
+}
+
+func (a *App) ListUsers(request handlers.ListUsersRequest) (*users.ListUsersResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.ListUsers(ctx, request)
+}
+
+func (a *App) GetUser(request handlers.GetUserRequest) (*users.User, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.GetUser(ctx, request)
+}
+
+func (a *App) CreateUser(request handlers.CreateUserRequest) (*users.User, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.CreateUser(ctx, request)
+}
+
+func (a *App) UpdateUser(request handlers.UpdateUserRequest) (*users.User, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.UpdateUser(ctx, request)
+}
+
+func (a *App) ResetUserPassword(request handlers.ResetUserPasswordRequest) error {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.ResetUserPassword(ctx, request)
+}
+
+func (a *App) SetUserActive(request handlers.SetUserActiveRequest) (*users.User, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.usersHandler.SetUserActive(ctx, request)
 }

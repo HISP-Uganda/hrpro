@@ -34,6 +34,10 @@ export function CreatePayrollBatch(arg1) {
   return window['go']['main']['App']['CreatePayrollBatch'](arg1);
 }
 
+export function CreateUser(arg1) {
+  return window['go']['main']['App']['CreateUser'](arg1);
+}
+
 export function DeleteDepartment(arg1) {
   return window['go']['main']['App']['DeleteDepartment'](arg1);
 }
@@ -74,6 +78,10 @@ export function GetPayrollBatch(arg1) {
   return window['go']['main']['App']['GetPayrollBatch'](arg1);
 }
 
+export function GetUser(arg1) {
+  return window['go']['main']['App']['GetUser'](arg1);
+}
+
 export function ListAllLeaveRequests(arg1) {
   return window['go']['main']['App']['ListAllLeaveRequests'](arg1);
 }
@@ -102,6 +110,10 @@ export function ListPayrollBatches(arg1) {
   return window['go']['main']['App']['ListPayrollBatches'](arg1);
 }
 
+export function ListUsers(arg1) {
+  return window['go']['main']['App']['ListUsers'](arg1);
+}
+
 export function LockDate(arg1) {
   return window['go']['main']['App']['LockDate'](arg1);
 }
@@ -122,8 +134,16 @@ export function RejectLeave(arg1) {
   return window['go']['main']['App']['RejectLeave'](arg1);
 }
 
+export function ResetUserPassword(arg1) {
+  return window['go']['main']['App']['ResetUserPassword'](arg1);
+}
+
 export function SetLeaveTypeActive(arg1) {
   return window['go']['main']['App']['SetLeaveTypeActive'](arg1);
+}
+
+export function SetUserActive(arg1) {
+  return window['go']['main']['App']['SetUserActive'](arg1);
 }
 
 export function UnlockDate(arg1) {
@@ -144,6 +164,10 @@ export function UpdateLeaveType(arg1) {
 
 export function UpdatePayrollEntryAmounts(arg1) {
   return window['go']['main']['App']['UpdatePayrollEntryAmounts'](arg1);
+}
+
+export function UpdateUser(arg1) {
+  return window['go']['main']['App']['UpdateUser'](arg1);
 }
 
 export function UpsertEntitlement(arg1) {

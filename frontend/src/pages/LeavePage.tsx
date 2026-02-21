@@ -24,6 +24,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { isHROrAdminRole } from '../auth/roles'
 import type { ApplyLeaveInput, LeaveRequest } from '../types/leave'
 
 function calculatePreviewWorkingDays(startDate: string, endDate: string): number {
@@ -66,7 +67,7 @@ export function LeavePage() {
   const session = router.options.context.auth.getSnapshot()
   const accessToken = session?.accessToken ?? ''
   const role = session?.user.role ?? ''
-  const isAdminOrHR = role === 'Admin' || role === 'HR Officer'
+  const isAdminOrHR = isHROrAdminRole(role)
 
   const [tab, setTab] = useState(0)
   const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)

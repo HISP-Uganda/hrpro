@@ -5,6 +5,7 @@ import {leave} from '../models';
 import {payroll} from '../models';
 import {departments} from '../models';
 import {employees} from '../models';
+import {users} from '../models';
 
 export function ApplyLeave(arg1:handlers.ApplyLeaveRequest):Promise<leave.LeaveRequest>;
 
@@ -21,6 +22,8 @@ export function CreateEmployee(arg1:handlers.CreateEmployeeRequest):Promise<empl
 export function CreateLeaveType(arg1:handlers.CreateLeaveTypeRequest):Promise<leave.LeaveType>;
 
 export function CreatePayrollBatch(arg1:handlers.CreatePayrollBatchRequest):Promise<payroll.PayrollBatch>;
+
+export function CreateUser(arg1:handlers.CreateUserRequest):Promise<users.User>;
 
 export function DeleteDepartment(arg1:handlers.DeleteDepartmentRequest):Promise<void>;
 
@@ -42,6 +45,8 @@ export function GetMyLeaveBalance(arg1:handlers.LeaveBalanceRequest):Promise<lea
 
 export function GetPayrollBatch(arg1:handlers.GetPayrollBatchRequest):Promise<payroll.PayrollBatchDetail>;
 
+export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
+
 export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
 
 export function ListDepartments(arg1:handlers.ListDepartmentsRequest):Promise<handlers.DepartmentListResponse>;
@@ -56,6 +61,8 @@ export function ListMyLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Prom
 
 export function ListPayrollBatches(arg1:handlers.ListPayrollBatchesRequest):Promise<payroll.ListBatchesResult>;
 
+export function ListUsers(arg1:handlers.ListUsersRequest):Promise<users.ListUsersResult>;
+
 export function LockDate(arg1:handlers.LockDateRequest):Promise<leave.LeaveLockedDate>;
 
 export function LockPayrollBatch(arg1:handlers.PayrollBatchActionRequest):Promise<payroll.PayrollBatch>;
@@ -66,7 +73,11 @@ export function Logout(arg1:handlers.LogoutRequest):Promise<void>;
 
 export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.LeaveRequest>;
 
+export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
+
 export function SetLeaveTypeActive(arg1:handlers.SetLeaveTypeActiveRequest):Promise<leave.LeaveType>;
+
+export function SetUserActive(arg1:handlers.SetUserActiveRequest):Promise<users.User>;
 
 export function UnlockDate(arg1:handlers.UnlockDateRequest):Promise<void>;
 
@@ -77,5 +88,7 @@ export function UpdateEmployee(arg1:handlers.UpdateEmployeeRequest):Promise<empl
 export function UpdateLeaveType(arg1:handlers.UpdateLeaveTypeRequest):Promise<leave.LeaveType>;
 
 export function UpdatePayrollEntryAmounts(arg1:handlers.UpdatePayrollEntryAmountsRequest):Promise<payroll.PayrollEntry>;
+
+export function UpdateUser(arg1:handlers.UpdateUserRequest):Promise<users.User>;
 
 export function UpsertEntitlement(arg1:handlers.UpsertEntitlementRequest):Promise<leave.LeaveEntitlement>;

@@ -19,16 +19,17 @@ import {
   Typography,
 } from '@mui/material'
 import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
+import { isAdminRole } from '../auth/roles'
 
 const drawerWidth = 260
 
 export const appShellNavItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: DashboardOutlinedIcon },
-  { to: '/employees', label: 'Employees', icon: GroupsOutlinedIcon },
-  { to: '/departments', label: 'Departments', icon: ApartmentOutlinedIcon },
-  { to: '/leave', label: 'Leave', icon: EventNoteOutlinedIcon },
-  { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon },
-  { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon },
+  { to: '/dashboard', label: 'Dashboard', icon: DashboardOutlinedIcon, adminOnly: false },
+  { to: '/employees', label: 'Employees', icon: GroupsOutlinedIcon, adminOnly: false },
+  { to: '/departments', label: 'Departments', icon: ApartmentOutlinedIcon, adminOnly: false },
+  { to: '/leave', label: 'Leave', icon: EventNoteOutlinedIcon, adminOnly: false },
+  { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon, adminOnly: false },
+  { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon, adminOnly: true },
 ]
 
 export function AppShell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -39,6 +40,7 @@ export function AppShell({ title, children }: { title: string; children: React.R
   })
 
   const session = router.options.context.auth.getSnapshot()
+  const visibleItems = appShellNavItems.filter((item) => !item.adminOnly || isAdminRole(session?.user.role))
 
   const onLogout = async () => {
     const refreshToken = session?.refreshToken
@@ -100,7 +102,7 @@ export function AppShell({ title, children }: { title: string; children: React.R
           </Typography>
         </Toolbar>
         <List>
-          {appShellNavItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon
             const selected = location === item.to || location.startsWith(`${item.to}/`)
             return (

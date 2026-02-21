@@ -20,6 +20,7 @@ import type {
   PayrollEntry,
   UpdatePayrollEntryAmountsInput,
 } from './payroll'
+import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from './users'
 
 export type AppGateway = {
   login: (input: LoginInput) => Promise<LoginResult>
@@ -70,4 +71,11 @@ export type AppGateway = {
   approvePayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
   lockPayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
   exportPayrollBatchCSV: (accessToken: string, batchId: number) => Promise<string>
+
+  listUsers: (accessToken: string, query: ListUsersQuery) => Promise<ListUsersResult>
+  getUser: (accessToken: string, id: number) => Promise<ManagedUser>
+  createUser: (accessToken: string, payload: CreateUserInput) => Promise<ManagedUser>
+  updateUser: (accessToken: string, id: number, payload: UpdateUserInput) => Promise<ManagedUser>
+  resetUserPassword: (accessToken: string, id: number, newPassword: string) => Promise<void>
+  setUserActive: (accessToken: string, id: number, active: boolean) => Promise<ManagedUser>
 }

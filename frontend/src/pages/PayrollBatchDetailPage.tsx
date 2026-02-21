@@ -18,6 +18,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { isFinanceOrAdminRole } from '../auth/roles'
 import type { PayrollBatchStatus, PayrollEntry } from '../types/payroll'
 
 function formatMoney(value: number): string {
@@ -64,7 +65,7 @@ export function PayrollBatchDetailPage() {
   const session = router.options.context.auth.getSnapshot()
   const accessToken = session?.accessToken ?? ''
   const role = session?.user.role ?? ''
-  const canManagePayroll = role === 'Admin' || role === 'Finance Officer'
+  const canManagePayroll = isFinanceOrAdminRole(role)
 
   const batchId = Number(params.batchId)
   const [confirm, setConfirm] = useState<null | 'generate' | 'approve' | 'lock'>(null)

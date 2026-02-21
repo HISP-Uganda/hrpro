@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"hrpro/internal/middleware"
 	"hrpro/internal/models"
 )
 
@@ -383,5 +384,6 @@ func hasLockedWorkingDate(workingDates []time.Time, lockedDates []time.Time) boo
 }
 
 func hasAdminOrHRRole(role string) bool {
-	return role == "Admin" || role == "HR Officer"
+	normalized := middleware.NormalizeRole(role)
+	return normalized == "admin" || normalized == "hr_officer"
 }

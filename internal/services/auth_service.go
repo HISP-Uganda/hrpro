@@ -92,6 +92,12 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*Lo
 		return nil, err
 	}
 
+	now := time.Now().UTC()
+	if err := s.users.UpdateLastLoginAt(ctx, user.ID, now); err != nil {
+		return nil, err
+	}
+	user.LastLoginAt = &now
+
 	return &LoginResult{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,

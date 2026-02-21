@@ -21,6 +21,7 @@ import type {
   PayrollEntry,
   UpdatePayrollEntryAmountsInput,
 } from '../types/payroll'
+import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from '../types/users'
 
 type WailsAppBinding = {
   Login: (input: LoginInput) => Promise<LoginResult>
@@ -83,6 +84,13 @@ type WailsAppBinding = {
   ApprovePayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
   LockPayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
   ExportPayrollBatchCSV: (input: { accessToken: string; batchId: number }) => Promise<string>
+
+  ListUsers: (input: { accessToken: string; page: number; pageSize: number; q?: string }) => Promise<ListUsersResult>
+  GetUser: (input: { accessToken: string; id: number }) => Promise<ManagedUser>
+  CreateUser: (input: { accessToken: string; payload: CreateUserInput }) => Promise<ManagedUser>
+  UpdateUser: (input: { accessToken: string; id: number; payload: UpdateUserInput }) => Promise<ManagedUser>
+  ResetUserPassword: (input: { accessToken: string; id: number; payload: { newPassword: string } }) => Promise<void>
+  SetUserActive: (input: { accessToken: string; id: number; active: boolean }) => Promise<ManagedUser>
 }
 
 declare global {
@@ -268,5 +276,34 @@ export class WailsGateway implements AppGateway {
 
   async exportPayrollBatchCSV(accessToken: string, batchId: number): Promise<string> {
     return getAppBinding().ExportPayrollBatchCSV({ accessToken, batchId })
+  }
+
+  async listUsers(accessToken: string, query: ListUsersQuery): Promise<ListUsersResult> {
+    return getAppBinding().ListUsers({
+      accessToken,
+      page: query.page,
+      pageSize: query.pageSize,
+      q: query.q,
+    })
+  }
+
+  async getUser(accessToken: string, id: number): Promise<ManagedUser> {
+    return getAppBinding().GetUser({ accessToken, id })
+  }
+
+  async createUser(accessToken: string, payload: CreateUserInput): Promise<ManagedUser> {
+    return getAppBinding().CreateUser({ accessToken, payload })
+  }
+
+  async updateUser(accessToken: string, id: number, payload: UpdateUserInput): Promise<ManagedUser> {
+    return getAppBinding().UpdateUser({ accessToken, id, payload })
+  }
+
+  async resetUserPassword(accessToken: string, id: number, newPassword: string): Promise<void> {
+    await getAppBinding().ResetUserPassword({ accessToken, id, payload: { newPassword } })
+  }
+
+  async setUserActive(accessToken: string, id: number, active: boolean): Promise<ManagedUser> {
+    return getAppBinding().SetUserActive({ accessToken, id, active })
   }
 }

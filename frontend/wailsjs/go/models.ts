@@ -332,6 +332,38 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class CreateUserRequest {
+	    accessToken: string;
+	    payload: users.CreateUserInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateUserRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.payload = this.convertValues(source["payload"], users.CreateUserInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class DeleteDepartmentRequest {
 	    accessToken: string;
 	    id: number;
@@ -520,6 +552,20 @@ export namespace handlers {
 	        this.batchId = source["batchId"];
 	    }
 	}
+	export class GetUserRequest {
+	    accessToken: string;
+	    id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetUserRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	    }
+	}
 	export class LeaveActionRequest {
 	    accessToken: string;
 	    id: number;
@@ -682,6 +728,24 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class ListUsersRequest {
+	    accessToken: string;
+	    page: number;
+	    pageSize: number;
+	    q: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListUsersRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	        this.q = source["q"];
+	    }
+	}
 	export class LockDateRequest {
 	    accessToken: string;
 	    date: string;
@@ -788,6 +852,40 @@ export namespace handlers {
 	        this.reason = source["reason"];
 	    }
 	}
+	export class ResetUserPasswordRequest {
+	    accessToken: string;
+	    id: number;
+	    payload: users.ResetUserPasswordInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResetUserPasswordRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	        this.payload = this.convertValues(source["payload"], users.ResetUserPasswordInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class SetLeaveTypeActiveRequest {
 	    accessToken: string;
 	    id: number;
@@ -795,6 +893,22 @@ export namespace handlers {
 	
 	    static createFrom(source: any = {}) {
 	        return new SetLeaveTypeActiveRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	        this.active = source["active"];
+	    }
+	}
+	export class SetUserActiveRequest {
+	    accessToken: string;
+	    id: number;
+	    active: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new SetUserActiveRequest(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -934,6 +1048,40 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.entryId = source["entryId"];
 	        this.payload = this.convertValues(source["payload"], payroll.UpdateEntryAmountsInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UpdateUserRequest {
+	    accessToken: string;
+	    id: number;
+	    payload: users.UpdateUserInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateUserRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.id = source["id"];
+	        this.payload = this.convertValues(source["payload"], users.UpdateUserInput);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1508,6 +1656,134 @@ export namespace payroll {
 	        this.allowancesTotal = source["allowancesTotal"];
 	        this.deductionsTotal = source["deductionsTotal"];
 	        this.taxTotal = source["taxTotal"];
+	    }
+	}
+
+}
+
+export namespace users {
+	
+	export class CreateUserInput {
+	    username: string;
+	    password: string;
+	    role: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateUserInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.username = source["username"];
+	        this.password = source["password"];
+	        this.role = source["role"];
+	    }
+	}
+	export class User {
+	    id: number;
+	    username: string;
+	    role: string;
+	    isActive: boolean;
+	    // Go type: time
+	    createdAt: any;
+	    // Go type: time
+	    updatedAt: any;
+	    // Go type: time
+	    lastLoginAt?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new User(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.username = source["username"];
+	        this.role = source["role"];
+	        this.isActive = source["isActive"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	        this.lastLoginAt = this.convertValues(source["lastLoginAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ListUsersResult {
+	    items: User[];
+	    totalCount: number;
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListUsersResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], User);
+	        this.totalCount = source["totalCount"];
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ResetUserPasswordInput {
+	    newPassword: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResetUserPasswordInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.newPassword = source["newPassword"];
+	    }
+	}
+	export class UpdateUserInput {
+	    username: string;
+	    role: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateUserInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.username = source["username"];
+	        this.role = source["role"];
 	    }
 	}
 

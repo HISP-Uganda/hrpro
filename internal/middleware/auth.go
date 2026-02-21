@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"hrpro/internal/models"
 )
@@ -23,11 +24,22 @@ func ValidateJWT(validator TokenValidator, accessToken string) (*models.Claims, 
 }
 
 func RequireRoles(claims *models.Claims, allowedRoles ...string) error {
+	if claims == nil {
+		return ErrForbidden
+	}
+
+	current := NormalizeRole(claims.Role)
 	for _, role := range allowedRoles {
-		if claims.Role == role {
+		if current == NormalizeRole(role) {
 			return nil
 		}
 	}
 
 	return ErrForbidden
+}
+
+func NormalizeRole(role string) string {
+	normalized := strings.TrimSpace(strings.ToLower(role))
+	normalized = strings.ReplaceAll(normalized, " ", "_")
+	return normalized
 }

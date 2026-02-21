@@ -26,6 +26,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { isFinanceOrAdminRole } from '../auth/roles'
 import type { PayrollBatch, PayrollBatchStatus } from '../types/payroll'
 
 function statusChipColor(status: PayrollBatchStatus): 'default' | 'warning' | 'success' {
@@ -47,7 +48,7 @@ export function PayrollBatchesPage() {
   const session = router.options.context.auth.getSnapshot()
   const accessToken = session?.accessToken ?? ''
   const role = session?.user.role ?? ''
-  const canManagePayroll = role === 'Admin' || role === 'Finance Officer'
+  const canManagePayroll = isFinanceOrAdminRole(role)
 
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)

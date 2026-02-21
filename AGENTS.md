@@ -12,4 +12,4 @@ Before implementing anything:
 7. All protected operations MUST enforce RBAC server-side.
 8. Payroll operations MUST be transactional.
 9. Update docs/status.md after every milestone.
-10. Do not introduce external frameworks unless specified.
+10. Do not introduce external frameworks unless specified. If one is necessary, prompt for approval to add it

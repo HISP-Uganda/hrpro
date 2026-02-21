@@ -18,8 +18,8 @@ import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PayrollBatchDetailPage } from '../pages/PayrollBatchDetailPage'
 import { PayrollBatchesPage } from '../pages/PayrollBatchesPage'
-import { PlaceholderPage } from '../pages/PlaceholderPage'
-import { redirectFromRoot, redirectIfAuthenticated, requireAuth } from './guards'
+import { UsersPage } from '../pages/UsersPage'
+import { redirectFromRoot, redirectIfAuthenticated, requireAdmin, requireAuth } from './guards'
 
 export type RouterContext = {
   auth: AuthStore
@@ -90,8 +90,8 @@ const payrollDetailRoute = createRoute({
 const usersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/users',
-  component: () => <PlaceholderPage title="Users" />,
-  beforeLoad: ({ context }) => requireAuth(context.auth),
+  component: UsersPage,
+  beforeLoad: ({ context }) => requireAdmin(context.auth),
 })
 
 const accessDeniedRoute = createRoute({

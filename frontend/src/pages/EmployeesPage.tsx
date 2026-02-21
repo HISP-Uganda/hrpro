@@ -25,6 +25,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { isHROrAdminRole } from '../auth/roles'
 import type { Department } from '../types/departments'
 import type { Employee, UpsertEmployeeInput } from '../types/employees'
 
@@ -132,7 +133,7 @@ export function EmployeesPage() {
   const session = router.options.context.auth.getSnapshot()
   const accessToken = session?.accessToken ?? ''
   const role = session?.user.role ?? ''
-  const canWrite = role === 'Admin' || role === 'HR Officer'
+  const canWrite = isHROrAdminRole(role)
 
   const [searchInput, setSearchInput] = useState('')
   const [status, setStatus] = useState('')

@@ -20,6 +20,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { isHROrAdminRole } from '../auth/roles'
 import type { Department, UpsertDepartmentInput } from '../types/departments'
 
 type FormState = {
@@ -44,7 +45,7 @@ export function DepartmentsPage() {
   const session = router.options.context.auth.getSnapshot()
   const accessToken = session?.accessToken ?? ''
   const role = session?.user.role ?? ''
-  const canWrite = role === 'Admin' || role === 'HR Officer'
+  const canWrite = isHROrAdminRole(role)
 
   const [searchInput, setSearchInput] = useState('')
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
