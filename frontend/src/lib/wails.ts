@@ -2,6 +2,17 @@ import type { LoginInput, LoginResult, User } from '../types/auth'
 import type { AppGateway } from '../types/api'
 import type { Department, ListDepartmentsQuery, ListDepartmentsResult, UpsertDepartmentInput } from '../types/departments'
 import type { Employee, ListEmployeesQuery, ListEmployeesResult, UpsertEmployeeInput } from '../types/employees'
+import type {
+  ApplyLeaveInput,
+  LeaveBalance,
+  LeaveEntitlement,
+  LeaveLockedDate,
+  LeaveRequest,
+  LeaveType,
+  LeaveTypeUpsertInput,
+  ListLeaveRequestsFilter,
+  UpsertEntitlementInput,
+} from '../types/leave'
 
 type WailsAppBinding = {
   Login: (input: LoginInput) => Promise<LoginResult>
@@ -31,6 +42,26 @@ type WailsAppBinding = {
     pageSize: number
     q?: string
   }) => Promise<ListDepartmentsResult>
+
+  ListLeaveTypes: (input: { accessToken: string; activeOnly: boolean }) => Promise<LeaveType[]>
+  CreateLeaveType: (input: { accessToken: string; payload: LeaveTypeUpsertInput }) => Promise<LeaveType>
+  UpdateLeaveType: (input: { accessToken: string; id: number; payload: LeaveTypeUpsertInput }) => Promise<LeaveType>
+  SetLeaveTypeActive: (input: { accessToken: string; id: number; active: boolean }) => Promise<LeaveType>
+
+  ListLockedDates: (input: { accessToken: string; year: number }) => Promise<LeaveLockedDate[]>
+  LockDate: (input: { accessToken: string; date: string; reason: string }) => Promise<LeaveLockedDate>
+  UnlockDate: (input: { accessToken: string; date: string }) => Promise<void>
+
+  GetMyLeaveBalance: (input: { accessToken: string; year: number }) => Promise<LeaveBalance>
+  GetLeaveBalance: (input: { accessToken: string; employeeId: number; year: number }) => Promise<LeaveBalance>
+  UpsertEntitlement: (input: { accessToken: string; payload: UpsertEntitlementInput }) => Promise<LeaveEntitlement>
+
+  ApplyLeave: (input: { accessToken: string; payload: ApplyLeaveInput }) => Promise<LeaveRequest>
+  ListMyLeaveRequests: (input: { accessToken: string; filter?: ListLeaveRequestsFilter }) => Promise<LeaveRequest[]>
+  ListAllLeaveRequests: (input: { accessToken: string; filter?: ListLeaveRequestsFilter }) => Promise<LeaveRequest[]>
+  ApproveLeave: (input: { accessToken: string; id: number }) => Promise<LeaveRequest>
+  RejectLeave: (input: { accessToken: string; id: number; reason?: string }) => Promise<LeaveRequest>
+  CancelLeave: (input: { accessToken: string; id: number }) => Promise<LeaveRequest>
 }
 
 declare global {
@@ -116,5 +147,69 @@ export class WailsGateway implements AppGateway {
       pageSize: query.pageSize,
       q: query.q,
     })
+  }
+
+  async listLeaveTypes(accessToken: string, activeOnly: boolean): Promise<LeaveType[]> {
+    return getAppBinding().ListLeaveTypes({ accessToken, activeOnly })
+  }
+
+  async createLeaveType(accessToken: string, payload: LeaveTypeUpsertInput): Promise<LeaveType> {
+    return getAppBinding().CreateLeaveType({ accessToken, payload })
+  }
+
+  async updateLeaveType(accessToken: string, id: number, payload: LeaveTypeUpsertInput): Promise<LeaveType> {
+    return getAppBinding().UpdateLeaveType({ accessToken, id, payload })
+  }
+
+  async setLeaveTypeActive(accessToken: string, id: number, active: boolean): Promise<LeaveType> {
+    return getAppBinding().SetLeaveTypeActive({ accessToken, id, active })
+  }
+
+  async listLockedDates(accessToken: string, year: number): Promise<LeaveLockedDate[]> {
+    return getAppBinding().ListLockedDates({ accessToken, year })
+  }
+
+  async lockDate(accessToken: string, date: string, reason: string): Promise<LeaveLockedDate> {
+    return getAppBinding().LockDate({ accessToken, date, reason })
+  }
+
+  async unlockDate(accessToken: string, date: string): Promise<void> {
+    await getAppBinding().UnlockDate({ accessToken, date })
+  }
+
+  async getMyLeaveBalance(accessToken: string, year: number): Promise<LeaveBalance> {
+    return getAppBinding().GetMyLeaveBalance({ accessToken, year })
+  }
+
+  async getLeaveBalance(accessToken: string, employeeId: number, year: number): Promise<LeaveBalance> {
+    return getAppBinding().GetLeaveBalance({ accessToken, employeeId, year })
+  }
+
+  async upsertEntitlement(accessToken: string, payload: UpsertEntitlementInput): Promise<LeaveEntitlement> {
+    return getAppBinding().UpsertEntitlement({ accessToken, payload })
+  }
+
+  async applyLeave(accessToken: string, payload: ApplyLeaveInput): Promise<LeaveRequest> {
+    return getAppBinding().ApplyLeave({ accessToken, payload })
+  }
+
+  async listMyLeaveRequests(accessToken: string, filter?: ListLeaveRequestsFilter): Promise<LeaveRequest[]> {
+    return getAppBinding().ListMyLeaveRequests({ accessToken, filter })
+  }
+
+  async listAllLeaveRequests(accessToken: string, filter?: ListLeaveRequestsFilter): Promise<LeaveRequest[]> {
+    return getAppBinding().ListAllLeaveRequests({ accessToken, filter })
+  }
+
+  async approveLeave(accessToken: string, id: number): Promise<LeaveRequest> {
+    return getAppBinding().ApproveLeave({ accessToken, id })
+  }
+
+  async rejectLeave(accessToken: string, id: number, reason?: string): Promise<LeaveRequest> {
+    return getAppBinding().RejectLeave({ accessToken, id, reason })
+  }
+
+  async cancelLeave(accessToken: string, id: number): Promise<LeaveRequest> {
+    return getAppBinding().CancelLeave({ accessToken, id })
   }
 }

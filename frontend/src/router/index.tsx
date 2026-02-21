@@ -13,6 +13,7 @@ import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DepartmentsPage } from '../pages/DepartmentsPage'
 import { EmployeesPage } from '../pages/EmployeesPage'
+import { LeavePage } from '../pages/LeavePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
@@ -66,7 +67,7 @@ const departmentsRoute = createRoute({
 const leaveRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/leave',
-  component: () => <PlaceholderPage title="Leave" />,
+  component: LeavePage,
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 

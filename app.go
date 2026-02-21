@@ -10,6 +10,7 @@ import (
 	"hrpro/internal/departments"
 	"hrpro/internal/employees"
 	"hrpro/internal/handlers"
+	"hrpro/internal/leave"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
 
@@ -24,6 +25,7 @@ type App struct {
 	authHandler        *handlers.AuthHandler
 	employeesHandler   *handlers.EmployeesHandler
 	departmentsHandler *handlers.DepartmentsHandler
+	leaveHandler       *handlers.LeaveHandler
 }
 
 // NewApp creates a new App application struct
@@ -99,6 +101,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	departmentsRepo := departments.NewRepository(database)
 	departmentsService := departments.NewService(departmentsRepo)
 	a.departmentsHandler = handlers.NewDepartmentsHandler(authService, departmentsService)
+	leaveRepo := leave.NewRepository(database)
+	leaveService := leave.NewService(leaveRepo)
+	a.leaveHandler = handlers.NewLeaveHandler(authService, leaveService)
 	return nil
 }
 
@@ -178,4 +183,100 @@ func (a *App) ListDepartments(request handlers.ListDepartmentsRequest) (*handler
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.departmentsHandler.ListDepartments(ctx, request)
+}
+
+func (a *App) ListLeaveTypes(request handlers.ListLeaveTypesRequest) ([]leave.LeaveType, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ListLeaveTypes(ctx, request)
+}
+
+func (a *App) CreateLeaveType(request handlers.CreateLeaveTypeRequest) (*leave.LeaveType, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.CreateLeaveType(ctx, request)
+}
+
+func (a *App) UpdateLeaveType(request handlers.UpdateLeaveTypeRequest) (*leave.LeaveType, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.UpdateLeaveType(ctx, request)
+}
+
+func (a *App) SetLeaveTypeActive(request handlers.SetLeaveTypeActiveRequest) (*leave.LeaveType, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.SetLeaveTypeActive(ctx, request)
+}
+
+func (a *App) ListLockedDates(request handlers.ListLockedDatesRequest) ([]leave.LeaveLockedDate, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ListLockedDates(ctx, request)
+}
+
+func (a *App) LockDate(request handlers.LockDateRequest) (*leave.LeaveLockedDate, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.LockDate(ctx, request)
+}
+
+func (a *App) UnlockDate(request handlers.UnlockDateRequest) error {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.UnlockDate(ctx, request)
+}
+
+func (a *App) GetMyLeaveBalance(request handlers.LeaveBalanceRequest) (*leave.LeaveBalance, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.GetMyLeaveBalance(ctx, request)
+}
+
+func (a *App) GetLeaveBalance(request handlers.LeaveBalanceRequest) (*leave.LeaveBalance, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.GetLeaveBalance(ctx, request)
+}
+
+func (a *App) UpsertEntitlement(request handlers.UpsertEntitlementRequest) (*leave.LeaveEntitlement, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.UpsertEntitlement(ctx, request)
+}
+
+func (a *App) ApplyLeave(request handlers.ApplyLeaveRequest) (*leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ApplyLeave(ctx, request)
+}
+
+func (a *App) ListMyLeaveRequests(request handlers.ListLeaveRequestsRequest) ([]leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ListMyLeaveRequests(ctx, request)
+}
+
+func (a *App) ListAllLeaveRequests(request handlers.ListLeaveRequestsRequest) ([]leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ListAllLeaveRequests(ctx, request)
+}
+
+func (a *App) ApproveLeave(request handlers.LeaveActionRequest) (*leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.ApproveLeave(ctx, request)
+}
+
+func (a *App) RejectLeave(request handlers.RejectLeaveRequest) (*leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.RejectLeave(ctx, request)
+}
+
+func (a *App) CancelLeave(request handlers.LeaveActionRequest) (*leave.LeaveRequest, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.leaveHandler.CancelLeave(ctx, request)
 }
