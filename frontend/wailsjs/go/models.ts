@@ -816,6 +816,166 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class ExportAttendanceSummaryReportRequest {
+	    accessToken: string;
+	    filters: reports.AttendanceSummaryFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportAttendanceSummaryReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.AttendanceSummaryFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ExportAuditLogReportRequest {
+	    accessToken: string;
+	    filters: reports.AuditLogFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportAuditLogReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.AuditLogFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ExportEmployeeReportRequest {
+	    accessToken: string;
+	    filters: reports.EmployeeListFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportEmployeeReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.EmployeeListFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ExportLeaveRequestsReportRequest {
+	    accessToken: string;
+	    filters: reports.LeaveRequestsFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportLeaveRequestsReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.LeaveRequestsFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ExportPayrollBatchesReportRequest {
+	    accessToken: string;
+	    filters: reports.PayrollBatchesFilter;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportPayrollBatchesReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.PayrollBatchesFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class GetDashboardSummaryRequest {
 	    accessToken: string;
 	
@@ -1004,6 +1164,74 @@ export namespace handlers {
 	        this.date = source["date"];
 	    }
 	}
+	export class ListAttendanceSummaryReportRequest {
+	    accessToken: string;
+	    filters: reports.AttendanceSummaryFilter;
+	    pager: reports.PagerInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListAttendanceSummaryReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.AttendanceSummaryFilter);
+	        this.pager = this.convertValues(source["pager"], reports.PagerInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ListAuditLogReportRequest {
+	    accessToken: string;
+	    filters: reports.AuditLogFilter;
+	    pager: reports.PagerInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListAuditLogReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.AuditLogFilter);
+	        this.pager = this.convertValues(source["pager"], reports.PagerInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ListAuditLogsRequest {
 	    accessToken: string;
 	    page: number;
@@ -1040,6 +1268,40 @@ export namespace handlers {
 	        this.q = source["q"];
 	    }
 	}
+	export class ListEmployeeReportRequest {
+	    accessToken: string;
+	    filters: reports.EmployeeListFilter;
+	    pager: reports.PagerInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListEmployeeReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.EmployeeListFilter);
+	        this.pager = this.convertValues(source["pager"], reports.PagerInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ListEmployeesRequest {
 	    accessToken: string;
 	    page: number;
@@ -1061,6 +1323,40 @@ export namespace handlers {
 	        this.status = source["status"];
 	        this.departmentId = source["departmentId"];
 	    }
+	}
+	export class ListLeaveRequestsReportRequest {
+	    accessToken: string;
+	    filters: reports.LeaveRequestsFilter;
+	    pager: reports.PagerInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListLeaveRequestsReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.LeaveRequestsFilter);
+	        this.pager = this.convertValues(source["pager"], reports.PagerInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class ListLeaveRequestsRequest {
 	    accessToken: string;
@@ -1121,6 +1417,40 @@ export namespace handlers {
 	        this.accessToken = source["accessToken"];
 	        this.year = source["year"];
 	    }
+	}
+	export class ListPayrollBatchesReportRequest {
+	    accessToken: string;
+	    filters: reports.PayrollBatchesFilter;
+	    pager: reports.PagerInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListPayrollBatchesReportRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filters = this.convertValues(source["filters"], reports.PayrollBatchesFilter);
+	        this.pager = this.convertValues(source["pager"], reports.PagerInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class ListPayrollBatchesRequest {
 	    accessToken: string;
@@ -2135,6 +2465,520 @@ export namespace payroll {
 	        this.deductionsTotal = source["deductionsTotal"];
 	        this.taxTotal = source["taxTotal"];
 	    }
+	}
+
+}
+
+export namespace reports {
+	
+	export class AttendanceSummaryFilter {
+	    dateFrom: string;
+	    dateTo: string;
+	    departmentId?: number;
+	    employeeId?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AttendanceSummaryFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dateFrom = source["dateFrom"];
+	        this.dateTo = source["dateTo"];
+	        this.departmentId = source["departmentId"];
+	        this.employeeId = source["employeeId"];
+	    }
+	}
+	export class Pager {
+	    page: number;
+	    pageSize: number;
+	    totalCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Pager(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	        this.totalCount = source["totalCount"];
+	    }
+	}
+	export class AttendanceSummaryReportRow {
+	    employeeId: number;
+	    employeeName: string;
+	    departmentName: string;
+	    presentCount: number;
+	    lateCount: number;
+	    fieldCount: number;
+	    absentCount: number;
+	    leaveCount: number;
+	    unmarkedCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AttendanceSummaryReportRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.employeeId = source["employeeId"];
+	        this.employeeName = source["employeeName"];
+	        this.departmentName = source["departmentName"];
+	        this.presentCount = source["presentCount"];
+	        this.lateCount = source["lateCount"];
+	        this.fieldCount = source["fieldCount"];
+	        this.absentCount = source["absentCount"];
+	        this.leaveCount = source["leaveCount"];
+	        this.unmarkedCount = source["unmarkedCount"];
+	    }
+	}
+	export class AttendanceSummaryReportListResult {
+	    rows: AttendanceSummaryReportRow[];
+	    pager: Pager;
+	
+	    static createFrom(source: any = {}) {
+	        return new AttendanceSummaryReportListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], AttendanceSummaryReportRow);
+	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class AuditLogFilter {
+	    dateFrom: string;
+	    dateTo: string;
+	    actorUserId?: number;
+	    action: string;
+	    entityType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuditLogFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dateFrom = source["dateFrom"];
+	        this.dateTo = source["dateTo"];
+	        this.actorUserId = source["actorUserId"];
+	        this.action = source["action"];
+	        this.entityType = source["entityType"];
+	    }
+	}
+	export class AuditLogReportRow {
+	    // Go type: time
+	    createdAt: any;
+	    actorUsername: string;
+	    action: string;
+	    entityType: string;
+	    entityId?: number;
+	    metadataJson: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuditLogReportRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.actorUsername = source["actorUsername"];
+	        this.action = source["action"];
+	        this.entityType = source["entityType"];
+	        this.entityId = source["entityId"];
+	        this.metadataJson = source["metadataJson"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AuditLogReportListResult {
+	    rows: AuditLogReportRow[];
+	    pager: Pager;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuditLogReportListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], AuditLogReportRow);
+	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class CSVExport {
+	    filename: string;
+	    data: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CSVExport(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.filename = source["filename"];
+	        this.data = source["data"];
+	    }
+	}
+	export class EmployeeListFilter {
+	    departmentId?: number;
+	    employmentStatus: string;
+	    q: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EmployeeListFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.departmentId = source["departmentId"];
+	        this.employmentStatus = source["employmentStatus"];
+	        this.q = source["q"];
+	    }
+	}
+	export class EmployeeReportRow {
+	    employeeName: string;
+	    departmentName: string;
+	    position: string;
+	    status: string;
+	    // Go type: time
+	    dateOfHire: any;
+	    phone: string;
+	    email: string;
+	    baseSalaryAmount?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EmployeeReportRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.employeeName = source["employeeName"];
+	        this.departmentName = source["departmentName"];
+	        this.position = source["position"];
+	        this.status = source["status"];
+	        this.dateOfHire = this.convertValues(source["dateOfHire"], null);
+	        this.phone = source["phone"];
+	        this.email = source["email"];
+	        this.baseSalaryAmount = source["baseSalaryAmount"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EmployeeReportListResult {
+	    rows: EmployeeReportRow[];
+	    pager: Pager;
+	
+	    static createFrom(source: any = {}) {
+	        return new EmployeeReportListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], EmployeeReportRow);
+	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class LeaveRequestsFilter {
+	    dateFrom: string;
+	    dateTo: string;
+	    departmentId?: number;
+	    employeeId?: number;
+	    leaveTypeId?: number;
+	    status: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LeaveRequestsFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dateFrom = source["dateFrom"];
+	        this.dateTo = source["dateTo"];
+	        this.departmentId = source["departmentId"];
+	        this.employeeId = source["employeeId"];
+	        this.leaveTypeId = source["leaveTypeId"];
+	        this.status = source["status"];
+	    }
+	}
+	export class LeaveRequestsReportRow {
+	    employeeName: string;
+	    departmentName: string;
+	    leaveType: string;
+	    // Go type: time
+	    startDate: any;
+	    // Go type: time
+	    endDate: any;
+	    workingDays: number;
+	    status: string;
+	    approvedBy?: string;
+	    // Go type: time
+	    approvedAt?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new LeaveRequestsReportRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.employeeName = source["employeeName"];
+	        this.departmentName = source["departmentName"];
+	        this.leaveType = source["leaveType"];
+	        this.startDate = this.convertValues(source["startDate"], null);
+	        this.endDate = this.convertValues(source["endDate"], null);
+	        this.workingDays = source["workingDays"];
+	        this.status = source["status"];
+	        this.approvedBy = source["approvedBy"];
+	        this.approvedAt = this.convertValues(source["approvedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class LeaveRequestsReportListResult {
+	    rows: LeaveRequestsReportRow[];
+	    pager: Pager;
+	
+	    static createFrom(source: any = {}) {
+	        return new LeaveRequestsReportListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], LeaveRequestsReportRow);
+	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
+	export class PagerInput {
+	    page: number;
+	    pageSize: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PagerInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.page = source["page"];
+	        this.pageSize = source["pageSize"];
+	    }
+	}
+	export class PayrollBatchesFilter {
+	    monthFrom: string;
+	    monthTo: string;
+	    status: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatchesFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.monthFrom = source["monthFrom"];
+	        this.monthTo = source["monthTo"];
+	        this.status = source["status"];
+	    }
+	}
+	export class PayrollBatchesReportRow {
+	    month: string;
+	    status: string;
+	    // Go type: time
+	    createdAt: any;
+	    // Go type: time
+	    approvedAt?: any;
+	    // Go type: time
+	    lockedAt?: any;
+	    entriesCount: number;
+	    totalNetPay: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatchesReportRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.month = source["month"];
+	        this.status = source["status"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
+	        this.approvedAt = this.convertValues(source["approvedAt"], null);
+	        this.lockedAt = this.convertValues(source["lockedAt"], null);
+	        this.entriesCount = source["entriesCount"];
+	        this.totalNetPay = source["totalNetPay"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PayrollBatchesReportListResult {
+	    rows: PayrollBatchesReportRow[];
+	    pager: Pager;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollBatchesReportListResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], PayrollBatchesReportRow);
+	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

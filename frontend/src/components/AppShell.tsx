@@ -6,6 +6,7 @@ import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined'
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import {
   AppBar,
@@ -21,7 +22,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
-import { isAdminRole } from '../auth/roles'
+import { canAccessAnyReportRole, isAdminRole } from '../auth/roles'
 
 const drawerWidth = 260
 
@@ -32,6 +33,7 @@ export const appShellNavItems = [
   { to: '/leave', label: 'Leave', icon: EventNoteOutlinedIcon, adminOnly: false },
   { to: '/attendance', label: 'Attendance', icon: TodayOutlinedIcon, adminOnly: false },
   { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon, adminOnly: false },
+  { to: '/reports', label: 'Reports', icon: AssessmentOutlinedIcon, adminOnly: false, requiresReportAccess: true },
   { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon, adminOnly: true },
   { to: '/audit', label: 'Audit Logs', icon: FactCheckOutlinedIcon, adminOnly: true },
 ]
@@ -44,7 +46,15 @@ export function AppShell({ title, children }: { title: string; children: React.R
   })
 
   const session = router.options.context.auth.getSnapshot()
-  const visibleItems = appShellNavItems.filter((item) => !item.adminOnly || isAdminRole(session?.user.role))
+  const visibleItems = appShellNavItems.filter((item) => {
+    if (item.adminOnly && !isAdminRole(session?.user.role)) {
+      return false
+    }
+    if (item.requiresReportAccess && !canAccessAnyReportRole(session?.user.role)) {
+      return false
+    }
+    return true
+  })
 
   const onLogout = async () => {
     const refreshToken = session?.refreshToken

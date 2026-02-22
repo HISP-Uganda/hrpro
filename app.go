@@ -15,6 +15,7 @@ import (
 	"hrpro/internal/handlers"
 	"hrpro/internal/leave"
 	"hrpro/internal/payroll"
+	"hrpro/internal/reports"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
 	"hrpro/internal/users"
@@ -36,6 +37,7 @@ type App struct {
 	auditHandler       *handlers.AuditHandler
 	dashboardHandler   *handlers.DashboardHandler
 	attendanceHandler  *handlers.AttendanceHandler
+	reportsHandler     *handlers.ReportsHandler
 }
 
 // NewApp creates a new App application struct
@@ -122,6 +124,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	attendanceService := attendance.NewService(attendanceRepo, leaveService)
 	attendanceService.SetAuditRecorder(auditService)
 	a.attendanceHandler = handlers.NewAttendanceHandler(authService, attendanceService)
+	reportsRepo := reports.NewRepository(database)
+	reportsService := reports.NewService(reportsRepo)
+	a.reportsHandler = handlers.NewReportsHandler(authService, reportsService)
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
 	payrollService.SetAuditRecorder(auditService)
@@ -441,4 +446,64 @@ func (a *App) PostAbsentToLeave(request handlers.PostAbsentToLeaveRequest) (*att
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.attendanceHandler.PostAbsentToLeave(ctx, request)
+}
+
+func (a *App) ListEmployeeReport(request handlers.ListEmployeeReportRequest) (*reports.EmployeeReportListResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.reportsHandler.ListEmployeeReport(ctx, request)
+}
+
+func (a *App) ExportEmployeeReportCSV(request handlers.ExportEmployeeReportRequest) (*reports.CSVExport, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.reportsHandler.ExportEmployeeReportCSV(ctx, request)
+}
+
+func (a *App) ListLeaveRequestsReport(request handlers.ListLeaveRequestsReportRequest) (*reports.LeaveRequestsReportListResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.reportsHandler.ListLeaveRequestsReport(ctx, request)
+}
+
+func (a *App) ExportLeaveRequestsReportCSV(request handlers.ExportLeaveRequestsReportRequest) (*reports.CSVExport, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.reportsHandler.ExportLeaveRequestsReportCSV(ctx, request)
+}
+
+func (a *App) ListAttendanceSummaryReport(request handlers.ListAttendanceSummaryReportRequest) (*reports.AttendanceSummaryReportListResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.reportsHandler.ListAttendanceSummaryReport(ctx, request)
+}
+
+func (a *App) ExportAttendanceSummaryReportCSV(request handlers.ExportAttendanceSummaryReportRequest) (*reports.CSVExport, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.reportsHandler.ExportAttendanceSummaryReportCSV(ctx, request)
+}
+
+func (a *App) ListPayrollBatchesReport(request handlers.ListPayrollBatchesReportRequest) (*reports.PayrollBatchesReportListResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.reportsHandler.ListPayrollBatchesReport(ctx, request)
+}
+
+func (a *App) ExportPayrollBatchesReportCSV(request handlers.ExportPayrollBatchesReportRequest) (*reports.CSVExport, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.reportsHandler.ExportPayrollBatchesReportCSV(ctx, request)
+}
+
+func (a *App) ListAuditLogReport(request handlers.ListAuditLogReportRequest) (*reports.AuditLogReportListResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.reportsHandler.ListAuditLogReport(ctx, request)
+}
+
+func (a *App) ExportAuditLogReportCSV(request handlers.ExportAuditLogReportRequest) (*reports.CSVExport, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.reportsHandler.ExportAuditLogReportCSV(ctx, request)
 }

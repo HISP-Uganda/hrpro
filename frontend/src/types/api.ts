@@ -23,6 +23,20 @@ import type {
   PayrollEntry,
   UpdatePayrollEntryAmountsInput,
 } from './payroll'
+import type {
+  AttendanceSummaryReportFilter,
+  AttendanceSummaryReportResult,
+  AuditLogReportFilter,
+  AuditLogReportResult,
+  CSVExportResult,
+  EmployeeReportFilter,
+  EmployeeReportResult,
+  LeaveRequestsReportFilter,
+  LeaveRequestsReportResult,
+  PagerInput,
+  PayrollBatchesReportFilter,
+  PayrollBatchesReportResult,
+} from './reports'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from './users'
 
 export type AppGateway = {
@@ -91,4 +105,23 @@ export type AppGateway = {
   getLunchSummary: (accessToken: string, date: string) => Promise<LunchSummary>
   upsertLunchVisitors: (accessToken: string, date: string, visitorsCount: number) => Promise<LunchSummary>
   postAbsentToLeave: (accessToken: string, date: string, employeeId: number) => Promise<PostAbsentToLeaveResult>
+
+  listEmployeeReport: (accessToken: string, filters: EmployeeReportFilter, pager: PagerInput) => Promise<EmployeeReportResult>
+  exportEmployeeReportCSV: (accessToken: string, filters: EmployeeReportFilter) => Promise<CSVExportResult>
+
+  listLeaveRequestsReport: (accessToken: string, filters: LeaveRequestsReportFilter, pager: PagerInput) => Promise<LeaveRequestsReportResult>
+  exportLeaveRequestsReportCSV: (accessToken: string, filters: LeaveRequestsReportFilter) => Promise<CSVExportResult>
+
+  listAttendanceSummaryReport: (
+    accessToken: string,
+    filters: AttendanceSummaryReportFilter,
+    pager: PagerInput,
+  ) => Promise<AttendanceSummaryReportResult>
+  exportAttendanceSummaryReportCSV: (accessToken: string, filters: AttendanceSummaryReportFilter) => Promise<CSVExportResult>
+
+  listPayrollBatchesReport: (accessToken: string, filters: PayrollBatchesReportFilter, pager: PagerInput) => Promise<PayrollBatchesReportResult>
+  exportPayrollBatchesReportCSV: (accessToken: string, filters: PayrollBatchesReportFilter) => Promise<CSVExportResult>
+
+  listAuditLogReport: (accessToken: string, filters: AuditLogReportFilter, pager: PagerInput) => Promise<AuditLogReportResult>
+  exportAuditLogReportCSV: (accessToken: string, filters: AuditLogReportFilter) => Promise<CSVExportResult>
 }

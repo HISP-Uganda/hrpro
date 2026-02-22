@@ -2,13 +2,13 @@
 ## Development Status Tracker (Template)
 ## Phase A – Online-First (JWT + SQLX + golang-migrate)
 
-Last Updated: 2026-02-22
+Last Updated: 2026-02-21
 
 ---
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, and daily attendance modules are implemented. Attendance now includes daily register marking with lock semantics, lunch/catering daily calculations, absent-to-leave workflow integration, audit events, and `/attendance` route integration while preserving root redirects, protected routes, and root-level notFound handling.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs.
 
 ---
 
@@ -33,15 +33,15 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/audit`: SQLX audit repository + centralized recorder with context actor extraction and graceful failure handling.
 - `internal/dashboard`: SQLX-backed summary aggregation repository/service with role-aware response shaping and Wails binding integration.
 - `internal/attendance`: daily register + lunch/catering repository/service/rules with SQLX, lock handling, RBAC enforcement, absent-to-leave orchestration, and audit events.
-- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, and dashboard bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, and attendance; shared audit recorder wired into key services.
+- `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
+- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, and reports bindings with server-side RBAC enforcement.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, and reports; shared audit recorder wired into key services.
 
 ## Frontend
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/payroll/:batchId`, `/users`, `/audit`, and `/access-denied`.
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/users`, `/audit`, and `/access-denied`.
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/audit`, and `/access-denied`.
 - Auth guards and root `notFoundComponent` remain intact.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
@@ -77,7 +77,12 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - tabbed daily register + lunch/catering UI
   - role-aware actions (admin/hr mark + post absent to leave, finance/viewer read-only, staff self view)
   - loading skeletons, error snackbars, mutation disable states, and post-confirmation dialog
-- Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, and `/attendance` route checks.
+- `/reports`:
+  - role-aware report tabs (Employees, Leave, Attendance, Payroll, Audit)
+  - filter bar + run action + server paginated MUI DataGrid per report
+  - CSV export mutations with desktop Blob download, filename usage from backend, and snackbar feedback
+  - loading skeletons, empty/error handling, and access-denied mapping on forbidden responses
+- Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
 
@@ -97,20 +102,21 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Audit Logging              | Completed                                  | Centralized service-layer recorder with automatic auth/users/leave/payroll events and tests. Sidebar integration completed. |
 | Dashboard Enhancement      | Completed                                  | Data-driven dashboard summary, role-adaptive visibility, backend aggregation service, and frontend operational cards/table/actions completed. |
 | Daily Attendance           | Completed                                  | Daily register, lock/override flow, lunch/catering totals, absent-to-leave integration, RBAC, audit events, `/attendance` route, and tests completed. |
-| Hardening Phase            | Not Started                                | Next planned module after attendance. |
+| Reports Module (MVP)       | Completed                                  | `/reports` route + sidebar integration, five required reports end-to-end, server-side RBAC, filters/pagination, CSV exports, and tests completed. |
+| Hardening Phase            | Not Started                                | Next planned module after reports milestone. |
 
 ---
 
 # 4. In Progress
 
-No active in-progress work at this milestone close. Next module is Hardening Phase.
+No active in-progress work at this milestone close. Next module is Hardening Phase stabilization.
 
 ---
 
 # 5. Next Steps
 
 - Implement Hardening Phase tasks.
-- Expand integration and resilience testing around attendance + leave orchestration and audit coverage.
+- Add integration/regression coverage for report exports, large-result safeguards, and cross-role access checks.
 
 ---
 

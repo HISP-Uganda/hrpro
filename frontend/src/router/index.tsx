@@ -20,8 +20,9 @@ import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PayrollBatchDetailPage } from '../pages/PayrollBatchDetailPage'
 import { PayrollBatchesPage } from '../pages/PayrollBatchesPage'
+import { ReportsPage } from '../pages/ReportsPage'
 import { UsersPage } from '../pages/UsersPage'
-import { redirectFromRoot, redirectIfAuthenticated, requireAdmin, requireAuth } from './guards'
+import { redirectFromRoot, redirectIfAuthenticated, requireAdmin, requireAuth, requireReportsAccess } from './guards'
 
 export type RouterContext = {
   auth: AuthStore
@@ -96,6 +97,13 @@ const payrollDetailRoute = createRoute({
   beforeLoad: ({ context }) => requireAuth(context.auth),
 })
 
+const reportsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/reports',
+  component: ReportsPage,
+  beforeLoad: ({ context }) => requireReportsAccess(context.auth),
+})
+
 const usersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/users',
@@ -126,6 +134,7 @@ const routeTree = rootRoute.addChildren([
   attendanceRoute,
   payrollRoute,
   payrollDetailRoute,
+  reportsRoute,
   usersRoute,
   auditRoute,
   accessDeniedRoute,
@@ -141,6 +150,7 @@ export const appRoutePaths = [
   '/attendance',
   '/payroll',
   '/payroll/$batchId',
+  '/reports',
   '/users',
   '/audit',
   '/access-denied',

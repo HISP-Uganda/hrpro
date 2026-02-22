@@ -10,6 +10,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import type { AppGateway } from '../types/api'
 import {
   getPostLoginRedirectPath,
+  resolveReportsRouteRedirect,
   resolveAdminRouteRedirect,
   resolveDashboardRedirect,
   resolveRootRedirect,
@@ -48,6 +49,19 @@ function createMockApi(): AppGateway {
       recentAuditEvents: [],
     })),
     listUsers: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 10 })),
+    listDepartments: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 100 })),
+    listEmployees: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 100 })),
+    listLeaveTypes: vi.fn(async () => []),
+    listEmployeeReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
+    exportEmployeeReportCSV: vi.fn(async () => ({ filename: 'employee-list-2026-02-21.csv', data: 'a,b' })),
+    listLeaveRequestsReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
+    exportLeaveRequestsReportCSV: vi.fn(async () => ({ filename: 'leave-requests-2026-02-01_to_2026-02-21.csv', data: 'a,b' })),
+    listAttendanceSummaryReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
+    exportAttendanceSummaryReportCSV: vi.fn(async () => ({ filename: 'attendance-summary-2026-02-01_to_2026-02-21.csv', data: 'a,b' })),
+    listPayrollBatchesReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
+    exportPayrollBatchesReportCSV: vi.fn(async () => ({ filename: 'payroll-batches-2026-02-21.csv', data: 'a,b' })),
+    listAuditLogReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
+    exportAuditLogReportCSV: vi.fn(async () => ({ filename: 'audit-log-2026-02-01_to_2026-02-21.csv', data: 'a,b' })),
     listAttendanceByDate: vi.fn(async () => []),
     getLunchSummary: vi.fn(async () => ({
       attendanceDate: '2026-02-21',
@@ -89,6 +103,12 @@ describe('Router navigation logic', () => {
     expect(resolveAdminRouteRedirect(createAuth(true, 'admin'))).toBeNull()
   })
 
+  it('reports route guard redirects users without report permissions', () => {
+    expect(resolveReportsRouteRedirect(createAuth(false))).toBe('/login')
+    expect(resolveReportsRouteRedirect(createAuth(true, 'Staff'))).toBe('/access-denied')
+    expect(resolveReportsRouteRedirect(createAuth(true, 'viewer'))).toBeNull()
+  })
+
   it('login success redirects to dashboard', () => {
     expect(getPostLoginRedirectPath()).toBe('/dashboard')
   })
@@ -107,6 +127,7 @@ describe('Router navigation logic', () => {
     expect(appRoutePaths).toContain('/attendance')
     expect(appRoutePaths).toContain('/payroll')
     expect(appRoutePaths).toContain('/payroll/$batchId')
+    expect(appRoutePaths).toContain('/reports')
     expect(appRoutePaths).toContain('/users')
     expect(appRoutePaths).toContain('/audit')
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
@@ -114,8 +135,26 @@ describe('Router navigation logic', () => {
     expect(appShellNavItems.map((item) => item.to)).toContain('/leave')
     expect(appShellNavItems.map((item) => item.to)).toContain('/attendance')
     expect(appShellNavItems.map((item) => item.to)).toContain('/payroll')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/reports')
     expect(appShellNavItems.map((item) => item.to)).toContain('/users')
     expect(appShellNavItems.map((item) => item.to)).toContain('/audit')
+  })
+
+  it('"/reports" renders for admin', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/reports'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(true, 'admin'),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument()
   })
 
   it('"/users" renders for admin', async () => {

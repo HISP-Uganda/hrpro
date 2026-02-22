@@ -46,8 +46,28 @@ export function DeleteEmployee(arg1) {
   return window['go']['main']['App']['DeleteEmployee'](arg1);
 }
 
+export function ExportAttendanceSummaryReportCSV(arg1) {
+  return window['go']['main']['App']['ExportAttendanceSummaryReportCSV'](arg1);
+}
+
+export function ExportAuditLogReportCSV(arg1) {
+  return window['go']['main']['App']['ExportAuditLogReportCSV'](arg1);
+}
+
+export function ExportEmployeeReportCSV(arg1) {
+  return window['go']['main']['App']['ExportEmployeeReportCSV'](arg1);
+}
+
+export function ExportLeaveRequestsReportCSV(arg1) {
+  return window['go']['main']['App']['ExportLeaveRequestsReportCSV'](arg1);
+}
+
 export function ExportPayrollBatchCSV(arg1) {
   return window['go']['main']['App']['ExportPayrollBatchCSV'](arg1);
+}
+
+export function ExportPayrollBatchesReportCSV(arg1) {
+  return window['go']['main']['App']['ExportPayrollBatchesReportCSV'](arg1);
 }
 
 export function GeneratePayrollEntries(arg1) {
@@ -102,6 +122,14 @@ export function ListAttendanceByDate(arg1) {
   return window['go']['main']['App']['ListAttendanceByDate'](arg1);
 }
 
+export function ListAttendanceSummaryReport(arg1) {
+  return window['go']['main']['App']['ListAttendanceSummaryReport'](arg1);
+}
+
+export function ListAuditLogReport(arg1) {
+  return window['go']['main']['App']['ListAuditLogReport'](arg1);
+}
+
 export function ListAuditLogs(arg1) {
   return window['go']['main']['App']['ListAuditLogs'](arg1);
 }
@@ -110,8 +138,16 @@ export function ListDepartments(arg1) {
   return window['go']['main']['App']['ListDepartments'](arg1);
 }
 
+export function ListEmployeeReport(arg1) {
+  return window['go']['main']['App']['ListEmployeeReport'](arg1);
+}
+
 export function ListEmployees(arg1) {
   return window['go']['main']['App']['ListEmployees'](arg1);
+}
+
+export function ListLeaveRequestsReport(arg1) {
+  return window['go']['main']['App']['ListLeaveRequestsReport'](arg1);
 }
 
 export function ListLeaveTypes(arg1) {
@@ -128,6 +164,10 @@ export function ListMyLeaveRequests(arg1) {
 
 export function ListPayrollBatches(arg1) {
   return window['go']['main']['App']['ListPayrollBatches'](arg1);
+}
+
+export function ListPayrollBatchesReport(arg1) {
+  return window['go']['main']['App']['ListPayrollBatchesReport'](arg1);
 }
 
 export function ListUsers(arg1) {

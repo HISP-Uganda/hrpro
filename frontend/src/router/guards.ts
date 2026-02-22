@@ -1,7 +1,7 @@
 import { redirect } from '@tanstack/react-router'
 
 import type { AuthStore } from '../auth/authStore'
-import { isAdminRole } from '../auth/roles'
+import { canAccessAnyReportRole, isAdminRole } from '../auth/roles'
 
 export function resolveRootRedirect(auth: AuthStore): '/dashboard' | '/login' {
   return auth.isAuthenticated() ? '/dashboard' : '/login'
@@ -48,6 +48,22 @@ export function resolveAdminRouteRedirect(auth: AuthStore): '/login' | '/access-
 
 export function requireAdmin(auth: AuthStore) {
   const target = resolveAdminRouteRedirect(auth)
+  if (target) {
+    throw redirect({ to: target })
+  }
+}
+
+export function resolveReportsRouteRedirect(auth: AuthStore): '/login' | '/access-denied' | null {
+  const session = auth.getSnapshot()
+  if (!session) {
+    return '/login'
+  }
+
+  return canAccessAnyReportRole(session.user.role) ? null : '/access-denied'
+}
+
+export function requireReportsAccess(auth: AuthStore) {
+  const target = resolveReportsRouteRedirect(auth)
   if (target) {
     throw redirect({ to: target })
   }

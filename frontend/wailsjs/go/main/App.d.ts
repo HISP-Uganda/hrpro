@@ -6,6 +6,7 @@ import {payroll} from '../models';
 import {departments} from '../models';
 import {employees} from '../models';
 import {users} from '../models';
+import {reports} from '../models';
 import {dashboard} from '../models';
 import {attendance} from '../models';
 import {audit} from '../models';
@@ -32,7 +33,17 @@ export function DeleteDepartment(arg1:handlers.DeleteDepartmentRequest):Promise<
 
 export function DeleteEmployee(arg1:handlers.DeleteEmployeeRequest):Promise<void>;
 
+export function ExportAttendanceSummaryReportCSV(arg1:handlers.ExportAttendanceSummaryReportRequest):Promise<reports.CSVExport>;
+
+export function ExportAuditLogReportCSV(arg1:handlers.ExportAuditLogReportRequest):Promise<reports.CSVExport>;
+
+export function ExportEmployeeReportCSV(arg1:handlers.ExportEmployeeReportRequest):Promise<reports.CSVExport>;
+
+export function ExportLeaveRequestsReportCSV(arg1:handlers.ExportLeaveRequestsReportRequest):Promise<reports.CSVExport>;
+
 export function ExportPayrollBatchCSV(arg1:handlers.PayrollBatchActionRequest):Promise<string>;
+
+export function ExportPayrollBatchesReportCSV(arg1:handlers.ExportPayrollBatchesReportRequest):Promise<reports.CSVExport>;
 
 export function GeneratePayrollEntries(arg1:handlers.PayrollBatchActionRequest):Promise<void>;
 
@@ -60,11 +71,19 @@ export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Pro
 
 export function ListAttendanceByDate(arg1:handlers.ListAttendanceByDateRequest):Promise<Array<attendance.AttendanceRow>>;
 
+export function ListAttendanceSummaryReport(arg1:handlers.ListAttendanceSummaryReportRequest):Promise<reports.AttendanceSummaryReportListResult>;
+
+export function ListAuditLogReport(arg1:handlers.ListAuditLogReportRequest):Promise<reports.AuditLogReportListResult>;
+
 export function ListAuditLogs(arg1:handlers.ListAuditLogsRequest):Promise<audit.ListAuditLogsResult>;
 
 export function ListDepartments(arg1:handlers.ListDepartmentsRequest):Promise<handlers.DepartmentListResponse>;
 
+export function ListEmployeeReport(arg1:handlers.ListEmployeeReportRequest):Promise<reports.EmployeeReportListResult>;
+
 export function ListEmployees(arg1:handlers.ListEmployeesRequest):Promise<handlers.EmployeeListResponse>;
+
+export function ListLeaveRequestsReport(arg1:handlers.ListLeaveRequestsReportRequest):Promise<reports.LeaveRequestsReportListResult>;
 
 export function ListLeaveTypes(arg1:handlers.ListLeaveTypesRequest):Promise<Array<leave.LeaveType>>;
 
@@ -73,6 +92,8 @@ export function ListLockedDates(arg1:handlers.ListLockedDatesRequest):Promise<Ar
 export function ListMyLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
 
 export function ListPayrollBatches(arg1:handlers.ListPayrollBatchesRequest):Promise<payroll.ListBatchesResult>;
+
+export function ListPayrollBatchesReport(arg1:handlers.ListPayrollBatchesReportRequest):Promise<reports.PayrollBatchesReportListResult>;
 
 export function ListUsers(arg1:handlers.ListUsersRequest):Promise<users.ListUsersResult>;
 

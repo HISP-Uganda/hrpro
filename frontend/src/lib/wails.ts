@@ -24,6 +24,20 @@ import type {
   PayrollEntry,
   UpdatePayrollEntryAmountsInput,
 } from '../types/payroll'
+import type {
+  AttendanceSummaryReportFilter,
+  AttendanceSummaryReportResult,
+  AuditLogReportFilter,
+  AuditLogReportResult,
+  CSVExportResult,
+  EmployeeReportFilter,
+  EmployeeReportResult,
+  LeaveRequestsReportFilter,
+  LeaveRequestsReportResult,
+  PagerInput,
+  PayrollBatchesReportFilter,
+  PayrollBatchesReportResult,
+} from '../types/reports'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from '../types/users'
 
 type WailsAppBinding = {
@@ -104,6 +118,33 @@ type WailsAppBinding = {
   GetLunchSummary: (input: { accessToken: string; date: string }) => Promise<LunchSummary>
   UpsertLunchVisitors: (input: { accessToken: string; date: string; visitorsCount: number }) => Promise<LunchSummary>
   PostAbsentToLeave: (input: { accessToken: string; date: string; employeeId: number }) => Promise<PostAbsentToLeaveResult>
+
+  ListEmployeeReport: (input: { accessToken: string; filters: EmployeeReportFilter; pager: PagerInput }) => Promise<EmployeeReportResult>
+  ExportEmployeeReportCSV: (input: { accessToken: string; filters: EmployeeReportFilter }) => Promise<CSVExportResult>
+
+  ListLeaveRequestsReport: (input: {
+    accessToken: string
+    filters: LeaveRequestsReportFilter
+    pager: PagerInput
+  }) => Promise<LeaveRequestsReportResult>
+  ExportLeaveRequestsReportCSV: (input: { accessToken: string; filters: LeaveRequestsReportFilter }) => Promise<CSVExportResult>
+
+  ListAttendanceSummaryReport: (input: {
+    accessToken: string
+    filters: AttendanceSummaryReportFilter
+    pager: PagerInput
+  }) => Promise<AttendanceSummaryReportResult>
+  ExportAttendanceSummaryReportCSV: (input: { accessToken: string; filters: AttendanceSummaryReportFilter }) => Promise<CSVExportResult>
+
+  ListPayrollBatchesReport: (input: {
+    accessToken: string
+    filters: PayrollBatchesReportFilter
+    pager: PagerInput
+  }) => Promise<PayrollBatchesReportResult>
+  ExportPayrollBatchesReportCSV: (input: { accessToken: string; filters: PayrollBatchesReportFilter }) => Promise<CSVExportResult>
+
+  ListAuditLogReport: (input: { accessToken: string; filters: AuditLogReportFilter; pager: PagerInput }) => Promise<AuditLogReportResult>
+  ExportAuditLogReportCSV: (input: { accessToken: string; filters: AuditLogReportFilter }) => Promise<CSVExportResult>
 }
 
 declare global {
@@ -361,5 +402,57 @@ export class WailsGateway implements AppGateway {
 
   async postAbsentToLeave(accessToken: string, date: string, employeeId: number): Promise<PostAbsentToLeaveResult> {
     return getAppBinding().PostAbsentToLeave({ accessToken, date, employeeId })
+  }
+
+  async listEmployeeReport(accessToken: string, filters: EmployeeReportFilter, pager: PagerInput): Promise<EmployeeReportResult> {
+    return getAppBinding().ListEmployeeReport({ accessToken, filters, pager })
+  }
+
+  async exportEmployeeReportCSV(accessToken: string, filters: EmployeeReportFilter): Promise<CSVExportResult> {
+    return getAppBinding().ExportEmployeeReportCSV({ accessToken, filters })
+  }
+
+  async listLeaveRequestsReport(
+    accessToken: string,
+    filters: LeaveRequestsReportFilter,
+    pager: PagerInput,
+  ): Promise<LeaveRequestsReportResult> {
+    return getAppBinding().ListLeaveRequestsReport({ accessToken, filters, pager })
+  }
+
+  async exportLeaveRequestsReportCSV(accessToken: string, filters: LeaveRequestsReportFilter): Promise<CSVExportResult> {
+    return getAppBinding().ExportLeaveRequestsReportCSV({ accessToken, filters })
+  }
+
+  async listAttendanceSummaryReport(
+    accessToken: string,
+    filters: AttendanceSummaryReportFilter,
+    pager: PagerInput,
+  ): Promise<AttendanceSummaryReportResult> {
+    return getAppBinding().ListAttendanceSummaryReport({ accessToken, filters, pager })
+  }
+
+  async exportAttendanceSummaryReportCSV(accessToken: string, filters: AttendanceSummaryReportFilter): Promise<CSVExportResult> {
+    return getAppBinding().ExportAttendanceSummaryReportCSV({ accessToken, filters })
+  }
+
+  async listPayrollBatchesReport(
+    accessToken: string,
+    filters: PayrollBatchesReportFilter,
+    pager: PagerInput,
+  ): Promise<PayrollBatchesReportResult> {
+    return getAppBinding().ListPayrollBatchesReport({ accessToken, filters, pager })
+  }
+
+  async exportPayrollBatchesReportCSV(accessToken: string, filters: PayrollBatchesReportFilter): Promise<CSVExportResult> {
+    return getAppBinding().ExportPayrollBatchesReportCSV({ accessToken, filters })
+  }
+
+  async listAuditLogReport(accessToken: string, filters: AuditLogReportFilter, pager: PagerInput): Promise<AuditLogReportResult> {
+    return getAppBinding().ListAuditLogReport({ accessToken, filters, pager })
+  }
+
+  async exportAuditLogReportCSV(accessToken: string, filters: AuditLogReportFilter): Promise<CSVExportResult> {
+    return getAppBinding().ExportAuditLogReportCSV({ accessToken, filters })
   }
 }
