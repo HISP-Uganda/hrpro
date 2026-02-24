@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AuthStore } from '../auth/authStore'
 import { appShellNavItems } from '../components/AppShell'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { AppThemeProvider } from '../theme/ThemeProvider'
 import type { AppGateway } from '../types/api'
 import {
   getPostLoginRedirectPath,
@@ -80,7 +81,11 @@ function createMockApi(): AppGateway {
 }
 
 function renderWithQueryClient(element: JSX.Element, queryClient: QueryClient) {
-  return render(<QueryClientProvider client={queryClient}>{element}</QueryClientProvider>)
+  return render(
+    <AppThemeProvider>
+      <QueryClientProvider client={queryClient}>{element}</QueryClientProvider>
+    </AppThemeProvider>,
+  )
 }
 
 describe('Router navigation logic', () => {

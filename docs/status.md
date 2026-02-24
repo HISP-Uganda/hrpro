@@ -84,6 +84,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - loading skeletons, empty/error handling, and access-denied mapping on forbidden responses
 - Cross-app stabilization:
   - Standardized DataGrid styling (bold + sticky headers) and fixed CSV exports using Wails Save dialog.
+- Theme system added (light/dark/system + accent presets + persistence).
 - Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
