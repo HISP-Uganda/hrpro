@@ -56,6 +56,19 @@ type EmployeeListResponse struct {
 	PageSize   int                  `json:"pageSize"`
 }
 
+type UploadEmployeeContractRequest struct {
+	AccessToken string `json:"accessToken"`
+	EmployeeID  int64  `json:"employeeId"`
+	Filename    string `json:"filename"`
+	MimeType    string `json:"mimeType"`
+	Data        []byte `json:"data"`
+}
+
+type RemoveEmployeeContractRequest struct {
+	AccessToken string `json:"accessToken"`
+	EmployeeID  int64  `json:"employeeId"`
+}
+
 func NewEmployeesHandler(authService EmployeesAuthService, service *employees.Service) *EmployeesHandler {
 	return &EmployeesHandler{authService: authService, service: service}
 }
@@ -160,6 +173,32 @@ func (h *EmployeesHandler) ListEmployees(ctx context.Context, request ListEmploy
 	}, nil
 }
 
+func (h *EmployeesHandler) UploadEmployeeContract(ctx context.Context, request UploadEmployeeContractRequest) (*employees.Employee, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	employee, err := h.service.UploadEmployeeContract(ctx, claims, request.EmployeeID, request.Filename, request.MimeType, request.Data)
+	if err != nil {
+		return nil, mapEmployeeError(err)
+	}
+	return employee, nil
+}
+
+func (h *EmployeesHandler) RemoveEmployeeContract(ctx context.Context, request RemoveEmployeeContractRequest) (*employees.Employee, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	employee, err := h.service.RemoveEmployeeContract(ctx, claims, request.EmployeeID)
+	if err != nil {
+		return nil, mapEmployeeError(err)
+	}
+	return employee, nil
+}
+
 func (h *EmployeesHandler) validateClaims(accessToken string) (*models.Claims, error) {
 	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
 	if err != nil {
@@ -175,6 +214,8 @@ func mapEmployeeError(err error) error {
 		return fmt.Errorf("validation error: %w", err)
 	case errors.Is(err, employees.ErrNotFound):
 		return fmt.Errorf("not found: %w", err)
+	case errors.Is(err, middleware.ErrForbidden):
+		return middleware.ErrForbidden
 	default:
 		return err
 	}

@@ -9,6 +9,7 @@ Last Updated: 2026-02-24
 # 1. Context Recovery Summary
 
 Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, Hardening Phase — Milestone 1, and UI polish for company branding are implemented. Company Profile branding now propagates across AppShell: AppBar title uses company name (`{Company} HR System` with `HR System` fallback), sidebar header shows company logo/name placeholder data sourced from persisted settings/logo, and footer support/copyright info is settings-driven with static app version/build display.
+Employee enhancement completed: employee job description + contract URL/upload/remove support, settings-backed default country fields for phone normalization, and backend E.164 phone normalization at employee create/update.
 
 ---
 
@@ -24,8 +25,10 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
   - users, refresh tokens, audit logs (+ users `last_login_at`)
   - employees
   - departments table + employees FK (`ON DELETE RESTRICT`)
+  - employee enhancement migration: `job_description`, `contract_url`, `contract_file_path`, `phone_e164` (+ index)
 - `internal/services`: JWT/auth services and admin seeding, including refresh rotation and refresh reuse detection handling.
 - `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
+- `internal/employees`: now includes job description, contract URL/path persistence, local contract file storage in app data directory (`hrpro/employees/<employeeId>/contract/<generatedFilename>`), upload/remove contract bindings, and backend phone normalization to E.164 using settings defaults.
 - `internal/departments`: CRUD/list/search with duplicate-name protection and delete-with-employees prevention in service layer.
 - `internal/leave`: leave types, entitlements, locked dates, request lifecycle, pure rules, and typed errors.
 - `internal/payroll`: payroll batches/entries lifecycle, server-side calculations, transactional regenerate strategy (delete + recreate in one transaction), and CSV export.
@@ -35,6 +38,7 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/attendance`: daily register + lunch/catering repository/service/rules with SQLX, lock handling, RBAC enforcement, absent-to-leave orchestration, and audit events.
 - `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
 - `internal/settings`: app settings key/value JSONB repository/service, logo file storage, settings DTO retrieval/update, and settings-backed formatting/default integrations.
+- `internal/settings`: includes phone defaults (`defaultCountryName`, `defaultCountryISO2`, `defaultCountryCallingCode`) with env override support for defaults resolution.
 - `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement; auth now includes typed refresh error mapping (`auth.refresh_invalid`, `auth.refresh_expired`, `auth.refresh_reused`).
 - `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; startup health and DB setup bindings (`GetStartupHealth`, `TestDatabaseConnection`, `SaveDatabaseConfig`, `ReloadConfigAndReconnect`) include separated DB/runtime health and lazy reconnect behavior; shared audit recorder wired into key services. Added `Refresh` binding for rotated JWT session renewal.
 
@@ -59,6 +63,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - DataGrid with CRUD, search, status filter, department filter, pagination
   - department select integrated in create/edit form
   - department name shown in listing
+  - employee form includes job description textarea, contract URL field, contract upload/remove controls, and phone default placeholder hints from settings
 - `/departments`:
   - DataGrid list with search and pagination
   - create/edit dialog
@@ -98,6 +103,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - admin-only route guard with non-admin redirect to `/access-denied`
   - cards for Company Profile (name + logo upload/preview), Currency, Lunch defaults, and Payroll display defaults
   - backend-connected settings query/mutations with validation, loading skeletons, and snackbar feedback
+  - Phone Defaults section added for country name/ISO2/calling code used in phone normalization
 - AppShell branding polish:
   - new shared `useCompanyProfile` query as single frontend source for company name/logo presentation
   - AppBar title now renders `${companyName} HR System` with `HR System` fallback when name is blank/missing
@@ -134,12 +140,13 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
 | Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
 | Phase A UI Polish — Company Branding | Completed                        | Branding: company name in AppBar, logo upload/remove/url-import, footer with support info. |
+| Phase A Enhancement — Employee Contract + Phone Defaults | Completed      | Employee: job description + contract link/upload/remove; Settings: default country values for phone parsing; backend phone normalization to E.164 and tests. |
 
 ---
 
 # 4. In Progress
 
-Phase A UI Polish — Company Branding completed. Next milestone: Hardening Phase — Milestone 2.
+Phase A Enhancement — Employee Contract + Phone Defaults completed. Next milestone: Hardening Phase — Milestone 2.
 
 ---
 

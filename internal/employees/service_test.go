@@ -10,28 +10,83 @@ import (
 )
 
 type fakeRepository struct {
-	createInput RepositoryUpsertInput
+	createInput    RepositoryUpsertInput
+	employee       *Employee
+	updatedPath    *string
+	updatePathCall int
 }
 
 func (f *fakeRepository) Create(_ context.Context, input RepositoryUpsertInput) (*Employee, error) {
 	f.createInput = input
-	return &Employee{ID: 1, FirstName: input.FirstName, LastName: input.LastName}, nil
+	return &Employee{ID: 1, FirstName: input.FirstName, LastName: input.LastName, Phone: input.Phone, PhoneE164: input.PhoneE164}, nil
 }
 
-func (f *fakeRepository) Update(_ context.Context, _ int64, _ RepositoryUpsertInput) (*Employee, error) {
-	return &Employee{ID: 1}, nil
+func (f *fakeRepository) Update(_ context.Context, id int64, _ RepositoryUpsertInput) (*Employee, error) {
+	return &Employee{ID: id}, nil
+}
+
+func (f *fakeRepository) UpdateContractFilePath(_ context.Context, id int64, contractFilePath *string) (*Employee, error) {
+	f.updatedPath = contractFilePath
+	f.updatePathCall++
+	if f.employee == nil {
+		return nil, nil
+	}
+	f.employee.ContractFilePath = contractFilePath
+	return &Employee{ID: id, ContractFilePath: contractFilePath}, nil
 }
 
 func (f *fakeRepository) Delete(_ context.Context, _ int64) (bool, error) {
 	return true, nil
 }
 
-func (f *fakeRepository) GetByID(_ context.Context, _ int64) (*Employee, error) {
-	return &Employee{ID: 1}, nil
+func (f *fakeRepository) GetByID(_ context.Context, id int64) (*Employee, error) {
+	if f.employee == nil {
+		return nil, nil
+	}
+	return &Employee{
+		ID:               id,
+		ContractFilePath: f.employee.ContractFilePath,
+	}, nil
 }
 
 func (f *fakeRepository) List(_ context.Context, _ ListEmployeesQuery) ([]Employee, int64, error) {
 	return []Employee{}, 0, nil
+}
+
+type fakePhoneDefaultsProvider struct {
+	iso2      string
+	calling   string
+	called    int
+	returnErr error
+}
+
+func (f *fakePhoneDefaultsProvider) GetPhoneDefaults(_ context.Context) (string, string, error) {
+	f.called++
+	if f.returnErr != nil {
+		return "", "", f.returnErr
+	}
+	return f.iso2, f.calling, nil
+}
+
+type fakeContractStore struct {
+	savedPath   string
+	deletedPath string
+	deleteCall  int
+	saveCall    int
+}
+
+func (f *fakeContractStore) SaveContract(_ context.Context, _ int64, _ string, _ []byte) (string, error) {
+	f.saveCall++
+	if f.savedPath == "" {
+		f.savedPath = "employees/1/contract/test.pdf"
+	}
+	return f.savedPath, nil
+}
+
+func (f *fakeContractStore) DeleteContract(_ context.Context, relativePath string) error {
+	f.deleteCall++
+	f.deletedPath = relativePath
+	return nil
 }
 
 func TestCreateEmployeeValidation(t *testing.T) {
@@ -146,6 +201,68 @@ func TestCreateEmployeeNormalizesDate(t *testing.T) {
 	expected := time.Date(1999, time.January, 10, 0, 0, 0, 0, time.UTC)
 	if !repo.createInput.DateOfBirth.Equal(expected) {
 		t.Fatalf("expected %v, got %v", expected, repo.createInput.DateOfBirth)
+	}
+}
+
+func TestCreateEmployeeNormalizesNationalPhoneUsingDefaults(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+	defaults := &fakePhoneDefaultsProvider{iso2: "UG", calling: "+256"}
+	service.SetPhoneDefaultsProvider(defaults)
+
+	_, err := service.CreateEmployee(
+		context.Background(),
+		&models.Claims{Role: "Admin"},
+		UpsertEmployeeInput{
+			FirstName:        "Jane",
+			LastName:         "Doe",
+			Position:         "Engineer",
+			EmploymentStatus: "Active",
+			DateOfHire:       "2026-02-21",
+			Phone:            stringPtr("0701234567"),
+		},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if defaults.called != 1 {
+		t.Fatalf("expected phone defaults provider to be called once")
+	}
+	if repo.createInput.Phone == nil || *repo.createInput.Phone != "+256701234567" {
+		t.Fatalf("expected normalized phone +256701234567, got %+v", repo.createInput.Phone)
+	}
+	if repo.createInput.PhoneE164 == nil || *repo.createInput.PhoneE164 != "+256701234567" {
+		t.Fatalf("expected phone_e164 +256701234567, got %+v", repo.createInput.PhoneE164)
+	}
+}
+
+func TestUploadRemoveEmployeeContract(t *testing.T) {
+	repo := &fakeRepository{
+		employee: &Employee{ID: 1, ContractFilePath: stringPtr("employees/1/contract/old.pdf")},
+	}
+	store := &fakeContractStore{savedPath: "employees/1/contract/new.pdf"}
+	service := NewService(repo)
+	service.SetContractStore(store)
+
+	claims := &models.Claims{Role: "Admin"}
+	updated, err := service.UploadEmployeeContract(context.Background(), claims, 1, "contract.pdf", "application/pdf", []byte("pdf-data"))
+	if err != nil {
+		t.Fatalf("upload contract failed: %v", err)
+	}
+	if updated.ContractFilePath == nil || *updated.ContractFilePath != "employees/1/contract/new.pdf" {
+		t.Fatalf("expected updated contract path, got %+v", updated.ContractFilePath)
+	}
+	if store.deleteCall == 0 || store.deletedPath != "employees/1/contract/old.pdf" {
+		t.Fatalf("expected old contract to be deleted best-effort")
+	}
+
+	removed, err := service.RemoveEmployeeContract(context.Background(), claims, 1)
+	if err != nil {
+		t.Fatalf("remove contract failed: %v", err)
+	}
+	if removed.ContractFilePath != nil {
+		t.Fatalf("expected contract path cleared")
 	}
 }
 

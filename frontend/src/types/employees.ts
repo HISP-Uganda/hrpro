@@ -6,9 +6,13 @@ export type Employee = {
   gender?: string
   dateOfBirth?: string
   phone?: string
+  phoneE164?: string
   email?: string
   nationalId?: string
   address?: string
+  jobDescription?: string
+  contractUrl?: string
+  contractFilePath?: string
   departmentId?: number
   departmentName?: string
   position: string
@@ -29,6 +33,8 @@ export type UpsertEmployeeInput = {
   email?: string
   nationalId?: string
   address?: string
+  jobDescription?: string
+  contractUrl?: string
   departmentId?: number
   position: string
   employmentStatus: string

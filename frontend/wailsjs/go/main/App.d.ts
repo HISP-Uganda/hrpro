@@ -127,6 +127,8 @@ export function ReloadConfigAndReconnect():Promise<main.ActionResult>;
 
 export function RemoveCompanyLogo(arg1:handlers.GetSettingsRequest):Promise<settings.CompanyProfileDTO>;
 
+export function RemoveEmployeeContract(arg1:handlers.RemoveEmployeeContractRequest):Promise<employees.Employee>;
+
 export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
 
 export function SaveCompanyProfile(arg1:handlers.SaveCompanyProfileRequest):Promise<settings.CompanyProfileDTO>;
@@ -156,6 +158,8 @@ export function UpdateSettings(arg1:handlers.UpdateSettingsRequest):Promise<sett
 export function UpdateUser(arg1:handlers.UpdateUserRequest):Promise<users.User>;
 
 export function UploadCompanyLogo(arg1:handlers.UploadCompanyLogoRequest):Promise<settings.CompanyProfileDTO>;
+
+export function UploadEmployeeContract(arg1:handlers.UploadEmployeeContractRequest):Promise<employees.Employee>;
 
 export function UpsertAttendance(arg1:handlers.UpsertAttendanceRequest):Promise<attendance.AttendanceRecord>;
 

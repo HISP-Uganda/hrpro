@@ -230,6 +230,10 @@ export function RemoveCompanyLogo(arg1) {
   return window['go']['main']['App']['RemoveCompanyLogo'](arg1);
 }
 
+export function RemoveEmployeeContract(arg1) {
+  return window['go']['main']['App']['RemoveEmployeeContract'](arg1);
+}
+
 export function ResetUserPassword(arg1) {
   return window['go']['main']['App']['ResetUserPassword'](arg1);
 }
@@ -288,6 +292,10 @@ export function UpdateUser(arg1) {
 
 export function UploadCompanyLogo(arg1) {
   return window['go']['main']['App']['UploadCompanyLogo'](arg1);
+}
+
+export function UploadEmployeeContract(arg1) {
+  return window['go']['main']['App']['UploadEmployeeContract'](arg1);
 }
 
 export function UpsertAttendance(arg1) {

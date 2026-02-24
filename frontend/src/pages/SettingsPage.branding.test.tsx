@@ -66,6 +66,7 @@ function createMockRouter(logoDataUrl: string | null) {
       currency: { code: 'TZS', symbol: 'TZS', decimals: 0 },
       lunchDefaults: { plateCostAmount: 12000, staffContributionAmount: 4000 },
       payrollDisplay: { decimals: 2, roundingEnabled: false },
+      phoneDefaults: { defaultCountryName: 'Uganda', defaultCountryISO2: 'UG', defaultCountryCallingCode: '+256' },
     })),
     saveCompanyProfile: vi.fn(async () => ({
       name: 'Acme',
@@ -80,6 +81,7 @@ function createMockRouter(logoDataUrl: string | null) {
       currency: { code: 'TZS', symbol: 'TZS', decimals: 0 },
       lunchDefaults: { plateCostAmount: 12000, staffContributionAmount: 4000 },
       payrollDisplay: { decimals: 2, roundingEnabled: false },
+      phoneDefaults: { defaultCountryName: 'Uganda', defaultCountryISO2: 'UG', defaultCountryCallingCode: '+256' },
     })),
     uploadCompanyLogo: vi.fn(async () => ({
       name: 'Acme',

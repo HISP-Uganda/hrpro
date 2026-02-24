@@ -24,11 +24,18 @@ export type PayrollDisplaySettings = {
   roundingEnabled: boolean
 }
 
+export type PhoneDefaultsSettings = {
+  defaultCountryName: string
+  defaultCountryISO2: string
+  defaultCountryCallingCode: string
+}
+
 export type AppSettings = {
   company: CompanyProfileSettings
   currency: CurrencySettings
   lunchDefaults: LunchDefaultsSettings
   payrollDisplay: PayrollDisplaySettings
+  phoneDefaults: PhoneDefaultsSettings
 }
 
 export type CompanyProfileSettingsInput = {
@@ -45,6 +52,7 @@ export type UpdateSettingsInput = {
   currency: CurrencySettings
   lunchDefaults: LunchDefaultsSettings
   payrollDisplay: PayrollDisplaySettings
+  phoneDefaults: PhoneDefaultsSettings
 }
 
 export type CompanyLogo = {

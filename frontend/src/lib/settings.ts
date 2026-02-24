@@ -21,6 +21,11 @@ export const defaultAppSettings: AppSettings = {
     decimals: 2,
     roundingEnabled: false,
   },
+  phoneDefaults: {
+    defaultCountryName: 'Uganda',
+    defaultCountryISO2: 'UG',
+    defaultCountryCallingCode: '+256',
+  },
 }
 
 export function formatCurrencyAmount(value: number, settings: AppSettings): string {

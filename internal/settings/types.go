@@ -10,6 +10,7 @@ const (
 	KeyCurrency       = "currency"
 	KeyLunchDefaults  = "lunch_defaults"
 	KeyPayrollDisplay = "payroll_display"
+	KeyPhoneDefaults  = "phone_defaults"
 )
 
 const (
@@ -20,6 +21,12 @@ const (
 	DefaultLunchPlateCostAmount   = 12000
 	DefaultLunchContributionValue = 4000
 	DefaultPayrollDecimals        = 2
+	DefaultCountryName            = "Uganda"
+	DefaultCountryISO2            = "UG"
+	DefaultCountryCallingCode     = "+256"
+	EnvDefaultCountryName         = "APP_DEFAULT_COUNTRY_NAME"
+	EnvDefaultCountryISO2         = "APP_DEFAULT_COUNTRY_ISO2"
+	EnvDefaultCountryCallingCode  = "APP_DEFAULT_COUNTRY_CALLING_CODE"
 )
 
 type StoredSetting struct {
@@ -55,11 +62,18 @@ type PayrollDisplaySettings struct {
 	RoundingEnabled bool `json:"roundingEnabled"`
 }
 
+type PhoneDefaultsSettings struct {
+	DefaultCountryName        string `json:"defaultCountryName"`
+	DefaultCountryISO2        string `json:"defaultCountryISO2"`
+	DefaultCountryCallingCode string `json:"defaultCountryCallingCode"`
+}
+
 type SettingsDTO struct {
 	Company        CompanyProfileSettings `json:"company"`
 	Currency       CurrencySettings       `json:"currency"`
 	LunchDefaults  LunchDefaultsSettings  `json:"lunchDefaults"`
 	PayrollDisplay PayrollDisplaySettings `json:"payrollDisplay"`
+	PhoneDefaults  PhoneDefaultsSettings  `json:"phoneDefaults"`
 }
 
 type CompanyProfileSettingsInput struct {
@@ -76,6 +90,7 @@ type UpdateSettingsInput struct {
 	Currency       CurrencySettings            `json:"currency"`
 	LunchDefaults  LunchDefaultsSettings       `json:"lunchDefaults"`
 	PayrollDisplay PayrollDisplaySettings      `json:"payrollDisplay"`
+	PhoneDefaults  PhoneDefaultsSettings       `json:"phoneDefaults"`
 }
 
 type CompanyLogo struct {

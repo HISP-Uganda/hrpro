@@ -3,6 +3,7 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined'
 import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined'
 import LunchDiningOutlinedIcon from '@mui/icons-material/LunchDiningOutlined'
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined'
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined'
 import {
   Alert,
@@ -45,6 +46,7 @@ export function SettingsPage() {
     currency: defaultAppSettings.currency,
     lunchDefaults: defaultAppSettings.lunchDefaults,
     payrollDisplay: defaultAppSettings.payrollDisplay,
+    phoneDefaults: defaultAppSettings.phoneDefaults,
   })
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoURLInput, setLogoURLInput] = useState('')
@@ -77,6 +79,7 @@ export function SettingsPage() {
       currency: data.currency,
       lunchDefaults: data.lunchDefaults,
       payrollDisplay: data.payrollDisplay,
+      phoneDefaults: data.phoneDefaults,
     })
   }, [settingsQuery.data])
 
@@ -191,6 +194,9 @@ export function SettingsPage() {
     if (form.lunchDefaults.plateCostAmount <= 0) return true
     if (form.lunchDefaults.staffContributionAmount < 0) return true
     if (form.payrollDisplay.decimals < 0 || form.payrollDisplay.decimals > 6) return true
+    if (!form.phoneDefaults.defaultCountryName.trim()) return true
+    if (form.phoneDefaults.defaultCountryISO2.trim().length !== 2) return true
+    if (!/^\+[1-9][0-9]{0,3}$/.test(form.phoneDefaults.defaultCountryCallingCode.trim())) return true
     return false
   }, [form])
 
@@ -422,6 +428,49 @@ export function SettingsPage() {
                     }
                     inputProps={{ min: 0 }}
                     sx={{ width: { xs: '100%', md: 240 } }}
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Card elevation={1}>
+              <CardHeader title="Phone Defaults" subheader="Used for national phone parsing and normalization" avatar={<PublicOutlinedIcon />} />
+              <CardContent>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <TextField
+                    label="Default Country Name"
+                    value={form.phoneDefaults.defaultCountryName}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phoneDefaults: { ...prev.phoneDefaults, defaultCountryName: event.target.value },
+                      }))
+                    }
+                    sx={{ width: { xs: '100%', md: 280 } }}
+                  />
+                  <TextField
+                    label="Default Country ISO2"
+                    value={form.phoneDefaults.defaultCountryISO2}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phoneDefaults: { ...prev.phoneDefaults, defaultCountryISO2: event.target.value.toUpperCase() },
+                      }))
+                    }
+                    helperText="Example: UG, TZ, US"
+                    sx={{ width: { xs: '100%', md: 220 } }}
+                  />
+                  <TextField
+                    label="Default Country Calling Code"
+                    value={form.phoneDefaults.defaultCountryCallingCode}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phoneDefaults: { ...prev.phoneDefaults, defaultCountryCallingCode: event.target.value },
+                      }))
+                    }
+                    helperText="Example: +256"
+                    sx={{ width: { xs: '100%', md: 220 } }}
                   />
                 </Stack>
               </CardContent>

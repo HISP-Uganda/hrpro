@@ -57,6 +57,14 @@ type WailsAppBinding = {
   UpdateEmployee: (input: { accessToken: string; id: number; payload: UpsertEmployeeInput }) => Promise<Employee>
   DeleteEmployee: (input: { accessToken: string; id: number }) => Promise<void>
   GetEmployee: (input: { accessToken: string; id: number }) => Promise<Employee>
+  UploadEmployeeContract: (input: {
+    accessToken: string
+    employeeId: number
+    filename: string
+    mimeType: string
+    data: number[]
+  }) => Promise<Employee>
+  RemoveEmployeeContract: (input: { accessToken: string; employeeId: number }) => Promise<Employee>
   ListEmployees: (input: {
     accessToken: string
     page: number
@@ -236,6 +244,20 @@ export class WailsGateway implements AppGateway {
 
   async getEmployee(accessToken: string, id: number): Promise<Employee> {
     return getAppBinding().GetEmployee({ accessToken, id })
+  }
+
+  async uploadEmployeeContract(
+    accessToken: string,
+    employeeId: number,
+    filename: string,
+    mimeType: string,
+    data: number[],
+  ): Promise<Employee> {
+    return getAppBinding().UploadEmployeeContract({ accessToken, employeeId, filename, mimeType, data })
+  }
+
+  async removeEmployeeContract(accessToken: string, employeeId: number): Promise<Employee> {
+    return getAppBinding().RemoveEmployeeContract({ accessToken, employeeId })
   }
 
   async listEmployees(accessToken: string, query: ListEmployeesQuery): Promise<ListEmployeesResult> {

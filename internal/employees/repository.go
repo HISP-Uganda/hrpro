@@ -13,6 +13,7 @@ import (
 type Repository interface {
 	Create(ctx context.Context, input RepositoryUpsertInput) (*Employee, error)
 	Update(ctx context.Context, id int64, input RepositoryUpsertInput) (*Employee, error)
+	UpdateContractFilePath(ctx context.Context, id int64, contractFilePath *string) (*Employee, error)
 	Delete(ctx context.Context, id int64) (bool, error)
 	GetByID(ctx context.Context, id int64) (*Employee, error)
 	List(ctx context.Context, query ListEmployeesQuery) ([]Employee, int64, error)
@@ -25,9 +26,12 @@ type RepositoryUpsertInput struct {
 	Gender           *string
 	DateOfBirth      *time.Time
 	Phone            *string
+	PhoneE164        *string
 	Email            *string
 	NationalID       *string
 	Address          *string
+	JobDescription   *string
+	ContractURL      *string
 	DepartmentID     *int64
 	Position         string
 	EmploymentStatus string
@@ -47,14 +51,14 @@ func (r *SQLXRepository) Create(ctx context.Context, input RepositoryUpsertInput
 	query := `
         INSERT INTO employees (
             first_name, last_name, other_name, gender, dob, phone, email, national_id,
-            address, department_id, position, employment_status, date_of_hire, base_salary_amount
+            address, job_description, contract_url, contract_file_path, department_id, position, employment_status, date_of_hire, base_salary_amount, phone_e164
         )
         VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12, $13, $14
+            $9, $10, $11, $12, $13, $14, $15, $16, $17
         )
-        RETURNING id, first_name, last_name, other_name, gender, dob, phone, email, national_id,
-            address, department_id, position, employment_status, date_of_hire,
+        RETURNING id, first_name, last_name, other_name, gender, dob, phone, phone_e164, email, national_id,
+            address, job_description, contract_url, contract_file_path, department_id, position, employment_status, date_of_hire,
             base_salary_amount, created_at, updated_at
     `
 
@@ -72,11 +76,15 @@ func (r *SQLXRepository) Create(ctx context.Context, input RepositoryUpsertInput
 		input.Email,
 		input.NationalID,
 		input.Address,
+		input.JobDescription,
+		input.ContractURL,
+		nil,
 		input.DepartmentID,
 		input.Position,
 		input.EmploymentStatus,
 		input.DateOfHire,
 		input.BaseSalaryAmount,
+		input.PhoneE164,
 	); err != nil {
 		return nil, fmt.Errorf("create employee: %w", err)
 	}
@@ -94,18 +102,21 @@ func (r *SQLXRepository) Update(ctx context.Context, id int64, input RepositoryU
             gender = $5,
             dob = $6,
             phone = $7,
-            email = $8,
-            national_id = $9,
-            address = $10,
-            department_id = $11,
-            position = $12,
-            employment_status = $13,
-            date_of_hire = $14,
-            base_salary_amount = $15,
+            phone_e164 = $8,
+            email = $9,
+            national_id = $10,
+            address = $11,
+            job_description = $12,
+            contract_url = $13,
+            department_id = $14,
+            position = $15,
+            employment_status = $16,
+            date_of_hire = $17,
+            base_salary_amount = $18,
             updated_at = NOW()
         WHERE id = $1
-        RETURNING id, first_name, last_name, other_name, gender, dob, phone, email, national_id,
-            address, department_id, position, employment_status, date_of_hire,
+        RETURNING id, first_name, last_name, other_name, gender, dob, phone, phone_e164, email, national_id,
+            address, job_description, contract_url, contract_file_path, department_id, position, employment_status, date_of_hire,
             base_salary_amount, created_at, updated_at
     `
 
@@ -121,9 +132,12 @@ func (r *SQLXRepository) Update(ctx context.Context, id int64, input RepositoryU
 		input.Gender,
 		input.DateOfBirth,
 		input.Phone,
+		input.PhoneE164,
 		input.Email,
 		input.NationalID,
 		input.Address,
+		input.JobDescription,
+		input.ContractURL,
 		input.DepartmentID,
 		input.Position,
 		input.EmploymentStatus,
@@ -136,6 +150,30 @@ func (r *SQLXRepository) Update(ctx context.Context, id int64, input RepositoryU
 		}
 
 		return nil, fmt.Errorf("update employee: %w", err)
+	}
+
+	return &employee, nil
+}
+
+func (r *SQLXRepository) UpdateContractFilePath(ctx context.Context, id int64, contractFilePath *string) (*Employee, error) {
+	query := `
+        UPDATE employees
+        SET
+            contract_file_path = $2,
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING id, first_name, last_name, other_name, gender, dob, phone, phone_e164, email, national_id,
+            address, job_description, contract_url, contract_file_path, department_id, position, employment_status, date_of_hire,
+            base_salary_amount, created_at, updated_at
+    `
+
+	var employee Employee
+	err := r.db.GetContext(ctx, &employee, query, id, contractFilePath)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("update employee contract path: %w", err)
 	}
 
 	return &employee, nil
@@ -159,8 +197,8 @@ func (r *SQLXRepository) Delete(ctx context.Context, id int64) (bool, error) {
 
 func (r *SQLXRepository) GetByID(ctx context.Context, id int64) (*Employee, error) {
 	query := `
-        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.email, e.national_id,
-            e.address, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
+        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.phone_e164, e.email, e.national_id,
+            e.address, e.job_description, e.contract_url, e.contract_file_path, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
             e.base_salary_amount, e.created_at, e.updated_at
         FROM employees e
         LEFT JOIN departments d ON d.id = e.department_id
@@ -235,8 +273,8 @@ func (r *SQLXRepository) List(ctx context.Context, query ListEmployeesQuery) ([]
 	offsetPlaceholder := addArg(offset)
 
 	listQuery := `
-        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.email, e.national_id,
-            e.address, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
+        SELECT e.id, e.first_name, e.last_name, e.other_name, e.gender, e.dob, e.phone, e.phone_e164, e.email, e.national_id,
+            e.address, e.job_description, e.contract_url, e.contract_file_path, e.department_id, d.name AS department_name, e.position, e.employment_status, e.date_of_hire,
             e.base_salary_amount, e.created_at, e.updated_at
         FROM employees e
         LEFT JOIN departments d ON d.id = e.department_id

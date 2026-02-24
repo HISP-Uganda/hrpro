@@ -186,8 +186,15 @@ func (a *App) bootstrap(ctx context.Context) error {
 		_ = database.Close()
 		return fmt.Errorf("create logo store: %w", err)
 	}
+	contractStore, err := employees.NewLocalContractStore(filepath.Join(appDataDir, "hrpro"))
+	if err != nil {
+		_ = database.Close()
+		return fmt.Errorf("create contract store: %w", err)
+	}
 	settingsRepo := settings.NewRepository(database)
 	settingsService := settings.NewService(settingsRepo, logoStore)
+	employeesService.SetPhoneDefaultsProvider(settingsService)
+	employeesService.SetContractStore(contractStore)
 	settingsHandler := handlers.NewSettingsHandler(authService, settingsService)
 	attendanceService.SetLunchDefaultsProvider(settingsService)
 	reportsRepo := reports.NewRepository(database)
@@ -416,6 +423,18 @@ func (a *App) ListEmployees(request handlers.ListEmployeesRequest) (*handlers.Em
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.employeesHandler.ListEmployees(ctx, request)
+}
+
+func (a *App) UploadEmployeeContract(request handlers.UploadEmployeeContractRequest) (*employees.Employee, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.employeesHandler.UploadEmployeeContract(ctx, request)
+}
+
+func (a *App) RemoveEmployeeContract(request handlers.RemoveEmployeeContractRequest) (*employees.Employee, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.employeesHandler.RemoveEmployeeContract(ctx, request)
 }
 
 func (a *App) CreateDepartment(request handlers.CreateDepartmentRequest) (*departments.Department, error) {

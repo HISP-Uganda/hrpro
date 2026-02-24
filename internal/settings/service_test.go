@@ -78,6 +78,26 @@ func TestGetSettingsReturnsDefaultsWhenStoreEmpty(t *testing.T) {
 	if result.LunchDefaults.PlateCostAmount != DefaultLunchPlateCostAmount {
 		t.Fatalf("expected default lunch plate cost %d, got %d", DefaultLunchPlateCostAmount, result.LunchDefaults.PlateCostAmount)
 	}
+	if result.PhoneDefaults.DefaultCountryISO2 != DefaultCountryISO2 {
+		t.Fatalf("expected default country iso2 %q, got %q", DefaultCountryISO2, result.PhoneDefaults.DefaultCountryISO2)
+	}
+}
+
+func TestGetPhoneDefaultsPrefersEnvValues(t *testing.T) {
+	t.Setenv(EnvDefaultCountryISO2, "US")
+	t.Setenv(EnvDefaultCountryCallingCode, "+1")
+
+	svc := NewService(newFakeRepository(), nil)
+	iso2, calling, err := svc.GetPhoneDefaults(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if iso2 != "US" {
+		t.Fatalf("expected US, got %s", iso2)
+	}
+	if calling != "+1" {
+		t.Fatalf("expected +1, got %s", calling)
+	}
 }
 
 func TestUploadCompanyLogoSavesFileAndUpdatesMetadata(t *testing.T) {

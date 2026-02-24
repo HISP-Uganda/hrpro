@@ -57,6 +57,14 @@ export type AppGateway = {
   deleteEmployee: (accessToken: string, id: number) => Promise<void>
   getEmployee: (accessToken: string, id: number) => Promise<Employee>
   listEmployees: (accessToken: string, query: ListEmployeesQuery) => Promise<ListEmployeesResult>
+  uploadEmployeeContract: (
+    accessToken: string,
+    employeeId: number,
+    filename: string,
+    mimeType: string,
+    data: number[],
+  ) => Promise<Employee>
+  removeEmployeeContract: (accessToken: string, employeeId: number) => Promise<Employee>
 
   createDepartment: (accessToken: string, payload: UpsertDepartmentInput) => Promise<Department>
   updateDepartment: (accessToken: string, id: number, payload: UpsertDepartmentInput) => Promise<Department>

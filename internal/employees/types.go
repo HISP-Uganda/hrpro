@@ -10,9 +10,13 @@ type Employee struct {
 	Gender           *string    `db:"gender" json:"gender,omitempty"`
 	DateOfBirth      *time.Time `db:"dob" json:"dateOfBirth,omitempty"`
 	Phone            *string    `db:"phone" json:"phone,omitempty"`
+	PhoneE164        *string    `db:"phone_e164" json:"phoneE164,omitempty"`
 	Email            *string    `db:"email" json:"email,omitempty"`
 	NationalID       *string    `db:"national_id" json:"nationalId,omitempty"`
 	Address          *string    `db:"address" json:"address,omitempty"`
+	JobDescription   *string    `db:"job_description" json:"jobDescription,omitempty"`
+	ContractURL      *string    `db:"contract_url" json:"contractUrl,omitempty"`
+	ContractFilePath *string    `db:"contract_file_path" json:"contractFilePath,omitempty"`
 	DepartmentID     *int64     `db:"department_id" json:"departmentId,omitempty"`
 	DepartmentName   *string    `db:"department_name" json:"departmentName,omitempty"`
 	Position         string     `db:"position" json:"position"`
@@ -33,6 +37,8 @@ type UpsertEmployeeInput struct {
 	Email            *string `json:"email"`
 	NationalID       *string `json:"nationalId"`
 	Address          *string `json:"address"`
+	JobDescription   *string `json:"jobDescription"`
+	ContractURL      *string `json:"contractUrl"`
 	DepartmentID     *int64  `json:"departmentId"`
 	Position         string  `json:"position"`
 	EmploymentStatus string  `json:"employmentStatus"`

@@ -422,9 +422,13 @@ export namespace employees {
 	    // Go type: time
 	    dateOfBirth?: any;
 	    phone?: string;
+	    phoneE164?: string;
 	    email?: string;
 	    nationalId?: string;
 	    address?: string;
+	    jobDescription?: string;
+	    contractUrl?: string;
+	    contractFilePath?: string;
 	    departmentId?: number;
 	    departmentName?: string;
 	    position: string;
@@ -450,9 +454,13 @@ export namespace employees {
 	        this.gender = source["gender"];
 	        this.dateOfBirth = this.convertValues(source["dateOfBirth"], null);
 	        this.phone = source["phone"];
+	        this.phoneE164 = source["phoneE164"];
 	        this.email = source["email"];
 	        this.nationalId = source["nationalId"];
 	        this.address = source["address"];
+	        this.jobDescription = source["jobDescription"];
+	        this.contractUrl = source["contractUrl"];
+	        this.contractFilePath = source["contractFilePath"];
 	        this.departmentId = source["departmentId"];
 	        this.departmentName = source["departmentName"];
 	        this.position = source["position"];
@@ -491,6 +499,8 @@ export namespace employees {
 	    email?: string;
 	    nationalId?: string;
 	    address?: string;
+	    jobDescription?: string;
+	    contractUrl?: string;
 	    departmentId?: number;
 	    position: string;
 	    employmentStatus: string;
@@ -512,6 +522,8 @@ export namespace employees {
 	        this.email = source["email"];
 	        this.nationalId = source["nationalId"];
 	        this.address = source["address"];
+	        this.jobDescription = source["jobDescription"];
+	        this.contractUrl = source["contractUrl"];
 	        this.departmentId = source["departmentId"];
 	        this.position = source["position"];
 	        this.employmentStatus = source["employmentStatus"];
@@ -1674,6 +1686,20 @@ export namespace handlers {
 	        this.reason = source["reason"];
 	    }
 	}
+	export class RemoveEmployeeContractRequest {
+	    accessToken: string;
+	    employeeId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RemoveEmployeeContractRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.employeeId = source["employeeId"];
+	    }
+	}
 	export class ResetUserPasswordRequest {
 	    accessToken: string;
 	    id: number;
@@ -2001,6 +2027,26 @@ export namespace handlers {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.accessToken = source["accessToken"];
+	        this.filename = source["filename"];
+	        this.mimeType = source["mimeType"];
+	        this.data = source["data"];
+	    }
+	}
+	export class UploadEmployeeContractRequest {
+	    accessToken: string;
+	    employeeId: number;
+	    filename: string;
+	    mimeType: string;
+	    data: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new UploadEmployeeContractRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.employeeId = source["employeeId"];
 	        this.filename = source["filename"];
 	        this.mimeType = source["mimeType"];
 	        this.data = source["data"];
@@ -2931,6 +2977,7 @@ export namespace reports {
 	    employeeName: string;
 	    departmentName: string;
 	    position: string;
+	    jobDescription: string;
 	    status: string;
 	    // Go type: time
 	    dateOfHire: any;
@@ -2947,6 +2994,7 @@ export namespace reports {
 	        this.employeeName = source["employeeName"];
 	        this.departmentName = source["departmentName"];
 	        this.position = source["position"];
+	        this.jobDescription = source["jobDescription"];
 	        this.status = source["status"];
 	        this.dateOfHire = this.convertValues(source["dateOfHire"], null);
 	        this.phone = source["phone"];
@@ -3371,6 +3419,22 @@ export namespace settings {
 	        this.roundingEnabled = source["roundingEnabled"];
 	    }
 	}
+	export class PhoneDefaultsSettings {
+	    defaultCountryName: string;
+	    defaultCountryISO2: string;
+	    defaultCountryCallingCode: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PhoneDefaultsSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.defaultCountryName = source["defaultCountryName"];
+	        this.defaultCountryISO2 = source["defaultCountryISO2"];
+	        this.defaultCountryCallingCode = source["defaultCountryCallingCode"];
+	    }
+	}
 	export class SaveCompanyProfileInput {
 	    name: string;
 	    supportEmail?: string;
@@ -3396,6 +3460,7 @@ export namespace settings {
 	    currency: CurrencySettings;
 	    lunchDefaults: LunchDefaultsSettings;
 	    payrollDisplay: PayrollDisplaySettings;
+	    phoneDefaults: PhoneDefaultsSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new SettingsDTO(source);
@@ -3407,6 +3472,7 @@ export namespace settings {
 	        this.currency = this.convertValues(source["currency"], CurrencySettings);
 	        this.lunchDefaults = this.convertValues(source["lunchDefaults"], LunchDefaultsSettings);
 	        this.payrollDisplay = this.convertValues(source["payrollDisplay"], PayrollDisplaySettings);
+	        this.phoneDefaults = this.convertValues(source["phoneDefaults"], PhoneDefaultsSettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -3432,6 +3498,7 @@ export namespace settings {
 	    currency: CurrencySettings;
 	    lunchDefaults: LunchDefaultsSettings;
 	    payrollDisplay: PayrollDisplaySettings;
+	    phoneDefaults: PhoneDefaultsSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new UpdateSettingsInput(source);
@@ -3443,6 +3510,7 @@ export namespace settings {
 	        this.currency = this.convertValues(source["currency"], CurrencySettings);
 	        this.lunchDefaults = this.convertValues(source["lunchDefaults"], LunchDefaultsSettings);
 	        this.payrollDisplay = this.convertValues(source["payrollDisplay"], PayrollDisplaySettings);
+	        this.phoneDefaults = this.convertValues(source["phoneDefaults"], PhoneDefaultsSettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

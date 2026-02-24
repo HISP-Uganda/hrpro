@@ -12,7 +12,7 @@ func exportEmployeeCSV(rows []EmployeeReportRow, symbol string, decimals int, ro
 	buffer := &bytes.Buffer{}
 	writer := csv.NewWriter(buffer)
 
-	headers := []string{"employee_name", "department_name", "position", "status", "date_of_hire", "phone", "email", "base_salary_amount"}
+	headers := []string{"employee_name", "department_name", "position", "job_description", "status", "date_of_hire", "phone", "email", "base_salary_amount"}
 	if err := writer.Write(headers); err != nil {
 		return "", fmt.Errorf("write employee csv header: %w", err)
 	}
@@ -22,7 +22,7 @@ func exportEmployeeCSV(rows []EmployeeReportRow, symbol string, decimals int, ro
 		if row.BaseSalaryAmount != nil {
 			salary = formatCurrency(*row.BaseSalaryAmount, symbol, decimals, rounding)
 		}
-		record := []string{row.EmployeeName, row.DepartmentName, row.Position, row.Status, row.DateOfHire.Format("2006-01-02"), row.Phone, row.Email, salary}
+		record := []string{row.EmployeeName, row.DepartmentName, row.Position, row.JobDescription, row.Status, row.DateOfHire.Format("2006-01-02"), row.Phone, row.Email, salary}
 		if err := writer.Write(record); err != nil {
 			return "", fmt.Errorf("write employee csv row: %w", err)
 		}

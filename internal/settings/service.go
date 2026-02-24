@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ var (
 		"image/jpeg": ".jpg",
 		"image/webp": ".webp",
 	}
+	callingCodePattern = regexp.MustCompile(`^\+[1-9][0-9]{0,3}$`)
 )
 
 type Service struct {
@@ -103,6 +105,9 @@ func (s *Service) UpdateSettings(ctx context.Context, claims *models.Claims, inp
 		return nil, err
 	}
 	if err := s.upsertValue(ctx, KeyPayrollDisplay, input.PayrollDisplay, claims.UserID); err != nil {
+		return nil, err
+	}
+	if err := s.upsertValue(ctx, KeyPhoneDefaults, normalizePhoneDefaults(input.PhoneDefaults), claims.UserID); err != nil {
 		return nil, err
 	}
 
@@ -265,6 +270,25 @@ func (s *Service) GetPayrollFormatting(ctx context.Context) (symbol string, deci
 	return settingsValue.Currency.Symbol, settingsValue.PayrollDisplay.Decimals, settingsValue.PayrollDisplay.RoundingEnabled, nil
 }
 
+func (s *Service) GetPhoneDefaults(ctx context.Context) (defaultCountryISO2 string, defaultCountryCallingCode string, err error) {
+	settingsValue, err := s.loadSettings(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	defaults := settingsValue.PhoneDefaults
+
+	envISO2 := strings.TrimSpace(os.Getenv(EnvDefaultCountryISO2))
+	envCallingCode := strings.TrimSpace(os.Getenv(EnvDefaultCountryCallingCode))
+	if envISO2 != "" {
+		defaults.DefaultCountryISO2 = envISO2
+	}
+	if envCallingCode != "" {
+		defaults.DefaultCountryCallingCode = envCallingCode
+	}
+	defaults = normalizePhoneDefaults(defaults)
+	return defaults.DefaultCountryISO2, defaults.DefaultCountryCallingCode, nil
+}
+
 func (s *Service) loadSettings(ctx context.Context) (*SettingsDTO, error) {
 	result := defaultSettings()
 
@@ -278,6 +302,9 @@ func (s *Service) loadSettings(ctx context.Context) (*SettingsDTO, error) {
 		return nil, err
 	}
 	if err := s.readValue(ctx, KeyPayrollDisplay, &result.PayrollDisplay); err != nil {
+		return nil, err
+	}
+	if err := s.readValue(ctx, KeyPhoneDefaults, &result.PhoneDefaults); err != nil {
 		return nil, err
 	}
 
@@ -301,6 +328,17 @@ func (s *Service) loadSettings(ctx context.Context) (*SettingsDTO, error) {
 	if result.PayrollDisplay.Decimals < 0 || result.PayrollDisplay.Decimals > 6 {
 		result.PayrollDisplay.Decimals = DefaultPayrollDecimals
 	}
+	result.PhoneDefaults = normalizePhoneDefaults(result.PhoneDefaults)
+	if envCountryName := strings.TrimSpace(os.Getenv(EnvDefaultCountryName)); envCountryName != "" {
+		result.PhoneDefaults.DefaultCountryName = envCountryName
+	}
+	if envCountryISO2 := strings.TrimSpace(os.Getenv(EnvDefaultCountryISO2)); envCountryISO2 != "" {
+		result.PhoneDefaults.DefaultCountryISO2 = strings.ToUpper(envCountryISO2)
+	}
+	if envCountryCallingCode := strings.TrimSpace(os.Getenv(EnvDefaultCountryCallingCode)); envCountryCallingCode != "" {
+		result.PhoneDefaults.DefaultCountryCallingCode = envCountryCallingCode
+	}
+	result.PhoneDefaults = normalizePhoneDefaults(result.PhoneDefaults)
 
 	return &result, nil
 }
@@ -409,6 +447,11 @@ func defaultSettings() SettingsDTO {
 			Decimals:        DefaultPayrollDecimals,
 			RoundingEnabled: false,
 		},
+		PhoneDefaults: PhoneDefaultsSettings{
+			DefaultCountryName:        DefaultCountryName,
+			DefaultCountryISO2:        DefaultCountryISO2,
+			DefaultCountryCallingCode: DefaultCountryCallingCode,
+		},
 	}
 }
 
@@ -439,6 +482,9 @@ func validateUpdateInput(input UpdateSettingsInput) error {
 	}
 	if input.PayrollDisplay.Decimals < 0 || input.PayrollDisplay.Decimals > 6 {
 		return fmt.Errorf("%w: payroll decimals must be between 0 and 6", ErrValidation)
+	}
+	if _, err := validatePhoneDefaults(input.PhoneDefaults); err != nil {
+		return err
 	}
 	return nil
 }
@@ -563,4 +609,39 @@ func normalizeCurrencySettings(in CurrencySettings) CurrencySettings {
 		value.Decimals = DefaultCurrencyDecimals
 	}
 	return value
+}
+
+func normalizePhoneDefaults(in PhoneDefaultsSettings) PhoneDefaultsSettings {
+	value := in
+	value.DefaultCountryName = strings.TrimSpace(value.DefaultCountryName)
+	value.DefaultCountryISO2 = strings.ToUpper(strings.TrimSpace(value.DefaultCountryISO2))
+	value.DefaultCountryCallingCode = strings.TrimSpace(value.DefaultCountryCallingCode)
+
+	if value.DefaultCountryName == "" {
+		value.DefaultCountryName = DefaultCountryName
+	}
+	if value.DefaultCountryISO2 == "" {
+		value.DefaultCountryISO2 = DefaultCountryISO2
+	}
+	if value.DefaultCountryCallingCode == "" {
+		value.DefaultCountryCallingCode = DefaultCountryCallingCode
+	}
+	if !strings.HasPrefix(value.DefaultCountryCallingCode, "+") {
+		value.DefaultCountryCallingCode = "+" + value.DefaultCountryCallingCode
+	}
+	return value
+}
+
+func validatePhoneDefaults(in PhoneDefaultsSettings) (PhoneDefaultsSettings, error) {
+	value := normalizePhoneDefaults(in)
+	if len(value.DefaultCountryISO2) != 2 {
+		return PhoneDefaultsSettings{}, fmt.Errorf("%w: default country ISO2 must be 2 letters", ErrValidation)
+	}
+	if len(value.DefaultCountryName) > 80 {
+		return PhoneDefaultsSettings{}, fmt.Errorf("%w: default country name is too long", ErrValidation)
+	}
+	if !callingCodePattern.MatchString(value.DefaultCountryCallingCode) {
+		return PhoneDefaultsSettings{}, fmt.Errorf("%w: default country calling code is invalid", ErrValidation)
+	}
+	return value, nil
 }

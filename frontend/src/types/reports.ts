@@ -19,6 +19,7 @@ export type EmployeeReportRow = {
   employeeName: string
   departmentName: string
   position: string
+  jobDescription: string
   status: string
   dateOfHire: string
   phone: string

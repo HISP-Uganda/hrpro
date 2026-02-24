@@ -23,6 +23,7 @@ type EmployeeReportRow struct {
 	EmployeeName     string    `db:"employee_name" json:"employeeName"`
 	DepartmentName   string    `db:"department_name" json:"departmentName"`
 	Position         string    `db:"position" json:"position"`
+	JobDescription   string    `db:"job_description" json:"jobDescription"`
 	Status           string    `db:"status" json:"status"`
 	DateOfHire       time.Time `db:"date_of_hire" json:"dateOfHire"`
 	Phone            string    `db:"phone" json:"phone"`

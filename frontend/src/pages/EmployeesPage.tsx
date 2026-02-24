@@ -21,12 +21,16 @@ import AddIcon from '@mui/icons-material/Add'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
+import LinkIcon from '@mui/icons-material/Link'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
 import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { isHROrAdminRole } from '../auth/roles'
+import { defaultAppSettings } from '../lib/settings'
 import type { Department } from '../types/departments'
 import type { Employee, UpsertEmployeeInput } from '../types/employees'
 
@@ -40,6 +44,8 @@ type FormState = {
   email: string
   nationalId: string
   address: string
+  jobDescription: string
+  contractUrl: string
   departmentId: string
   position: string
   employmentStatus: string
@@ -48,6 +54,8 @@ type FormState = {
 }
 
 type DialogMode = 'create' | 'edit' | 'view'
+
+const maxContractBytes = 10 * 1024 * 1024
 
 const initialFormState: FormState = {
   firstName: '',
@@ -59,6 +67,8 @@ const initialFormState: FormState = {
   email: '',
   nationalId: '',
   address: '',
+  jobDescription: '',
+  contractUrl: '',
   departmentId: '',
   position: '',
   employmentStatus: 'Active',
@@ -77,6 +87,8 @@ function toPayload(state: FormState): UpsertEmployeeInput {
     email: state.email || undefined,
     nationalId: state.nationalId || undefined,
     address: state.address || undefined,
+    jobDescription: state.jobDescription || undefined,
+    contractUrl: state.contractUrl || undefined,
     departmentId: state.departmentId ? Number(state.departmentId) : undefined,
     position: state.position,
     employmentStatus: state.employmentStatus,
@@ -96,6 +108,8 @@ function employeeToFormState(employee: Employee): FormState {
     email: employee.email ?? '',
     nationalId: employee.nationalId ?? '',
     address: employee.address ?? '',
+    jobDescription: employee.jobDescription ?? '',
+    contractUrl: employee.contractUrl ?? '',
     departmentId: employee.departmentId?.toString() ?? '',
     position: employee.position,
     employmentStatus: employee.employmentStatus,
@@ -122,11 +136,19 @@ function validateForm(state: FormState) {
     errors.email = 'Enter a valid email address'
   }
 
-  if (state.phone && !/^[0-9+()\-\s]{7,20}$/.test(state.phone)) {
+  if (state.phone && !/^[0-9+()\-\s]{7,24}$/.test(state.phone)) {
     errors.phone = 'Enter a valid phone number'
   }
 
   return errors
+}
+
+function contractNameFromPath(path?: string): string {
+  if (!path) {
+    return ''
+  }
+  const parts = path.split('/')
+  return parts[parts.length - 1] || path
 }
 
 export function EmployeesPage() {
@@ -146,7 +168,8 @@ export function EmployeesPage() {
   const [formState, setFormState] = useState<FormState>(initialFormState)
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
+  const [contractFile, setContractFile] = useState<File | null>(null)
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' | 'info' } | null>(null)
 
   const listQuery = useQuery({
     queryKey: ['employees', searchInput, status, departmentFilter, paginationModel.page, paginationModel.pageSize],
@@ -160,6 +183,14 @@ export function EmployeesPage() {
       }),
     enabled: Boolean(accessToken),
   })
+
+  const settingsQuery = useQuery({
+    queryKey: ['settings', 'app'],
+    queryFn: () => router.options.context.api.getSettings(accessToken),
+    enabled: Boolean(accessToken),
+  })
+
+  const phoneHint = settingsQuery.data?.phoneDefaults?.defaultCountryCallingCode || defaultAppSettings.phoneDefaults.defaultCountryCallingCode
 
   const departmentsQuery = useQuery({
     queryKey: ['departments', 'options'],
@@ -178,9 +209,6 @@ export function EmployeesPage() {
       setSnackbar({ message: 'Employee created successfully', severity: 'success' })
       setIsFormOpen(false)
     },
-    onError: () => {
-      setSnackbar({ message: 'Failed to create employee', severity: 'error' })
-    },
   })
 
   const updateMutation = useMutation({
@@ -191,8 +219,36 @@ export function EmployeesPage() {
       setSnackbar({ message: 'Employee updated successfully', severity: 'success' })
       setIsFormOpen(false)
     },
-    onError: () => {
-      setSnackbar({ message: 'Failed to update employee', severity: 'error' })
+  })
+
+  const uploadContractMutation = useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const bytes = Array.from(new Uint8Array(await file.arrayBuffer()))
+      return router.options.context.api.uploadEmployeeContract(
+        accessToken,
+        id,
+        file.name,
+        file.type || 'application/octet-stream',
+        bytes,
+      )
+    },
+    onSuccess: async (employee) => {
+      await router.options.context.queryClient.invalidateQueries({ queryKey: ['employees'] })
+      setSelectedEmployee(employee)
+      setFormState(employeeToFormState(employee))
+      setContractFile(null)
+      setSnackbar({ message: 'Contract uploaded successfully', severity: 'success' })
+    },
+  })
+
+  const removeContractMutation = useMutation({
+    mutationFn: (id: number) => router.options.context.api.removeEmployeeContract(accessToken, id),
+    onSuccess: async (employee) => {
+      await router.options.context.queryClient.invalidateQueries({ queryKey: ['employees'] })
+      setSelectedEmployee(employee)
+      setFormState(employeeToFormState(employee))
+      setContractFile(null)
+      setSnackbar({ message: 'Contract removed', severity: 'success' })
     },
   })
 
@@ -213,6 +269,7 @@ export function EmployeesPage() {
     setSelectedEmployee(null)
     setFormState(initialFormState)
     setFormErrors({})
+    setContractFile(null)
     setIsFormOpen(true)
   }
 
@@ -221,6 +278,7 @@ export function EmployeesPage() {
     setSelectedEmployee(employee)
     setFormState(employeeToFormState(employee))
     setFormErrors({})
+    setContractFile(null)
     setIsFormOpen(true)
   }
 
@@ -229,6 +287,7 @@ export function EmployeesPage() {
     setSelectedEmployee(employee)
     setFormState(employeeToFormState(employee))
     setFormErrors({})
+    setContractFile(null)
     setIsFormOpen(true)
   }
 
@@ -240,13 +299,42 @@ export function EmployeesPage() {
     }
 
     const payload = toPayload(formState)
-    if (dialogMode === 'create') {
-      await createMutation.mutateAsync(payload)
+    try {
+      if (dialogMode === 'create') {
+        await createMutation.mutateAsync(payload)
+        return
+      }
+      if (dialogMode === 'edit' && selectedEmployee) {
+        await updateMutation.mutateAsync({ id: selectedEmployee.id, payload })
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save employee'
+      if (message.toLowerCase().includes('phone')) {
+        setFormErrors((prev) => ({ ...prev, phone: 'Enter a valid phone number for the configured default country' }))
+      }
+      setSnackbar({ message, severity: 'error' })
+    }
+  }
+
+  const handleContractUpload = async () => {
+    if (!selectedEmployee || !contractFile) {
+      return
+    }
+    if (contractFile.size > maxContractBytes) {
+      setSnackbar({ severity: 'error', message: 'Contract file exceeds 10MB' })
       return
     }
 
-    if (dialogMode === 'edit' && selectedEmployee) {
-      await updateMutation.mutateAsync({ id: selectedEmployee.id, payload })
+    const extension = contractFile.name.toLowerCase()
+    if (!extension.endsWith('.pdf') && !extension.endsWith('.doc') && !extension.endsWith('.docx')) {
+      setSnackbar({ severity: 'error', message: 'Only PDF, DOC, or DOCX files are allowed' })
+      return
+    }
+
+    try {
+      await uploadContractMutation.mutateAsync({ id: selectedEmployee.id, file: contractFile })
+    } catch (error) {
+      setSnackbar({ severity: 'error', message: error instanceof Error ? error.message : 'Failed to upload contract' })
     }
   }
 
@@ -272,6 +360,13 @@ export function EmployeesPage() {
         minWidth: 140,
         flex: 0.8,
         valueGetter: (params) => params.row.phone ?? '-',
+      },
+      {
+        field: 'jobDescription',
+        headerName: 'Job Description',
+        minWidth: 220,
+        flex: 1.2,
+        valueGetter: (params) => params.row.jobDescription ?? '-',
       },
       {
         field: 'position',
@@ -317,14 +412,12 @@ export function EmployeesPage() {
             icon={<VisibilityIcon />}
             label="View"
             onClick={() => onViewEmployee(row)}
-            showInMenu
           />,
           <GridActionsCellItem
             key="edit"
             icon={<EditIcon />}
             label="Edit"
             onClick={() => onEditEmployee(row)}
-            showInMenu
             disabled={!canWrite}
           />,
           <GridActionsCellItem
@@ -332,7 +425,6 @@ export function EmployeesPage() {
             icon={<DeleteIcon />}
             label="Delete"
             onClick={() => setDeleteTarget(row)}
-            showInMenu
             disabled={!canWrite}
           />,
         ],
@@ -343,6 +435,7 @@ export function EmployeesPage() {
 
   const rows = listQuery.data?.items ?? []
   const isSaving = createMutation.isPending || updateMutation.isPending
+  const activeContractPath = selectedEmployee?.contractFilePath ?? ''
 
   return (
     <AppShell title="Employees">
@@ -405,12 +498,14 @@ export function EmployeesPage() {
             pageSizeOptions={[10, 20, 50]}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
+            onRowDoubleClick={(params) => onViewEmployee(params.row as Employee)}
             disableRowSelectionOnClick
             initialState={{
               columns: {
                 columnVisibilityModel: {
                   gender: false,
                   phone: true,
+                  jobDescription: false,
                 },
               },
             }}
@@ -469,7 +564,7 @@ export function EmployeesPage() {
                 value={formState.phone}
                 onChange={(event) => setFormState((prev) => ({ ...prev, phone: event.target.value }))}
                 error={Boolean(formErrors.phone)}
-                helperText={formErrors.phone}
+                helperText={formErrors.phone || `Use national format or ${phoneHint}...`}
                 fullWidth
                 disabled={dialogMode === 'view'}
               />
@@ -576,10 +671,90 @@ export function EmployeesPage() {
               minRows={2}
               disabled={dialogMode === 'view'}
             />
+
+            <TextField
+              label="Job Description"
+              value={formState.jobDescription}
+              onChange={(event) => setFormState((prev) => ({ ...prev, jobDescription: event.target.value }))}
+              multiline
+              minRows={3}
+              disabled={dialogMode === 'view'}
+            />
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <TextField
+                label="Contract URL"
+                value={formState.contractUrl}
+                onChange={(event) => setFormState((prev) => ({ ...prev, contractUrl: event.target.value }))}
+                fullWidth
+                disabled={dialogMode === 'view'}
+              />
+              {formState.contractUrl.trim() ? (
+                <Button
+                  variant="outlined"
+                  startIcon={<LinkIcon />}
+                  onClick={() => window.open(formState.contractUrl.trim(), '_blank', 'noopener,noreferrer')}
+                >
+                  Open URL
+                </Button>
+              ) : null}
+            </Stack>
+
+            <Stack spacing={1}>
+              <Typography variant="subtitle2">Contract File</Typography>
+              {!selectedEmployee ? (
+                <Typography variant="body2" color="text.secondary">
+                  Save the employee first, then upload a contract file.
+                </Typography>
+              ) : (
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<UploadFileIcon />}
+                    disabled={dialogMode === 'view' || uploadContractMutation.isPending}
+                  >
+                    Select Contract
+                    <input
+                      hidden
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={(event) => setContractFile(event.target.files?.[0] ?? null)}
+                    />
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleContractUpload}
+                    disabled={dialogMode === 'view' || !contractFile || uploadContractMutation.isPending}
+                  >
+                    {uploadContractMutation.isPending ? 'Uploading...' : 'Upload'}
+                  </Button>
+                  <Typography variant="body2" color="text.secondary">
+                    {contractFile ? `Selected: ${contractFile.name}` : activeContractPath ? `Current: ${contractNameFromPath(activeContractPath)}` : 'No contract uploaded'}
+                  </Typography>
+                  {activeContractPath && dialogMode !== 'view' ? (
+                    <Button
+                      color="error"
+                      variant="text"
+                      startIcon={<DeleteOutlineIcon />}
+                      onClick={() => selectedEmployee && removeContractMutation.mutate(selectedEmployee.id)}
+                      disabled={removeContractMutation.isPending}
+                    >
+                      {removeContractMutation.isPending ? 'Removing...' : 'Remove'}
+                    </Button>
+                  ) : null}
+                </Stack>
+              )}
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsFormOpen(false)}>Close</Button>
+          {dialogMode === 'view' && canWrite ? (
+            <Button variant="outlined" onClick={() => setDialogMode('edit')}>
+              Edit
+            </Button>
+          ) : null}
           {dialogMode !== 'view' ? (
             <Button variant="contained" onClick={handleSave} disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save'}

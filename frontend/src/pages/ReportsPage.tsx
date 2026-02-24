@@ -287,6 +287,7 @@ export function ReportsPage() {
       { field: 'employeeName', headerName: 'Employee', minWidth: 220, flex: 1.1 },
       { field: 'departmentName', headerName: 'Department', minWidth: 160, flex: 0.8 },
       { field: 'position', headerName: 'Position', minWidth: 160, flex: 0.8 },
+      { field: 'jobDescription', headerName: 'Job Description', minWidth: 220, flex: 1.1 },
       { field: 'status', headerName: 'Status', minWidth: 120, flex: 0.6 },
       { field: 'dateOfHire', headerName: 'Date of Hire', minWidth: 140, flex: 0.6, valueFormatter: (params) => formatDate(String(params.value ?? '')) },
       { field: 'phone', headerName: 'Phone', minWidth: 140, flex: 0.7 },
