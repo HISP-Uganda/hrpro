@@ -13,6 +13,8 @@ Employee enhancement completed: employee job description + contract URL/upload/r
 Phone normalization now uses github.com/nyaruka/phonenumbers (local fallback removed).
 Employee form: strict phone validation + gender dropdown enforced.
 Fixed EmployeesPage test typings after Employee model changes (contractFilePath + gender typing).
+Client-side phone validation added using libphonenumber-js (Employee form).
+Fixed libphonenumber-js CountryCode typing in phone helper.
 
 ---
 
@@ -147,12 +149,13 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Phase A Enhancement — Employee Contract + Phone Defaults | Completed      | Employee: job description + contract link/upload/remove; Settings: default country values for phone parsing; backend phone normalization to E.164 and tests. |
 | Phone Normalization Library Migration | Completed                         | Replaced local fallback normalization logic with `github.com/nyaruka/phonenumbers`; employee create/update now parse/validate/format via library only. |
 | Employee Form Validation Hardening | Completed                          | Strict phone validation field errors + gender dropdown/enum enforcement across frontend/backend, with DB gender constraint migration. |
+| Phase A Fix — Client-side Phone Validation (Employee Form) | Completed      | Added `libphonenumber-js` client validation/normalization with settings `defaultCountryISO2` fallback, onBlur/onSubmit field errors, submit blocking for invalid numbers, and focused unit/component coverage. |
 
 ---
 
 # 4. In Progress
 
-Employee form validation hardening completed. Next milestone: Hardening Phase — Milestone 2.
+Phase A fix for client-side phone validation completed. Next milestone: Hardening Phase — Milestone 2.
 
 ---
 

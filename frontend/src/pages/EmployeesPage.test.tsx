@@ -61,7 +61,7 @@ function makeEmployee(overrides: Partial<Employee> = {}): Employee {
   }
 }
 
-function createMockRouter() {
+function createMockRouter(defaultCountryISO2 = 'UG') {
   const auth = createAuthStore()
   const queryClient = new QueryClient()
   const listEmployeesMock: AppGateway['listEmployees'] = async (_accessToken, _query) => ({
@@ -84,7 +84,11 @@ function createMockRouter() {
       currency: { code: 'TZS', symbol: 'TZS', decimals: 0 },
       lunchDefaults: { plateCostAmount: 12000, staffContributionAmount: 4000 },
       payrollDisplay: { decimals: 2, roundingEnabled: false },
-      phoneDefaults: { defaultCountryName: 'Uganda', defaultCountryISO2: 'UG', defaultCountryCallingCode: '+256' },
+      phoneDefaults: {
+        defaultCountryName: defaultCountryISO2 === 'US' ? 'United States' : 'Uganda',
+        defaultCountryISO2,
+        defaultCountryCallingCode: defaultCountryISO2 === 'US' ? '+1' : '+256',
+      },
     })),
     listEmployees: vi.fn(listEmployeesMock),
     listDepartments: vi.fn(async () => ({ items: [], totalCount: 0, page: 1, pageSize: 200 })),
@@ -159,7 +163,7 @@ describe('EmployeesPage enhancements', () => {
     expect(payload.gender).toBe('Male')
   })
 
-  it('shows invalid phone field error and blocks save', async () => {
+  it('shows invalid phone field error on blur and blocks save', async () => {
     const router = createMockRouter()
     renderPage(router)
 
@@ -171,12 +175,68 @@ describe('EmployeesPage enhancements', () => {
     fireEvent.click(await screen.findByRole('option', { name: 'Female' }))
     fireEvent.change(within(dialog).getByLabelText('Position'), { target: { value: 'Analyst' } })
     fireEvent.change(within(dialog).getByLabelText('Date of Hire'), { target: { value: '2026-02-24' } })
-    fireEvent.change(within(dialog).getByLabelText('Phone'), { target: { value: 'bad***' } })
+    const phoneInput = within(dialog).getByLabelText('Phone')
+    fireEvent.change(phoneInput, { target: { value: 'bad***' } })
+    fireEvent.blur(phoneInput)
+
+    expect(await screen.findByText('Enter a valid phone number for the configured default country')).toBeInTheDocument()
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByText('Use digits and an optional leading +')).toBeInTheDocument()
     expect(router.options.context.api.createEmployee).not.toHaveBeenCalled()
+  })
+
+  it('clears phone error and allows save when phone is valid', async () => {
+    const router = createMockRouter('US')
+    renderPage(router)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Employee' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('First Name'), { target: { value: 'John' } })
+    fireEvent.change(within(dialog).getByLabelText('Last Name'), { target: { value: 'Smith' } })
+    fireEvent.mouseDown(within(dialog).getByLabelText('Gender'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Male' }))
+    fireEvent.change(within(dialog).getByLabelText('Position'), { target: { value: 'Analyst' } })
+    fireEvent.change(within(dialog).getByLabelText('Date of Hire'), { target: { value: '2026-02-24' } })
+
+    const phoneInput = within(dialog).getByLabelText('Phone')
+    fireEvent.change(phoneInput, { target: { value: 'invalid' } })
+    fireEvent.blur(phoneInput)
+    expect(await screen.findByText('Enter a valid phone number for the configured default country')).toBeInTheDocument()
+
+    fireEvent.change(phoneInput, { target: { value: '4155552671' } })
+    fireEvent.blur(phoneInput)
+    await waitFor(() => {
+      expect(screen.queryByText('Enter a valid phone number for the configured default country')).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() => {
+      expect(router.options.context.api.createEmployee).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('uses settings defaultCountryISO2 when validating national numbers', async () => {
+    const router = createMockRouter('US')
+    renderPage(router)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Employee' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('First Name'), { target: { value: 'John' } })
+    fireEvent.change(within(dialog).getByLabelText('Last Name'), { target: { value: 'Smith' } })
+    fireEvent.mouseDown(within(dialog).getByLabelText('Gender'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Male' }))
+    fireEvent.change(within(dialog).getByLabelText('Position'), { target: { value: 'Analyst' } })
+    fireEvent.change(within(dialog).getByLabelText('Date of Hire'), { target: { value: '2026-02-24' } })
+    fireEvent.change(within(dialog).getByLabelText('Phone'), { target: { value: '4155552671' } })
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(router.options.context.api.createEmployee).toHaveBeenCalledTimes(1)
+    })
+    const payload = router.options.context.api.createEmployee.mock.calls[0][1]
+    expect(payload.phone).toBe('+14155552671')
   })
 
   it('requires selecting gender before submit', async () => {
@@ -229,10 +289,11 @@ describe('EmployeesPage enhancements', () => {
     fireEvent.click(await screen.findByRole('option', { name: 'Male' }))
     fireEvent.change(within(dialog).getByLabelText('Position'), { target: { value: 'Analyst' } })
     fireEvent.change(within(dialog).getByLabelText('Date of Hire'), { target: { value: '2026-02-24' } })
-    fireEvent.change(within(dialog).getByLabelText('Phone'), { target: { value: '+999' } })
+    fireEvent.change(within(dialog).getByLabelText('Phone'), { target: { value: '+14155552671' } })
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Enter a valid phone number for the configured default country')).toBeInTheDocument()
+    expect(router.options.context.api.createEmployee).toHaveBeenCalledTimes(1)
   })
 })

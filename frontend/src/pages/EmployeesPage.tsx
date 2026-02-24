@@ -30,6 +30,7 @@ import { useRouter } from '@tanstack/react-router'
 import { AppShell } from '../components/AppShell'
 import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { isHROrAdminRole } from '../auth/roles'
+import { INVALID_PHONE_ERROR, validateAndNormalizePhone } from '../lib/phone'
 import { defaultAppSettings } from '../lib/settings'
 import type { Department } from '../types/departments'
 import type { Employee, UpsertEmployeeInput } from '../types/employees'
@@ -76,15 +77,16 @@ const initialFormState: FormState = {
   baseSalaryAmount: '0',
 }
 
-function toPayload(state: FormState): UpsertEmployeeInput {
+function toPayload(state: FormState, normalizedPhone?: string): UpsertEmployeeInput {
   const normalizedGender = state.gender === 'Male' || state.gender === 'Female' ? state.gender : undefined
+  const trimmedPhone = state.phone.trim()
   return {
     firstName: state.firstName,
     lastName: state.lastName,
     otherName: state.otherName || undefined,
     gender: normalizedGender,
     dateOfBirth: state.dateOfBirth || undefined,
-    phone: state.phone || undefined,
+    phone: normalizedPhone || (trimmedPhone || undefined),
     email: state.email || undefined,
     nationalId: state.nationalId || undefined,
     address: state.address || undefined,
@@ -119,7 +121,7 @@ function employeeToFormState(employee: Employee): FormState {
   }
 }
 
-function validateForm(state: FormState) {
+function validateForm(state: FormState, defaultCountryISO2: string) {
   const errors: Record<string, string> = {}
 
   if (!state.firstName.trim()) errors.firstName = 'First name is required'
@@ -143,11 +145,9 @@ function validateForm(state: FormState) {
     errors.gender = 'Select Male or Female'
   }
 
-  if (state.phone) {
-    const trimmed = state.phone.trim()
-    if (!/^\+?[0-9 ]+$/.test(trimmed)) {
-      errors.phone = 'Use digits and an optional leading +'
-    }
+  const phoneResult = validateAndNormalizePhone(state.phone, defaultCountryISO2)
+  if (!phoneResult.ok) {
+    errors.phone = phoneResult.error
   }
 
   return errors
@@ -209,6 +209,7 @@ export function EmployeesPage() {
   })
 
   const phoneHint = settingsQuery.data?.phoneDefaults?.defaultCountryCallingCode || defaultAppSettings.phoneDefaults.defaultCountryCallingCode
+  const defaultCountryISO2 = settingsQuery.data?.phoneDefaults?.defaultCountryISO2 || defaultAppSettings.phoneDefaults.defaultCountryISO2
 
   const departmentsQuery = useQuery({
     queryKey: ['departments', 'options'],
@@ -309,14 +310,35 @@ export function EmployeesPage() {
     setIsFormOpen(true)
   }
 
+  const handlePhoneBlur = () => {
+    const phoneResult = validateAndNormalizePhone(formState.phone, defaultCountryISO2)
+    if (!phoneResult.ok) {
+      setFormErrors((prev) => ({ ...prev, phone: phoneResult.error }))
+      return
+    }
+    setFormErrors((prev) => ({ ...prev, phone: '' }))
+    if (phoneResult.e164) {
+      setFormState((prev) => ({ ...prev, phone: phoneResult.e164 || prev.phone }))
+    }
+  }
+
   const handleSave = async () => {
-    const errors = validateForm(formState)
+    const errors = validateForm(formState, defaultCountryISO2)
     setFormErrors(errors)
     if (Object.keys(errors).length > 0) {
       return
     }
 
-    const payload = toPayload(formState)
+    const phoneResult = validateAndNormalizePhone(formState.phone, defaultCountryISO2)
+    if (!phoneResult.ok) {
+      setFormErrors((prev) => ({ ...prev, phone: phoneResult.error }))
+      return
+    }
+    if (phoneResult.e164) {
+      setFormState((prev) => ({ ...prev, phone: phoneResult.e164 || prev.phone }))
+    }
+
+    const payload = toPayload(formState, phoneResult.e164)
     try {
       if (dialogMode === 'create') {
         await createMutation.mutateAsync(payload)
@@ -329,7 +351,7 @@ export function EmployeesPage() {
       const message = error instanceof Error ? error.message : 'Failed to save employee'
       const fieldError = parseValidationFieldError(message)
       if (fieldError?.field === 'phone') {
-        setFormErrors((prev) => ({ ...prev, phone: 'Enter a valid phone number for the configured default country' }))
+        setFormErrors((prev) => ({ ...prev, phone: INVALID_PHONE_ERROR }))
         return
       }
       if (fieldError?.field === 'gender') {
@@ -606,6 +628,7 @@ export function EmployeesPage() {
                   setFormState((prev) => ({ ...prev, phone: event.target.value }))
                   setFormErrors((prev) => ({ ...prev, phone: '' }))
                 }}
+                onBlur={handlePhoneBlur}
                 error={Boolean(formErrors.phone)}
                 helperText={formErrors.phone || `Use national format or ${phoneHint}...`}
                 fullWidth
