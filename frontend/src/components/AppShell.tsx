@@ -41,6 +41,7 @@ import {
 } from '@mui/material'
 import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
 import { canAccessAnyReportRole, isAdminRole } from '../auth/roles'
+import { useCompanyProfile } from '../company/useCompanyProfile'
 import { presetOptions } from '../theme/palettePresets'
 import { useThemeSettings } from '../theme/ThemeProvider'
 
@@ -91,6 +92,11 @@ export function AppShell({ title, children }: { title: string; children: React.R
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
 
   const session = router.options.context.auth.getSnapshot()
+  const companyProfileQuery = useCompanyProfile()
+  const companyName = companyProfileQuery.data?.companyName ?? ''
+  const companyDisplayName = companyName || 'HR System'
+  const appBarBrandTitle = companyName ? `${companyName} HR System` : 'HR System'
+  const companyLogoDataUrl = companyProfileQuery.data?.logoDataUrl ?? null
   const visibleItems = appShellNavItems.filter((item) => {
     if (item.adminOnly && !isAdminRole(session?.user.role)) {
       return false
@@ -213,6 +219,59 @@ export function AppShell({ title, children }: { title: string; children: React.R
     </List>
   )
 
+  const brandHeader = (isMiniDesktop: boolean) => (
+    <Toolbar
+      sx={{
+        px: isMiniDesktop ? 1 : 2,
+        py: 1,
+        justifyContent: isMiniDesktop ? 'center' : 'flex-start',
+      }}
+    >
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: companyLogoDataUrl ? 'transparent' : 'primary.main',
+            color: 'primary.contrastText',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          {companyLogoDataUrl ? (
+            <Box component="img" src={companyLogoDataUrl} alt="Company logo" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <Typography
+              data-testid="app-shell-brand-placeholder"
+              variant="subtitle2"
+              sx={{ fontWeight: 700, textTransform: 'uppercase' }}
+            >
+              {companyDisplayName.slice(0, 1)}
+            </Typography>
+          )}
+        </Box>
+        {!isMiniDesktop ? (
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 700,
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {companyDisplayName}
+          </Typography>
+        ) : null}
+      </Stack>
+    </Toolbar>
+  )
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', overflowX: 'hidden' }}>
       <AppBar
@@ -235,8 +294,8 @@ export function AppShell({ title, children }: { title: string; children: React.R
             <IconButton color="inherit" edge="start" onClick={toggleNavigation} aria-label="Open navigation menu">
               <MenuOutlinedIcon />
             </IconButton>
-            <Typography variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
-              HISP HR System
+            <Typography data-testid="app-shell-brand-title" variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
+              {appBarBrandTitle}
             </Typography>
           </Stack>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -302,11 +361,7 @@ export function AppShell({ title, children }: { title: string; children: React.R
           },
         }}
       >
-        <Toolbar sx={{ px: desktopCollapsed ? 1 : 2, justifyContent: desktopCollapsed ? 'center' : 'flex-start' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, opacity: desktopCollapsed ? 0 : 1, transition: drawerTransition }}>
-            Navigation
-          </Typography>
-        </Toolbar>
+        {brandHeader(desktopCollapsed)}
         {navigationList(desktopCollapsed, false)}
       </Drawer>
 
@@ -323,11 +378,7 @@ export function AppShell({ title, children }: { title: string; children: React.R
           },
         }}
       >
-        <Toolbar sx={{ px: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Navigation
-          </Typography>
-        </Toolbar>
+        {brandHeader(false)}
         {navigationList(false, true)}
       </Drawer>
 

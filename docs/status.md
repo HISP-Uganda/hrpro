@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, and Hardening Phase — Milestone 1 are implemented. Hardening milestone 1 added refresh-token rotation with reuse detection (`auth.refresh_reused` typed error), startup session recovery with forced logout + cache clear on refresh failures, and routing regression coverage for unknown routes/notFound behavior while preserving `/setup-db` vs `/login` startup gating.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, Hardening Phase — Milestone 1, and UI polish for company branding are implemented. Company Profile branding now propagates across AppShell: AppBar title uses company name (`{Company} HR System` with `HR System` fallback), and sidebar header shows company logo/name placeholder data sourced from persisted settings/logo with query invalidation updates after save/upload.
 
 ---
 
@@ -98,6 +98,11 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - admin-only route guard with non-admin redirect to `/access-denied`
   - cards for Company Profile (name + logo upload/preview), Currency, Lunch defaults, and Payroll display defaults
   - backend-connected settings query/mutations with validation, loading skeletons, and snackbar feedback
+- AppShell branding polish:
+  - new shared `useCompanyProfile` query as single frontend source for company name/logo presentation
+  - AppBar title now renders `${companyName} HR System` with `HR System` fallback when name is blank/missing
+  - sidebar "Navigation" header replaced with branded header (logo if available, otherwise placeholder + company name)
+  - branding updates immediately after Company Profile save/upload via query cache update + invalidation
 - Cross-app stabilization:
   - Standardized DataGrid styling (bold + sticky headers) and fixed CSV exports using Wails Save dialog.
 - Theme system added (light/dark/system + accent presets + persistence).
@@ -128,12 +133,13 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
 | Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
 | Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
+| Phase A UI Polish — Company Branding | Completed                        | Company Profile now updates AppBar title and sidebar logo header, with immediate UI propagation after settings save/upload. |
 
 ---
 
 # 4. In Progress
 
-Hardening Phase — Milestone 1 completed. Next milestone: Hardening Phase — Milestone 2.
+Phase A UI Polish — Company Branding completed. Next milestone: Hardening Phase — Milestone 2.
 
 ---
 

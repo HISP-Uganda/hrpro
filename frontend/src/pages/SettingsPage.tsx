@@ -22,6 +22,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { isAdminRole } from '../auth/roles'
+import { getCompanyProfileQueryKey } from '../company/useCompanyProfile'
 import { AppShell } from '../components/AppShell'
 import { defaultAppSettings } from '../lib/settings'
 import type { AppSettings, UpdateSettingsInput } from '../types/settings'
@@ -88,7 +89,16 @@ export function SettingsPage() {
     mutationFn: () => router.options.context.api.updateSettings(accessToken, form),
     onSuccess: async (updated) => {
       await router.options.context.queryClient.setQueryData(['settings', 'app'], updated)
+      const existingCompanyProfile = router.options.context.queryClient.getQueryData<{
+        companyName: string
+        logoDataUrl: string | null
+      }>(getCompanyProfileQueryKey(accessToken))
+      await router.options.context.queryClient.setQueryData(getCompanyProfileQueryKey(accessToken), {
+        companyName: updated.company.name.trim(),
+        logoDataUrl: existingCompanyProfile?.logoDataUrl ?? null,
+      })
       await router.options.context.queryClient.invalidateQueries({ queryKey: ['settings', 'app'] })
+      await router.options.context.queryClient.invalidateQueries({ queryKey: ['company-profile'] })
       setSnackbar({ severity: 'success', message: 'Settings updated' })
     },
     onError: (error: Error) => {
@@ -104,6 +114,7 @@ export function SettingsPage() {
     onSuccess: async () => {
       await router.options.context.queryClient.invalidateQueries({ queryKey: ['settings', 'app'] })
       await router.options.context.queryClient.invalidateQueries({ queryKey: ['settings', 'company-logo'] })
+      await router.options.context.queryClient.invalidateQueries({ queryKey: ['company-profile'] })
       setLogoFile(null)
       setSnackbar({ severity: 'success', message: 'Company logo uploaded' })
     },
