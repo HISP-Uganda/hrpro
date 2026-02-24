@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage).
 
 ---
 
@@ -85,6 +85,8 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 - Cross-app stabilization:
   - Standardized DataGrid styling (bold + sticky headers) and fixed CSV exports using Wails Save dialog.
 - Theme system added (light/dark/system + accent presets + persistence).
+- App shell now supports responsive MUI Drawer variants: desktop permanent + collapsible mini mode, mobile temporary overlay with auto-close on route click.
+- Desktop shell drawer collapsed preference is now persisted and restored from localStorage.
 - Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
@@ -96,7 +98,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Foundation                  | Completed                                  | Config, SQLX DB layer, migrations, startup migration runner, admin seeding completed. |
 | Authentication              | Completed                                  | Login/logout/get-me with JWT access token + hashed refresh token storage completed. |
 | Login UI + Dashboard Shell | Completed                                  | TanStack Router auth redirects and full MUI shell with dashboard placeholders completed. |
-| Main Shell                 | Not Started                                | Will expand shell behavior and module-specific UX in later milestones. |
+| Main Shell                 | Completed                                  | Responsive AppShell navigation implemented with desktop mini variant, mobile overlay drawer, active route highlighting, and role-aware menu visibility retained. |
 | Employees Module           | Completed                                  | Employees table + backend CRUD/list + RBAC + frontend DataGrid CRUD/list/search/pagination completed. |
 | Departments Module         | Completed                                  | Departments CRUD with case-insensitive uniqueness, delete-with-employees prevention, and frontend DataGrid CRUD completed. |
 | Leave Module               | Completed                                  | Leave types, entitlements, locked dates, requests lifecycle, server-side rules/RBAC, and `/leave` frontend implemented with tests. |
@@ -112,7 +114,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
 # 4. In Progress
 
-Completed hardening update: standardized export save flow and DataGrid behavior across modules. Next module remains Hardening Phase stabilization follow-ups.
+Completed hardening update: standardized export save flow and DataGrid behavior across modules. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Next module remains Hardening Phase stabilization follow-ups.
 
 ---
 
@@ -120,6 +122,7 @@ Completed hardening update: standardized export save flow and DataGrid behavior 
 
 - Implement Hardening Phase tasks.
 - Add integration/regression coverage for report exports, large-result safeguards, and cross-role access checks.
+- Validate shell responsiveness and navigation behavior in full desktop/mobile QA pass.
 
 ---
 

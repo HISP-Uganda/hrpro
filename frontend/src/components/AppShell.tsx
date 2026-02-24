@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
 import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined'
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
@@ -10,6 +11,7 @@ import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined'
+import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
 import {
   AppBar,
   Box,
@@ -29,16 +31,36 @@ import {
   MenuItem,
   Stack,
   Toolbar,
+  Tooltip,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import { Link, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
 import { canAccessAnyReportRole, isAdminRole } from '../auth/roles'
 import { presetOptions } from '../theme/palettePresets'
 import { useThemeSettings } from '../theme/ThemeProvider'
 
-const drawerWidth = 260
+const DRAWER_WIDTH_EXPANDED = 260
+const DRAWER_WIDTH_COLLAPSED = 72
+export const SHELL_DRAWER_COLLAPSED_STORAGE_KEY = 'hr.shell.drawerCollapsed'
+
+export function readStoredDrawerCollapsed(storage: Pick<Storage, 'getItem'> = window.localStorage): boolean {
+  const storedValue = storage.getItem(SHELL_DRAWER_COLLAPSED_STORAGE_KEY)
+  if (storedValue === 'true' || storedValue === '1') {
+    return true
+  }
+  if (storedValue === 'false' || storedValue === '0') {
+    return false
+  }
+  return false
+}
+
+function persistDrawerCollapsed(collapsed: boolean, storage: Pick<Storage, 'setItem'> = window.localStorage) {
+  storage.setItem(SHELL_DRAWER_COLLAPSED_STORAGE_KEY, collapsed ? 'true' : 'false')
+}
 
 export const appShellNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: DashboardOutlinedIcon, adminOnly: false },
@@ -55,12 +77,16 @@ export const appShellNavItems = [
 export function AppShell({ title, children }: { title: string; children: React.ReactNode }) {
   const router = useRouter()
   const navigate = useNavigate()
+  const theme = useTheme()
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
   const { mode, preset, setMode, setPreset } = useThemeSettings()
   const location = useRouterState({
     select: (state) => state.location.pathname,
   })
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [appearanceOpen, setAppearanceOpen] = useState(false)
+  const [desktopCollapsed, setDesktopCollapsed] = useState(() => readStoredDrawerCollapsed())
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
 
   const session = router.options.context.auth.getSnapshot()
   const visibleItems = appShellNavItems.filter((item) => {
@@ -73,6 +99,37 @@ export function AppShell({ title, children }: { title: string; children: React.R
     return true
   })
 
+  useEffect(() => {
+    if (!isDesktop) {
+      setMobileDrawerOpen(false)
+    }
+  }, [isDesktop])
+
+  const desktopDrawerWidth = desktopCollapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH_EXPANDED
+
+  const drawerTransition = useMemo(
+    () =>
+      theme.transitions.create(['width', 'margin'], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.standard,
+      }),
+    [theme],
+  )
+
+  const toggleNavigation = () => {
+    if (isDesktop) {
+      setDesktopCollapsed((previous) => {
+        const next = !previous
+        persistDrawerCollapsed(next)
+        return next
+      })
+      return
+    }
+    setMobileDrawerOpen((previous) => !previous)
+  }
+
+  const closeMobileDrawer = () => setMobileDrawerOpen(false)
+
   const onLogout = async () => {
     const refreshToken = session?.refreshToken
     if (refreshToken) {
@@ -83,18 +140,100 @@ export function AppShell({ title, children }: { title: string; children: React.R
     await navigate({ to: '/login' })
   }
 
+  const navigationList = (isMiniDesktop: boolean, closeOnClick: boolean) => (
+    <List sx={{ px: isMiniDesktop ? 0.5 : 1 }}>
+      {visibleItems.map((item) => {
+        const Icon = item.icon
+        const selected = location === item.to || location.startsWith(`${item.to}/`)
+        const navItem = (
+          <ListItemButton
+            key={item.to}
+            component={Link}
+            to={item.to}
+            selected={selected}
+            onClick={() => {
+              if (closeOnClick) {
+                closeMobileDrawer()
+              }
+            }}
+            sx={{
+              minHeight: 46,
+              px: isMiniDesktop ? 1 : 2,
+              borderRadius: 2,
+              justifyContent: isMiniDesktop ? 'center' : 'initial',
+              borderLeft: '3px solid transparent',
+              '&.Mui-selected': {
+                borderLeftColor: 'primary.main',
+                bgcolor: 'action.selected',
+              },
+              '&.Mui-selected:hover': {
+                bgcolor: 'action.selected',
+              },
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: isMiniDesktop ? 0 : 40,
+                justifyContent: 'center',
+                mr: isMiniDesktop ? 0 : 1,
+              }}
+            >
+              <Icon />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              sx={{
+                opacity: isMiniDesktop ? 0 : 1,
+                maxWidth: isMiniDesktop ? 0 : 220,
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                transition: theme.transitions.create(['opacity', 'max-width'], {
+                  duration: theme.transitions.duration.shorter,
+                }),
+              }}
+            />
+          </ListItemButton>
+        )
+
+        if (!isMiniDesktop) {
+          return navItem
+        }
+
+        return (
+          <Tooltip key={item.to} title={item.label} placement="right">
+            {navItem}
+          </Tooltip>
+        )
+      })}
+    </List>
+  )
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', overflowX: 'hidden' }}>
       <AppBar
         position="fixed"
         color="primary"
         elevation={1}
-        sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          width: {
+            md: `calc(100% - ${desktopDrawerWidth}px)`,
+          },
+          ml: {
+            md: `${desktopDrawerWidth}px`,
+          },
+          transition: drawerTransition,
+        }}
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-          <Typography variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
-            HISP HR System
-          </Typography>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <IconButton color="inherit" edge="start" onClick={toggleNavigation} aria-label="Open navigation menu">
+              <MenuOutlinedIcon />
+            </IconButton>
+            <Typography variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
+              HISP HR System
+            </Typography>
+          </Stack>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="body2" color="inherit">
               {session?.user.username ?? 'Unknown user'}
@@ -146,42 +285,56 @@ export function AppShell({ title, children }: { title: string; children: React.R
       <Drawer
         variant="permanent"
         sx={{
-          width: drawerWidth,
+          display: { xs: 'none', md: 'block' },
+          width: desktopDrawerWidth,
           flexShrink: 0,
+          transition: drawerTransition,
           '& .MuiDrawer-paper': {
-            width: drawerWidth,
+            width: desktopDrawerWidth,
+            boxSizing: 'border-box',
+            overflowX: 'hidden',
+            transition: drawerTransition,
+          },
+        }}
+      >
+        <Toolbar sx={{ px: desktopCollapsed ? 1 : 2, justifyContent: desktopCollapsed ? 'center' : 'flex-start' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, opacity: desktopCollapsed ? 0 : 1, transition: drawerTransition }}>
+            Navigation
+          </Typography>
+        </Toolbar>
+        {navigationList(desktopCollapsed, false)}
+      </Drawer>
+
+      <Drawer
+        variant="temporary"
+        open={mobileDrawerOpen}
+        onClose={closeMobileDrawer}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH_EXPANDED,
             boxSizing: 'border-box',
           },
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ px: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Navigation
           </Typography>
         </Toolbar>
-        <List>
-          {visibleItems.map((item) => {
-            const Icon = item.icon
-            const selected = location === item.to || location.startsWith(`${item.to}/`)
-            return (
-              <ListItemButton
-                key={item.to}
-                component={Link}
-                to={item.to}
-                selected={selected}
-                sx={{ mx: 1, borderRadius: 2, borderLeft: '3px solid transparent' }}
-              >
-                <ListItemIcon>
-                  <Icon />
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            )
-          })}
-        </List>
+        {navigationList(false, true)}
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 4 }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          bgcolor: 'background.default',
+          p: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
         <Toolbar />
         <Typography variant="h4" sx={{ mb: 3 }}>
           {title}
@@ -244,4 +397,3 @@ export function AppShell({ title, children }: { title: string; children: React.R
     </Box>
   )
 }
-import { useState } from 'react'
