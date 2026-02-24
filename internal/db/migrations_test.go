@@ -23,3 +23,20 @@ func TestEmployeeEnhancementMigrationExists(t *testing.T) {
 		}
 	}
 }
+
+func TestEmployeeGenderConstraintMigrationExists(t *testing.T) {
+	content, err := migrationsFS.ReadFile("migrations/000014_enforce_employee_gender_constraint.up.sql")
+	if err != nil {
+		t.Fatalf("expected migration file, got %v", err)
+	}
+	sql := string(content)
+	required := []string{
+		"ALTER COLUMN gender SET NOT NULL",
+		"CHECK (gender IN ('Male', 'Female'))",
+	}
+	for _, token := range required {
+		if !strings.Contains(sql, token) {
+			t.Fatalf("expected migration to contain %q", token)
+		}
+	}
+}

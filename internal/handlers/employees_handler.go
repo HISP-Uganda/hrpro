@@ -211,6 +211,10 @@ func (h *EmployeesHandler) validateClaims(accessToken string) (*models.Claims, e
 func mapEmployeeError(err error) error {
 	switch {
 	case errors.Is(err, employees.ErrValidation):
+		var fieldErr *employees.FieldValidationError
+		if errors.As(err, &fieldErr) {
+			return fmt.Errorf("validation error [field=%s]: %s", fieldErr.Field, fieldErr.Message)
+		}
 		return fmt.Errorf("validation error: %w", err)
 	case errors.Is(err, employees.ErrNotFound):
 		return fmt.Errorf("not found: %w", err)

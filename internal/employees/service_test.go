@@ -113,6 +113,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 			input: UpsertEmployeeInput{
 				FirstName:        "Jane",
 				LastName:         "Doe",
+				Gender:           stringPtr("Female"),
 				Position:         "Engineer",
 				EmploymentStatus: "Active",
 				DateOfHire:       "2026-02-21",
@@ -125,6 +126,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 			input: UpsertEmployeeInput{
 				FirstName:        "Jane",
 				LastName:         "Doe",
+				Gender:           stringPtr("Female"),
 				Position:         "Engineer",
 				EmploymentStatus: "Active",
 				DateOfHire:       "2026-02-21",
@@ -137,6 +139,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 			input: UpsertEmployeeInput{
 				FirstName:        "Jane",
 				LastName:         "Doe",
+				Gender:           stringPtr("Female"),
 				Position:         "Engineer",
 				EmploymentStatus: "Active",
 				DateOfHire:       "2026-02-21",
@@ -149,6 +152,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 			input: UpsertEmployeeInput{
 				FirstName:        "Jane",
 				LastName:         "Doe",
+				Gender:           stringPtr("Female"),
 				Position:         "Engineer",
 				EmploymentStatus: "Active",
 				DateOfHire:       "2026-02-21",
@@ -184,6 +188,7 @@ func TestCreateEmployeeNormalizesDate(t *testing.T) {
 		UpsertEmployeeInput{
 			FirstName:        "Jane",
 			LastName:         "Doe",
+			Gender:           stringPtr("Female"),
 			Position:         "Engineer",
 			EmploymentStatus: "Active",
 			DateOfHire:       "2026-02-21",
@@ -216,6 +221,7 @@ func TestCreateEmployeeNormalizesNationalPhoneUsingDefaults(t *testing.T) {
 		UpsertEmployeeInput{
 			FirstName:        "Jane",
 			LastName:         "Doe",
+			Gender:           stringPtr("Female"),
 			Position:         "Engineer",
 			EmploymentStatus: "Active",
 			DateOfHire:       "2026-02-21",
@@ -234,6 +240,130 @@ func TestCreateEmployeeNormalizesNationalPhoneUsingDefaults(t *testing.T) {
 	}
 	if repo.createInput.PhoneE164 == nil || *repo.createInput.PhoneE164 != "+256701234567" {
 		t.Fatalf("expected phone_e164 +256701234567, got %+v", repo.createInput.PhoneE164)
+	}
+}
+
+func TestCreateEmployeeAllowsEmptyOptionalPhone(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+	defaults := &fakePhoneDefaultsProvider{iso2: "UG", calling: "+256"}
+	service.SetPhoneDefaultsProvider(defaults)
+
+	_, err := service.CreateEmployee(
+		context.Background(),
+		&models.Claims{Role: "Admin"},
+		UpsertEmployeeInput{
+			FirstName:        "Jane",
+			LastName:         "Doe",
+			Gender:           stringPtr("Female"),
+			Position:         "Engineer",
+			EmploymentStatus: "Active",
+			DateOfHire:       "2026-02-21",
+			Phone:            stringPtr("   "),
+		},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if defaults.called != 0 {
+		t.Fatalf("expected phone defaults provider not to be called when phone is empty")
+	}
+	if repo.createInput.Phone != nil {
+		t.Fatalf("expected normalized phone to be nil, got %+v", repo.createInput.Phone)
+	}
+	if repo.createInput.PhoneE164 != nil {
+		t.Fatalf("expected phone_e164 to be nil, got %+v", repo.createInput.PhoneE164)
+	}
+}
+
+func TestCreateEmployeeRejectsInvalidGender(t *testing.T) {
+	service := NewService(&fakeRepository{})
+
+	_, err := service.CreateEmployee(
+		context.Background(),
+		&models.Claims{Role: "Admin"},
+		UpsertEmployeeInput{
+			FirstName:        "Jane",
+			LastName:         "Doe",
+			Gender:           stringPtr("Other"),
+			Position:         "Engineer",
+			EmploymentStatus: "Active",
+			DateOfHire:       "2026-02-21",
+		},
+	)
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	if !errors.Is(err, ErrValidation) {
+		t.Fatalf("expected validation error, got %v", err)
+	}
+	var fieldErr *FieldValidationError
+	if !errors.As(err, &fieldErr) {
+		t.Fatalf("expected FieldValidationError, got %T", err)
+	}
+	if fieldErr.Field != "gender" {
+		t.Fatalf("expected gender field error, got %q", fieldErr.Field)
+	}
+}
+
+func TestCreateEmployeeStoresCanonicalGender(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+
+	_, err := service.CreateEmployee(
+		context.Background(),
+		&models.Claims{Role: "Admin"},
+		UpsertEmployeeInput{
+			FirstName:        "Jane",
+			LastName:         "Doe",
+			Gender:           stringPtr("male"),
+			Position:         "Engineer",
+			EmploymentStatus: "Active",
+			DateOfHire:       "2026-02-21",
+			Phone:            stringPtr("+256701234567"),
+		},
+	)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if repo.createInput.Gender == nil || *repo.createInput.Gender != "Male" {
+		t.Fatalf("expected canonical gender Male, got %+v", repo.createInput.Gender)
+	}
+	if repo.createInput.Phone == nil || *repo.createInput.Phone != "+256701234567" {
+		t.Fatalf("expected international phone to remain E.164, got %+v", repo.createInput.Phone)
+	}
+}
+
+func TestCreateEmployeeInvalidPhoneReturnsPhoneFieldError(t *testing.T) {
+	service := NewService(&fakeRepository{})
+	defaults := &fakePhoneDefaultsProvider{iso2: "UG", calling: "+256"}
+	service.SetPhoneDefaultsProvider(defaults)
+
+	_, err := service.CreateEmployee(
+		context.Background(),
+		&models.Claims{Role: "Admin"},
+		UpsertEmployeeInput{
+			FirstName:        "Jane",
+			LastName:         "Doe",
+			Gender:           stringPtr("Female"),
+			Position:         "Engineer",
+			EmploymentStatus: "Active",
+			DateOfHire:       "2026-02-21",
+			Phone:            stringPtr("123"),
+		},
+	)
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	if !errors.Is(err, ErrValidation) {
+		t.Fatalf("expected validation error, got %v", err)
+	}
+	var fieldErr *FieldValidationError
+	if !errors.As(err, &fieldErr) {
+		t.Fatalf("expected FieldValidationError, got %T", err)
+	}
+	if fieldErr.Field != "phone" {
+		t.Fatalf("expected phone field error, got %q", fieldErr.Field)
 	}
 }
 

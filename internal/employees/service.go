@@ -61,7 +61,7 @@ func (s *Service) CreateEmployee(ctx context.Context, _ *models.Claims, input Up
 
 func (s *Service) UpdateEmployee(ctx context.Context, _ *models.Claims, id int64, input UpsertEmployeeInput) (*Employee, error) {
 	if id <= 0 {
-		return nil, fmt.Errorf("%w: id must be positive", ErrValidation)
+		return nil, newFieldValidationError("id", "must be positive")
 	}
 
 	normalized, err := s.normalizeAndValidate(ctx, input)
@@ -177,7 +177,7 @@ func (s *Service) RemoveEmployeeContract(ctx context.Context, claims *models.Cla
 
 func (s *Service) DeleteEmployee(ctx context.Context, _ *models.Claims, id int64) error {
 	if id <= 0 {
-		return fmt.Errorf("%w: id must be positive", ErrValidation)
+		return newFieldValidationError("id", "must be positive")
 	}
 
 	deleted, err := s.repository.Delete(ctx, id)
@@ -194,7 +194,7 @@ func (s *Service) DeleteEmployee(ctx context.Context, _ *models.Claims, id int64
 
 func (s *Service) GetEmployee(ctx context.Context, _ *models.Claims, id int64) (*Employee, error) {
 	if id <= 0 {
-		return nil, fmt.Errorf("%w: id must be positive", ErrValidation)
+		return nil, newFieldValidationError("id", "must be positive")
 	}
 
 	employee, err := s.repository.GetByID(ctx, id)
@@ -244,24 +244,24 @@ func (s *Service) normalizeAndValidate(ctx context.Context, input UpsertEmployee
 
 	switch {
 	case firstName == "":
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: first_name is required", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("firstName", "is required")
 	case lastName == "":
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: last_name is required", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("lastName", "is required")
 	case position == "":
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: position is required", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("position", "is required")
 	case employmentStatus == "":
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: employment_status is required", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("employmentStatus", "is required")
 	case dateOfHire == "":
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: date_of_hire is required", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("dateOfHire", "is required")
 	}
 
 	if input.BaseSalaryAmount < 0 {
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: base_salary_amount must be >= 0", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("baseSalaryAmount", "must be >= 0")
 	}
 
 	hireDate, err := time.Parse("2006-01-02", dateOfHire)
 	if err != nil {
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: date_of_hire must use YYYY-MM-DD", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("dateOfHire", "must use YYYY-MM-DD")
 	}
 
 	normalized := RepositoryUpsertInput{
@@ -282,35 +282,35 @@ func (s *Service) normalizeAndValidate(ctx context.Context, input UpsertEmployee
 	}
 
 	if normalized.DateOfBirth, err = parseOptionalDate(input.DateOfBirth); err != nil {
-		return RepositoryUpsertInput{}, fmt.Errorf("%w: date_of_birth must use YYYY-MM-DD", ErrValidation)
+		return RepositoryUpsertInput{}, newFieldValidationError("dateOfBirth", "must use YYYY-MM-DD")
+	}
+
+	if normalized.Gender, err = normalizeGender(input.Gender); err != nil {
+		return RepositoryUpsertInput{}, err
 	}
 
 	if normalized.Email != nil {
 		if _, err := mail.ParseAddress(*normalized.Email); err != nil {
-			return RepositoryUpsertInput{}, fmt.Errorf("%w: email is invalid", ErrValidation)
+			return RepositoryUpsertInput{}, newFieldValidationError("email", "is invalid")
 		}
 	}
 
 	phoneInput := normalizeOptional(input.Phone)
 	if phoneInput != nil {
 		defaultISO2 := "UG"
-		defaultCallingCode := "+256"
 		if s.phoneDefaultsProvider != nil {
-			iso2, callingCode, err := s.phoneDefaultsProvider.GetPhoneDefaults(ctx)
+			iso2, _, err := s.phoneDefaultsProvider.GetPhoneDefaults(ctx)
 			if err != nil {
 				return RepositoryUpsertInput{}, err
 			}
 			if strings.TrimSpace(iso2) != "" {
 				defaultISO2 = iso2
 			}
-			if strings.TrimSpace(callingCode) != "" {
-				defaultCallingCode = callingCode
-			}
 		}
 
-		e164, err := phone.ValidateAndNormalizePhone(*phoneInput, defaultISO2, defaultCallingCode)
+		e164, err := phone.NormalizePhone(*phoneInput, defaultISO2)
 		if err != nil {
-			return RepositoryUpsertInput{}, fmt.Errorf("%w: phone is invalid", ErrValidation)
+			return RepositoryUpsertInput{}, newFieldValidationError("phone", "is invalid")
 		}
 		normalized.Phone = &e164
 		normalized.PhoneE164 = &e164
@@ -344,6 +344,24 @@ func parseOptionalDate(value *string) (*time.Time, error) {
 	}
 
 	return &parsed, nil
+}
+
+func normalizeGender(value *string) (*string, error) {
+	normalized := normalizeOptional(value)
+	if normalized == nil {
+		return nil, newFieldValidationError("gender", "is required")
+	}
+
+	switch strings.ToLower(*normalized) {
+	case "male":
+		gender := "Male"
+		return &gender, nil
+	case "female":
+		gender := "Female"
+		return &gender, nil
+	default:
+		return nil, newFieldValidationError("gender", "must be Male or Female")
+	}
 }
 
 func normalizeOptionalURL(value *string) *string {

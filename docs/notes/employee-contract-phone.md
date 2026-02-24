@@ -19,6 +19,9 @@ Date: 2026-02-24
 - Added migration:
   - `internal/db/migrations/000013_add_employee_contract_phone_defaults.up.sql`
   - `internal/db/migrations/000013_add_employee_contract_phone_defaults.down.sql`
+- Added migration:
+  - `internal/db/migrations/000014_enforce_employee_gender_constraint.up.sql`
+  - `internal/db/migrations/000014_enforce_employee_gender_constraint.down.sql`
 - Added index:
   - `idx_employees_phone_e164`
 
@@ -43,9 +46,13 @@ Date: 2026-02-24
 ## Phone Normalization Rules
 
 - Authoritative validation is backend-side in employee service.
-- Accepts:
-  - International `+<countrycode><number>` format
-  - National format (normalized using default country calling code)
+- Authoritative parsing/validation/formatting engine:
+  - `github.com/nyaruka/phonenumbers`
+- `internal/phone.NormalizePhone(input, defaultISO2)` behavior:
+  - if input starts with `+`, parse with empty region
+  - otherwise parse with settings `defaultCountryISO2`
+  - requires a valid number (`IsValidNumber`)
+  - stores normalized output as E.164 (`Format(..., E164)`)
 - Normalized value is stored as E.164 in:
   - `phone` and `phone_e164`
 - Defaults source:
@@ -54,6 +61,20 @@ Date: 2026-02-24
     - `APP_DEFAULT_COUNTRY_NAME`
     - `APP_DEFAULT_COUNTRY_ISO2`
     - `APP_DEFAULT_COUNTRY_CALLING_CODE`
+- Local fallback regex/calling-code inference logic was removed.
+- Employee service now returns typed field-level validation errors and maps API messages with explicit field names for UI binding (`field=phone`, `field=gender`, etc).
+
+## Gender Rules
+
+- Gender is required server-side for employee create/update.
+- Allowed values:
+  - `Male`
+  - `Female`
+- Backend normalization accepts case-insensitive input and persists canonical values (`Male` / `Female`).
+- DB constraints enforce schema-level safety:
+  - `gender VARCHAR(10) NOT NULL`
+  - `CHECK (gender IN ('Male', 'Female'))`
+- Frontend employee form now uses a controlled dropdown (no free-text gender input).
 
 ## Architectural Decisions
 

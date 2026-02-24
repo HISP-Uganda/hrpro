@@ -2,8 +2,8 @@ package phone
 
 import "testing"
 
-func TestValidateAndNormalizePhoneNational(t *testing.T) {
-	got, err := ValidateAndNormalizePhone("0701234567", "UG", "+256")
+func TestNormalizePhoneNational(t *testing.T) {
+	got, err := NormalizePhone("0701234567", "UG")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -12,8 +12,8 @@ func TestValidateAndNormalizePhoneNational(t *testing.T) {
 	}
 }
 
-func TestValidateAndNormalizePhoneInternational(t *testing.T) {
-	got, err := ValidateAndNormalizePhone("+256701234567", "UG", "+256")
+func TestNormalizePhoneInternational(t *testing.T) {
+	got, err := NormalizePhone("+256701234567", "UG")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -22,8 +22,8 @@ func TestValidateAndNormalizePhoneInternational(t *testing.T) {
 	}
 }
 
-func TestValidateAndNormalizePhoneInvalid(t *testing.T) {
-	if _, err := ValidateAndNormalizePhone("bad-phone", "UG", "+256"); err == nil {
+func TestNormalizePhoneInvalid(t *testing.T) {
+	if _, err := NormalizePhone("bad-phone", "UG"); err == nil {
 		t.Fatalf("expected error")
 	}
 }
