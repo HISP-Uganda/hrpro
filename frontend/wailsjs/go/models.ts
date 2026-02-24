@@ -976,6 +976,18 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class GetCompanyLogoRequest {
+	    accessToken: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetCompanyLogoRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	    }
+	}
 	export class GetDashboardSummaryRequest {
 	    accessToken: string;
 	
@@ -1104,6 +1116,18 @@ export namespace handlers {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.accessToken = source["accessToken"];
 	        this.batchId = source["batchId"];
+	    }
+	}
+	export class GetSettingsRequest {
+	    accessToken: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetSettingsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
 	    }
 	}
 	export class GetUserRequest {
@@ -1840,6 +1864,38 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class UpdateSettingsRequest {
+	    accessToken: string;
+	    payload: settings.UpdateSettingsInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateSettingsRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.payload = this.convertValues(source["payload"], settings.UpdateSettingsInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class UpdateUserRequest {
 	    accessToken: string;
 	    id: number;
@@ -1873,6 +1929,22 @@ export namespace handlers {
 		    }
 		    return a;
 		}
+	}
+	export class UploadCompanyLogoRequest {
+	    accessToken: string;
+	    filename: string;
+	    data: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new UploadCompanyLogoRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.filename = source["filename"];
+	        this.data = source["data"];
+	    }
 	}
 	export class UpsertAttendanceRequest {
 	    accessToken: string;
@@ -2247,8 +2319,59 @@ export namespace leave {
 
 }
 
+export namespace main {
+	
+	export class SaveFileWithDialogRequest {
+	    suggestedFilename: string;
+	    dataBytes: number[];
+	    mimeType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveFileWithDialogRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.suggestedFilename = source["suggestedFilename"];
+	        this.dataBytes = source["dataBytes"];
+	        this.mimeType = source["mimeType"];
+	    }
+	}
+	export class SaveFileWithDialogResult {
+	    savedPath: string;
+	    cancelled: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveFileWithDialogResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.savedPath = source["savedPath"];
+	        this.cancelled = source["cancelled"];
+	    }
+	}
+
+}
+
 export namespace payroll {
 	
+	export class CSVExport {
+	    filename: string;
+	    data: string;
+	    mimeType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CSVExport(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.filename = source["filename"];
+	        this.data = source["data"];
+	        this.mimeType = source["mimeType"];
+	    }
+	}
 	export class CreateBatchInput {
 	    month: string;
 	
@@ -2663,6 +2786,7 @@ export namespace reports {
 	export class CSVExport {
 	    filename: string;
 	    data: string;
+	    mimeType: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new CSVExport(source);
@@ -2672,6 +2796,7 @@ export namespace reports {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.filename = source["filename"];
 	        this.data = source["data"];
+	        this.mimeType = source["mimeType"];
 	    }
 	}
 	export class EmployeeListFilter {
@@ -2960,6 +3085,171 @@ export namespace reports {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.rows = this.convertValues(source["rows"], PayrollBatchesReportRow);
 	        this.pager = this.convertValues(source["pager"], Pager);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace settings {
+	
+	export class CompanyLogo {
+	    filename: string;
+	    mimeType: string;
+	    data: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new CompanyLogo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.filename = source["filename"];
+	        this.mimeType = source["mimeType"];
+	        this.data = source["data"];
+	    }
+	}
+	export class CompanyProfileSettings {
+	    name: string;
+	    logoPath?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CompanyProfileSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.logoPath = source["logoPath"];
+	    }
+	}
+	export class CompanyProfileSettingsInput {
+	    name: string;
+	    logoPath?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CompanyProfileSettingsInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.logoPath = source["logoPath"];
+	    }
+	}
+	export class CurrencySettings {
+	    code: string;
+	    symbol: string;
+	    decimals: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CurrencySettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.code = source["code"];
+	        this.symbol = source["symbol"];
+	        this.decimals = source["decimals"];
+	    }
+	}
+	export class LunchDefaultsSettings {
+	    plateCostAmount: number;
+	    staffContributionAmount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new LunchDefaultsSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.plateCostAmount = source["plateCostAmount"];
+	        this.staffContributionAmount = source["staffContributionAmount"];
+	    }
+	}
+	export class PayrollDisplaySettings {
+	    decimals: number;
+	    roundingEnabled: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new PayrollDisplaySettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.decimals = source["decimals"];
+	        this.roundingEnabled = source["roundingEnabled"];
+	    }
+	}
+	export class SettingsDTO {
+	    company: CompanyProfileSettings;
+	    currency: CurrencySettings;
+	    lunchDefaults: LunchDefaultsSettings;
+	    payrollDisplay: PayrollDisplaySettings;
+	
+	    static createFrom(source: any = {}) {
+	        return new SettingsDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.company = this.convertValues(source["company"], CompanyProfileSettings);
+	        this.currency = this.convertValues(source["currency"], CurrencySettings);
+	        this.lunchDefaults = this.convertValues(source["lunchDefaults"], LunchDefaultsSettings);
+	        this.payrollDisplay = this.convertValues(source["payrollDisplay"], PayrollDisplaySettings);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class UpdateSettingsInput {
+	    company: CompanyProfileSettingsInput;
+	    currency: CurrencySettings;
+	    lunchDefaults: LunchDefaultsSettings;
+	    payrollDisplay: PayrollDisplaySettings;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateSettingsInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.company = this.convertValues(source["company"], CompanyProfileSettingsInput);
+	        this.currency = this.convertValues(source["currency"], CurrencySettings);
+	        this.lunchDefaults = this.convertValues(source["lunchDefaults"], LunchDefaultsSettings);
+	        this.payrollDisplay = this.convertValues(source["payrollDisplay"], PayrollDisplaySettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -38,6 +38,7 @@ import type {
   PayrollBatchesReportFilter,
   PayrollBatchesReportResult,
 } from '../types/reports'
+import type { AppSettings, CompanyLogo, UpdateSettingsInput } from '../types/settings'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from '../types/users'
 
 type WailsAppBinding = {
@@ -150,6 +151,11 @@ type WailsAppBinding = {
 
   ListAuditLogReport: (input: { accessToken: string; filters: AuditLogReportFilter; pager: PagerInput }) => Promise<AuditLogReportResult>
   ExportAuditLogReportCSV: (input: { accessToken: string; filters: AuditLogReportFilter }) => Promise<CSVExportResult>
+
+  GetSettings: (input: { accessToken: string }) => Promise<AppSettings>
+  UpdateSettings: (input: { accessToken: string; payload: UpdateSettingsInput }) => Promise<AppSettings>
+  UploadCompanyLogo: (input: { accessToken: string; filename: string; data: number[] }) => Promise<string>
+  GetCompanyLogo: (input: { accessToken: string }) => Promise<CompanyLogo>
 }
 
 declare global {
@@ -467,5 +473,21 @@ export class WailsGateway implements AppGateway {
 
   async exportAuditLogReportCSV(accessToken: string, filters: AuditLogReportFilter): Promise<CSVExportResult> {
     return getAppBinding().ExportAuditLogReportCSV({ accessToken, filters })
+  }
+
+  async getSettings(accessToken: string): Promise<AppSettings> {
+    return getAppBinding().GetSettings({ accessToken })
+  }
+
+  async updateSettings(accessToken: string, payload: UpdateSettingsInput): Promise<AppSettings> {
+    return getAppBinding().UpdateSettings({ accessToken, payload })
+  }
+
+  async uploadCompanyLogo(accessToken: string, filename: string, data: number[]): Promise<string> {
+    return getAppBinding().UploadCompanyLogo({ accessToken, filename, data })
+  }
+
+  async getCompanyLogo(accessToken: string): Promise<CompanyLogo> {
+    return getAppBinding().GetCompanyLogo({ accessToken })
   }
 }

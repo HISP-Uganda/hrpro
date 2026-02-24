@@ -21,6 +21,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import { PayrollBatchDetailPage } from '../pages/PayrollBatchDetailPage'
 import { PayrollBatchesPage } from '../pages/PayrollBatchesPage'
 import { ReportsPage } from '../pages/ReportsPage'
+import { SettingsPage } from '../pages/SettingsPage'
 import { UsersPage } from '../pages/UsersPage'
 import { redirectFromRoot, redirectIfAuthenticated, requireAdmin, requireAuth, requireReportsAccess } from './guards'
 
@@ -111,6 +112,13 @@ const usersRoute = createRoute({
   beforeLoad: ({ context }) => requireAdmin(context.auth),
 })
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  component: SettingsPage,
+  beforeLoad: ({ context }) => requireAdmin(context.auth),
+})
+
 const auditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/audit',
@@ -136,6 +144,7 @@ const routeTree = rootRoute.addChildren([
   payrollDetailRoute,
   reportsRoute,
   usersRoute,
+  settingsRoute,
   auditRoute,
   accessDeniedRoute,
 ])
@@ -152,6 +161,7 @@ export const appRoutePaths = [
   '/payroll/$batchId',
   '/reports',
   '/users',
+  '/settings',
   '/audit',
   '/access-denied',
 ] as const

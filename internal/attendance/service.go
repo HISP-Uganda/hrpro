@@ -14,10 +14,15 @@ type LeaveIntegration interface {
 	CreateSingleDayLeaveFromAttendance(ctx context.Context, claims *models.Claims, employeeID int64, date string) (int64, error)
 }
 
+type LunchDefaultsProvider interface {
+	GetLunchDefaults(ctx context.Context) (plateCostAmount int, staffContributionAmount int, err error)
+}
+
 type Service struct {
-	repository Repository
-	leave      LeaveIntegration
-	audit      audit.Recorder
+	repository            Repository
+	leave                 LeaveIntegration
+	lunchDefaultsProvider LunchDefaultsProvider
+	audit                 audit.Recorder
 }
 
 func NewService(repository Repository, leave LeaveIntegration) *Service {
@@ -30,6 +35,10 @@ func (s *Service) SetAuditRecorder(recorder audit.Recorder) {
 		return
 	}
 	s.audit = recorder
+}
+
+func (s *Service) SetLunchDefaultsProvider(provider LunchDefaultsProvider) {
+	s.lunchDefaultsProvider = provider
 }
 
 func (s *Service) ListAttendanceByDate(ctx context.Context, claims *models.Claims, date string) ([]AttendanceRow, error) {
@@ -185,6 +194,13 @@ func (s *Service) GetLunchSummary(ctx context.Context, claims *models.Claims, da
 	visitorsCount := 0
 	plateCostAmount := 12000
 	staffContributionAmount := 4000
+	if s.lunchDefaultsProvider != nil {
+		defaultPlateCost, defaultStaffContribution, defaultsErr := s.lunchDefaultsProvider.GetLunchDefaults(ctx)
+		if defaultsErr == nil {
+			plateCostAmount = defaultPlateCost
+			staffContributionAmount = defaultStaffContribution
+		}
+	}
 
 	lunchDaily, err := s.repository.GetLunchDaily(ctx, attendanceDate)
 	if err != nil {
@@ -217,7 +233,17 @@ func (s *Service) UpsertLunchVisitors(ctx context.Context, claims *models.Claims
 		return nil, err
 	}
 
-	if _, err := s.repository.UpsertLunchVisitors(ctx, attendanceDate, visitorsCount, claims.UserID); err != nil {
+	plateCostAmount := 12000
+	staffContributionAmount := 4000
+	if s.lunchDefaultsProvider != nil {
+		defaultPlateCost, defaultStaffContribution, defaultsErr := s.lunchDefaultsProvider.GetLunchDefaults(ctx)
+		if defaultsErr == nil {
+			plateCostAmount = defaultPlateCost
+			staffContributionAmount = defaultStaffContribution
+		}
+	}
+
+	if _, err := s.repository.UpsertLunchVisitors(ctx, attendanceDate, visitorsCount, claims.UserID, plateCostAmount, staffContributionAmount); err != nil {
 		return nil, err
 	}
 	result, err := s.GetLunchSummary(ctx, claims, date)

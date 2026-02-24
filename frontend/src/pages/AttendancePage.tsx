@@ -31,6 +31,7 @@ import { useRouter } from '@tanstack/react-router'
 import { isAttendanceManagerRole, isStaffRole } from '../auth/roles'
 import { AppDataGrid } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
+import { defaultAppSettings, formatCurrencyAmount } from '../lib/settings'
 import type { AttendanceRow, AttendanceStatus } from '../types/attendance'
 
 function statusChipColor(status: AttendanceStatus): 'default' | 'success' | 'warning' | 'error' | 'info' {
@@ -50,12 +51,6 @@ function toLabel(status: AttendanceStatus): string {
   if (status === 'absent') return 'Absent'
   return 'Leave'
 }
-
-const currency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'TZS',
-  maximumFractionDigits: 0,
-})
 
 export function AttendancePage() {
   const router = useRouter()
@@ -82,6 +77,12 @@ export function AttendancePage() {
     queryKey: ['attendance', 'lunch', lunchDate],
     queryFn: () => router.options.context.api.getLunchSummary(accessToken, lunchDate),
     enabled: Boolean(accessToken) && !staffOnly,
+  })
+
+  const settingsQuery = useQuery({
+    queryKey: ['settings', 'app'],
+    queryFn: () => router.options.context.api.getSettings(accessToken),
+    enabled: Boolean(accessToken),
   })
 
   const markMutation = useMutation({
@@ -122,6 +123,7 @@ export function AttendancePage() {
   })
 
   const rows = attendanceQuery.data ?? []
+  const appSettings = settingsQuery.data ?? defaultAppSettings
 
   const columns = useMemo<GridColDef[]>(() => {
     return [
@@ -283,9 +285,9 @@ export function AttendancePage() {
                     <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Staff in Field</Typography><Typography variant="h5">{lunchSummary.staffFieldCount}</Typography></Stack></CardContent></Card>
                     <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Visitors</Typography><Typography variant="h5">{lunchSummary.visitorsCount}</Typography></Stack></CardContent></Card>
                     <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Total Plates</Typography><Typography variant="h5">{lunchSummary.totalPlates}</Typography></Stack></CardContent></Card>
-                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Total Cost</Typography><Typography variant="h5">{currency.format(lunchSummary.totalCostAmount)}</Typography></Stack></CardContent></Card>
-                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Staff Contribution</Typography><Typography variant="h5">{currency.format(lunchSummary.staffContributionTotal)}</Typography></Stack></CardContent></Card>
-                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Organization Balance</Typography><Typography variant="h5">{currency.format(lunchSummary.organizationBalance)}</Typography></Stack></CardContent></Card>
+                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Total Cost</Typography><Typography variant="h5">{formatCurrencyAmount(lunchSummary.totalCostAmount, appSettings)}</Typography></Stack></CardContent></Card>
+                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Staff Contribution</Typography><Typography variant="h5">{formatCurrencyAmount(lunchSummary.staffContributionTotal, appSettings)}</Typography></Stack></CardContent></Card>
+                    <Card variant="outlined"><CardContent><Stack spacing={0.5}><Typography variant="body2" color="text.secondary">Organization Balance</Typography><Typography variant="h5">{formatCurrencyAmount(lunchSummary.organizationBalance, appSettings)}</Typography></Stack></CardContent></Card>
                     <Card variant="outlined"><CardContent><Stack direction="row" spacing={1} alignItems="center"><ScheduleOutlinedIcon fontSize="small" /><Typography variant="body2" color="text.secondary">Date: {lunchSummary.attendanceDate}</Typography></Stack></CardContent></Card>
                   </Box>
                 ) : null}

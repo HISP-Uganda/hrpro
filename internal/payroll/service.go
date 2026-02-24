@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,6 +19,11 @@ var payrollMonthPattern = regexp.MustCompile(`^\d{4}-\d{2}$`)
 type Service struct {
 	repository Repository
 	audit      audit.Recorder
+	formatter  FormattingProvider
+}
+
+type FormattingProvider interface {
+	GetPayrollFormatting(ctx context.Context) (symbol string, decimals int, rounding bool, err error)
 }
 
 func NewService(repository Repository) *Service {
@@ -30,6 +36,10 @@ func (s *Service) SetAuditRecorder(recorder audit.Recorder) {
 		return
 	}
 	s.audit = recorder
+}
+
+func (s *Service) SetFormattingProvider(provider FormattingProvider) {
+	s.formatter = provider
 }
 
 func (s *Service) ListPayrollBatches(ctx context.Context, filter ListBatchesFilter) (*ListBatchesResult, error) {
@@ -285,6 +295,18 @@ func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (*CS
 		return nil, err
 	}
 
+	symbol := ""
+	decimals := 2
+	rounding := false
+	if s.formatter != nil {
+		formattedSymbol, formattedDecimals, formattedRounding, providerErr := s.formatter.GetPayrollFormatting(ctx)
+		if providerErr == nil {
+			symbol = formattedSymbol
+			decimals = formattedDecimals
+			rounding = formattedRounding
+		}
+	}
+
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 	if err := writer.Write([]string{
@@ -304,12 +326,12 @@ func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (*CS
 		record := []string{
 			strconv.FormatInt(entry.EmployeeID, 10),
 			entry.EmployeeName,
-			formatMoney(entry.BaseSalary),
-			formatMoney(entry.AllowancesTotal),
-			formatMoney(entry.DeductionsTotal),
-			formatMoney(entry.TaxTotal),
-			formatMoney(entry.GrossPay),
-			formatMoney(entry.NetPay),
+			formatMoney(entry.BaseSalary, decimals, symbol, rounding),
+			formatMoney(entry.AllowancesTotal, decimals, symbol, rounding),
+			formatMoney(entry.DeductionsTotal, decimals, symbol, rounding),
+			formatMoney(entry.TaxTotal, decimals, symbol, rounding),
+			formatMoney(entry.GrossPay, decimals, symbol, rounding),
+			formatMoney(entry.NetPay, decimals, symbol, rounding),
 		}
 		if err := writer.Write(record); err != nil {
 			return nil, fmt.Errorf("write payroll csv record: %w", err)
@@ -332,8 +354,28 @@ func isAllowedStatus(status string) bool {
 	return status == StatusDraft || status == StatusApproved || status == StatusLocked
 }
 
-func formatMoney(value float64) string {
-	return strconv.FormatFloat(value, 'f', 2, 64)
+func formatMoney(value float64, decimals int, symbol string, rounding bool) string {
+	if decimals < 0 || decimals > 6 {
+		decimals = 2
+	}
+	if rounding {
+		factor := pow10(decimals)
+		value = math.Round(value*factor) / factor
+	}
+	formatted := strconv.FormatFloat(value, 'f', decimals, 64)
+	symbol = strings.TrimSpace(symbol)
+	if symbol == "" {
+		return formatted
+	}
+	return symbol + " " + formatted
+}
+
+func pow10(decimals int) float64 {
+	result := 1.0
+	for i := 0; i < decimals; i++ {
+		result *= 10
+	}
+	return result
 }
 
 func claimsUserID(claims *models.Claims) *int64 {

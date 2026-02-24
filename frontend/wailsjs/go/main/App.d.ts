@@ -7,9 +7,11 @@ import {departments} from '../models';
 import {employees} from '../models';
 import {users} from '../models';
 import {reports} from '../models';
+import {settings} from '../models';
 import {dashboard} from '../models';
 import {attendance} from '../models';
 import {audit} from '../models';
+import {main} from '../models';
 
 export function ApplyLeave(arg1:handlers.ApplyLeaveRequest):Promise<leave.LeaveRequest>;
 
@@ -41,11 +43,13 @@ export function ExportEmployeeReportCSV(arg1:handlers.ExportEmployeeReportReques
 
 export function ExportLeaveRequestsReportCSV(arg1:handlers.ExportLeaveRequestsReportRequest):Promise<reports.CSVExport>;
 
-export function ExportPayrollBatchCSV(arg1:handlers.PayrollBatchActionRequest):Promise<string>;
+export function ExportPayrollBatchCSV(arg1:handlers.PayrollBatchActionRequest):Promise<payroll.CSVExport>;
 
 export function ExportPayrollBatchesReportCSV(arg1:handlers.ExportPayrollBatchesReportRequest):Promise<reports.CSVExport>;
 
 export function GeneratePayrollEntries(arg1:handlers.PayrollBatchActionRequest):Promise<void>;
+
+export function GetCompanyLogo(arg1:handlers.GetCompanyLogoRequest):Promise<settings.CompanyLogo>;
 
 export function GetDashboardSummary(arg1:handlers.GetDashboardSummaryRequest):Promise<dashboard.SummaryDTO>;
 
@@ -64,6 +68,8 @@ export function GetMyAttendanceRange(arg1:handlers.GetMyAttendanceRangeRequest):
 export function GetMyLeaveBalance(arg1:handlers.LeaveBalanceRequest):Promise<leave.LeaveBalance>;
 
 export function GetPayrollBatch(arg1:handlers.GetPayrollBatchRequest):Promise<payroll.PayrollBatchDetail>;
+
+export function GetSettings(arg1:handlers.GetSettingsRequest):Promise<settings.SettingsDTO>;
 
 export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
 
@@ -111,6 +117,8 @@ export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.Leav
 
 export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
 
+export function SaveFileWithDialog(arg1:main.SaveFileWithDialogRequest):Promise<main.SaveFileWithDialogResult>;
+
 export function SetLeaveTypeActive(arg1:handlers.SetLeaveTypeActiveRequest):Promise<leave.LeaveType>;
 
 export function SetUserActive(arg1:handlers.SetUserActiveRequest):Promise<users.User>;
@@ -125,7 +133,11 @@ export function UpdateLeaveType(arg1:handlers.UpdateLeaveTypeRequest):Promise<le
 
 export function UpdatePayrollEntryAmounts(arg1:handlers.UpdatePayrollEntryAmountsRequest):Promise<payroll.PayrollEntry>;
 
+export function UpdateSettings(arg1:handlers.UpdateSettingsRequest):Promise<settings.SettingsDTO>;
+
 export function UpdateUser(arg1:handlers.UpdateUserRequest):Promise<users.User>;
+
+export function UploadCompanyLogo(arg1:handlers.UploadCompanyLogoRequest):Promise<string>;
 
 export function UpsertAttendance(arg1:handlers.UpsertAttendanceRequest):Promise<attendance.AttendanceRecord>;
 

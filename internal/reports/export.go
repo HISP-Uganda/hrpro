@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
+	"math"
+	"strings"
 )
 
-func exportEmployeeCSV(rows []EmployeeReportRow) (string, error) {
+func exportEmployeeCSV(rows []EmployeeReportRow, symbol string, decimals int, rounding bool) (string, error) {
 	buffer := &bytes.Buffer{}
 	writer := csv.NewWriter(buffer)
 
@@ -18,7 +20,7 @@ func exportEmployeeCSV(rows []EmployeeReportRow) (string, error) {
 	for _, row := range rows {
 		salary := ""
 		if row.BaseSalaryAmount != nil {
-			salary = fmt.Sprintf("%.2f", *row.BaseSalaryAmount)
+			salary = formatCurrency(*row.BaseSalaryAmount, symbol, decimals, rounding)
 		}
 		record := []string{row.EmployeeName, row.DepartmentName, row.Position, row.Status, row.DateOfHire.Format("2006-01-02"), row.Phone, row.Email, salary}
 		if err := writer.Write(record); err != nil {
@@ -99,7 +101,7 @@ func exportAttendanceSummaryCSV(rows []AttendanceSummaryReportRow) (string, erro
 	return buffer.String(), nil
 }
 
-func exportPayrollBatchesCSV(rows []PayrollBatchesReportRow) (string, error) {
+func exportPayrollBatchesCSV(rows []PayrollBatchesReportRow, symbol string, decimals int, rounding bool) (string, error) {
 	buffer := &bytes.Buffer{}
 	writer := csv.NewWriter(buffer)
 
@@ -117,7 +119,7 @@ func exportPayrollBatchesCSV(rows []PayrollBatchesReportRow) (string, error) {
 		if row.LockedAt != nil {
 			lockedAt = row.LockedAt.Format("2006-01-02")
 		}
-		record := []string{row.Month, row.Status, row.CreatedAt.Format("2006-01-02"), approvedAt, lockedAt, fmt.Sprintf("%d", row.EntriesCount), fmt.Sprintf("%.2f", row.TotalNetPay)}
+		record := []string{row.Month, row.Status, row.CreatedAt.Format("2006-01-02"), approvedAt, lockedAt, fmt.Sprintf("%d", row.EntriesCount), formatCurrency(row.TotalNetPay, symbol, decimals, rounding)}
 		if err := writer.Write(record); err != nil {
 			return "", fmt.Errorf("write payroll report csv row: %w", err)
 		}
@@ -129,6 +131,25 @@ func exportPayrollBatchesCSV(rows []PayrollBatchesReportRow) (string, error) {
 	}
 
 	return buffer.String(), nil
+}
+
+func formatCurrency(value float64, symbol string, decimals int, rounding bool) string {
+	if decimals < 0 || decimals > 6 {
+		decimals = 2
+	}
+	if rounding {
+		factor := 1.0
+		for i := 0; i < decimals; i++ {
+			factor *= 10
+		}
+		value = math.Round(value*factor) / factor
+	}
+	amount := fmt.Sprintf("%.*f", decimals, value)
+	symbol = strings.TrimSpace(symbol)
+	if symbol == "" {
+		return amount
+	}
+	return symbol + " " + amount
 }
 
 func exportAuditCSV(rows []AuditLogReportRow) (string, error) {

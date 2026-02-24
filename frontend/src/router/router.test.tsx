@@ -63,6 +63,20 @@ function createMockApi(): AppGateway {
     exportPayrollBatchesReportCSV: vi.fn(async () => ({ filename: 'payroll-batches-2026-02-21.csv', data: 'a,b' })),
     listAuditLogReport: vi.fn(async () => ({ rows: [], pager: { page: 1, pageSize: 10, totalCount: 0 } })),
     exportAuditLogReportCSV: vi.fn(async () => ({ filename: 'audit-log-2026-02-01_to_2026-02-21.csv', data: 'a,b' })),
+    getSettings: vi.fn(async () => ({
+      company: { name: 'HISP HR System' },
+      currency: { code: 'TZS', symbol: 'TZS', decimals: 0 },
+      lunchDefaults: { plateCostAmount: 12000, staffContributionAmount: 4000 },
+      payrollDisplay: { decimals: 2, roundingEnabled: false },
+    })),
+    updateSettings: vi.fn(async () => ({
+      company: { name: 'HISP HR System' },
+      currency: { code: 'TZS', symbol: 'TZS', decimals: 0 },
+      lunchDefaults: { plateCostAmount: 12000, staffContributionAmount: 4000 },
+      payrollDisplay: { decimals: 2, roundingEnabled: false },
+    })),
+    uploadCompanyLogo: vi.fn(async () => 'logo.png'),
+    getCompanyLogo: vi.fn(async () => ({ filename: 'logo.png', mimeType: 'image/png', data: [] })),
     listAttendanceByDate: vi.fn(async () => []),
     getLunchSummary: vi.fn(async () => ({
       attendanceDate: '2026-02-21',
@@ -134,6 +148,7 @@ describe('Router navigation logic', () => {
     expect(appRoutePaths).toContain('/payroll/$batchId')
     expect(appRoutePaths).toContain('/reports')
     expect(appRoutePaths).toContain('/users')
+    expect(appRoutePaths).toContain('/settings')
     expect(appRoutePaths).toContain('/audit')
     expect(appShellNavItems.map((item) => item.to)).toContain('/employees')
     expect(appShellNavItems.map((item) => item.to)).toContain('/departments')
@@ -142,6 +157,7 @@ describe('Router navigation logic', () => {
     expect(appShellNavItems.map((item) => item.to)).toContain('/payroll')
     expect(appShellNavItems.map((item) => item.to)).toContain('/reports')
     expect(appShellNavItems.map((item) => item.to)).toContain('/users')
+    expect(appShellNavItems.map((item) => item.to)).toContain('/settings')
     expect(appShellNavItems.map((item) => item.to)).toContain('/audit')
   })
 
@@ -177,6 +193,23 @@ describe('Router navigation logic', () => {
     await router.load()
     renderWithQueryClient(<RouterProvider router={router} />, queryClient)
     expect(await screen.findByRole('heading', { name: 'Users' })).toBeInTheDocument()
+  })
+
+  it('"/settings" renders for admin', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/settings'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(true, 'admin'),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
   })
 
   it('"/audit" renders for admin', async () => {

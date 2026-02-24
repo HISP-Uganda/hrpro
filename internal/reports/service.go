@@ -19,10 +19,19 @@ var monthPattern = regexp.MustCompile(`^\d{4}-\d{2}$`)
 
 type Service struct {
 	repository Repository
+	formatter  FormattingProvider
+}
+
+type FormattingProvider interface {
+	GetPayrollFormatting(ctx context.Context) (symbol string, decimals int, rounding bool, err error)
 }
 
 func NewService(repository Repository) *Service {
 	return &Service{repository: repository}
+}
+
+func (s *Service) SetFormattingProvider(provider FormattingProvider) {
+	s.formatter = provider
 }
 
 func (s *Service) ListEmployeeReport(ctx context.Context, claims *models.Claims, filter EmployeeListFilter, pager PagerInput) (*EmployeeReportListResult, error) {
@@ -63,7 +72,8 @@ func (s *Service) ExportEmployeeReportCSV(ctx context.Context, claims *models.Cl
 		redactEmployeeSalary(rows)
 	}
 
-	csvData, err := exportEmployeeCSV(rows)
+	symbol, decimals, rounding := s.resolveFormatting(ctx)
+	csvData, err := exportEmployeeCSV(rows, symbol, decimals, rounding)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +219,8 @@ func (s *Service) ExportPayrollBatchesReportCSV(ctx context.Context, claims *mod
 		return nil, fmt.Errorf("%w: reduce result set below %d rows", ErrExportLimitExceeded, maxExportRows)
 	}
 
-	csvData, err := exportPayrollBatchesCSV(rows)
+	symbol, decimals, rounding := s.resolveFormatting(ctx)
+	csvData, err := exportPayrollBatchesCSV(rows, symbol, decimals, rounding)
 	if err != nil {
 		return nil, err
 	}
@@ -287,6 +298,20 @@ func validateEmployeeFilter(filter EmployeeListFilter) error {
 		}
 	}
 	return nil
+}
+
+func (s *Service) resolveFormatting(ctx context.Context) (symbol string, decimals int, rounding bool) {
+	symbol = ""
+	decimals = 2
+	rounding = false
+	if s.formatter == nil {
+		return symbol, decimals, rounding
+	}
+	formattedSymbol, formattedDecimals, formattedRounding, err := s.formatter.GetPayrollFormatting(ctx)
+	if err != nil {
+		return symbol, decimals, rounding
+	}
+	return formattedSymbol, formattedDecimals, formattedRounding
 }
 
 func validateLeaveFilter(filter LeaveRequestsFilter) error {

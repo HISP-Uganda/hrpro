@@ -21,11 +21,8 @@ import { AppDataGrid } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import { isFinanceOrAdminRole } from '../auth/roles'
 import { saveExportWithDialog } from '../lib/exportSave'
+import { defaultAppSettings, formatPayrollAmount } from '../lib/settings'
 import type { PayrollBatchStatus, PayrollEntry } from '../types/payroll'
-
-function formatMoney(value: number): string {
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 function formatDate(value?: string): string {
   if (!value) return '-'
@@ -65,6 +62,13 @@ export function PayrollBatchDetailPage() {
     queryFn: () => router.options.context.api.getPayrollBatch(accessToken, batchId),
     enabled: Boolean(accessToken) && canManagePayroll && Number.isFinite(batchId) && batchId > 0,
   })
+
+  const settingsQuery = useQuery({
+    queryKey: ['settings', 'app'],
+    queryFn: () => router.options.context.api.getSettings(accessToken),
+    enabled: Boolean(accessToken),
+  })
+  const appSettings = settingsQuery.data ?? defaultAppSettings
 
   const refreshDetail = async () => {
     await router.options.context.queryClient.invalidateQueries({ queryKey: ['payroll', 'batch', batchId] })
@@ -156,7 +160,7 @@ export function PayrollBatchDetailPage() {
         headerName: 'Base',
         minWidth: 120,
         type: 'number',
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
       {
         field: 'allowancesTotal',
@@ -164,7 +168,7 @@ export function PayrollBatchDetailPage() {
         minWidth: 130,
         type: 'number',
         editable: canEditEntries,
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
       {
         field: 'deductionsTotal',
@@ -172,7 +176,7 @@ export function PayrollBatchDetailPage() {
         minWidth: 130,
         type: 'number',
         editable: canEditEntries,
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
       {
         field: 'taxTotal',
@@ -180,24 +184,24 @@ export function PayrollBatchDetailPage() {
         minWidth: 110,
         type: 'number',
         editable: canEditEntries,
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
       {
         field: 'grossPay',
         headerName: 'Gross',
         minWidth: 120,
         type: 'number',
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
       {
         field: 'netPay',
         headerName: 'Net',
         minWidth: 120,
         type: 'number',
-        valueFormatter: (params) => formatMoney(toNumber(params.value)),
+        valueFormatter: (params) => formatPayrollAmount(toNumber(params.value), appSettings),
       },
     ],
-    [canEditEntries],
+    [appSettings, canEditEntries],
   )
 
   const processRowUpdate = async (newRow: PayrollEntry, oldRow: PayrollEntry): Promise<PayrollEntry> => {

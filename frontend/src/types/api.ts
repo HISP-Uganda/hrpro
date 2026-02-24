@@ -37,6 +37,7 @@ import type {
   PayrollBatchesReportFilter,
   PayrollBatchesReportResult,
 } from './reports'
+import type { AppSettings, CompanyLogo, UpdateSettingsInput } from './settings'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from './users'
 
 export type AppGateway = {
@@ -125,4 +126,9 @@ export type AppGateway = {
 
   listAuditLogReport: (accessToken: string, filters: AuditLogReportFilter, pager: PagerInput) => Promise<AuditLogReportResult>
   exportAuditLogReportCSV: (accessToken: string, filters: AuditLogReportFilter) => Promise<CSVExportResult>
+
+  getSettings: (accessToken: string) => Promise<AppSettings>
+  updateSettings: (accessToken: string, payload: UpdateSettingsInput) => Promise<AppSettings>
+  uploadCompanyLogo: (accessToken: string, filename: string, data: number[]) => Promise<string>
+  getCompanyLogo: (accessToken: string) => Promise<CompanyLogo>
 }

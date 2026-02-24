@@ -18,7 +18,7 @@ type Repository interface {
 	UpdateAttendanceRecordStatus(ctx context.Context, attendanceDate time.Time, employeeID int64, status string, markedByUserID int64, lockReason *string) (*AttendanceRecord, error)
 	ListAttendanceRangeForEmployee(ctx context.Context, employeeID int64, startDate, endDate time.Time) ([]AttendanceRecord, error)
 	GetLunchDaily(ctx context.Context, attendanceDate time.Time) (*LunchDaily, error)
-	UpsertLunchVisitors(ctx context.Context, attendanceDate time.Time, visitorsCount int, updatedByUserID int64) (*LunchDaily, error)
+	UpsertLunchVisitors(ctx context.Context, attendanceDate time.Time, visitorsCount int, updatedByUserID int64, plateCostAmount int, staffContributionAmount int) (*LunchDaily, error)
 	CountAttendanceForLunch(ctx context.Context, attendanceDate time.Time) (staffPresentCount int, staffFieldCount int, err error)
 }
 
@@ -224,7 +224,7 @@ func (r *SQLXRepository) GetLunchDaily(ctx context.Context, attendanceDate time.
 	return &item, nil
 }
 
-func (r *SQLXRepository) UpsertLunchVisitors(ctx context.Context, attendanceDate time.Time, visitorsCount int, updatedByUserID int64) (*LunchDaily, error) {
+func (r *SQLXRepository) UpsertLunchVisitors(ctx context.Context, attendanceDate time.Time, visitorsCount int, updatedByUserID int64, plateCostAmount int, staffContributionAmount int) (*LunchDaily, error) {
 	query := `
 		INSERT INTO lunch_catering_daily (
 			attendance_date,
@@ -233,7 +233,7 @@ func (r *SQLXRepository) UpsertLunchVisitors(ctx context.Context, attendanceDate
 			plate_cost_amount,
 			staff_contribution_amount
 		)
-		VALUES ($1, $2, $3, 12000, 4000)
+		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (attendance_date) DO UPDATE
 		SET
 			visitors_count = EXCLUDED.visitors_count,
@@ -248,7 +248,7 @@ func (r *SQLXRepository) UpsertLunchVisitors(ctx context.Context, attendanceDate
 			updated_at
 	`
 	var item LunchDaily
-	if err := r.db.GetContext(ctx, &item, query, attendanceDate, visitorsCount, updatedByUserID); err != nil {
+	if err := r.db.GetContext(ctx, &item, query, attendanceDate, visitorsCount, updatedByUserID, plateCostAmount, staffContributionAmount); err != nil {
 		return nil, fmt.Errorf("upsert lunch visitors: %w", err)
 	}
 	return &item, nil

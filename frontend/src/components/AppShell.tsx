@@ -8,6 +8,7 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PeopleOutlineOutlinedIcon from '@mui/icons-material/PeopleOutlineOutlined'
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined'
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined'
@@ -71,6 +72,7 @@ export const appShellNavItems = [
   { to: '/payroll', label: 'Payroll', icon: PaymentsOutlinedIcon, adminOnly: false },
   { to: '/reports', label: 'Reports', icon: AssessmentOutlinedIcon, adminOnly: false, requiresReportAccess: true },
   { to: '/users', label: 'Users', icon: PeopleOutlineOutlinedIcon, adminOnly: true },
+  { to: '/settings', label: 'Settings', icon: SettingsOutlinedIcon, adminOnly: true },
   { to: '/audit', label: 'Audit Logs', icon: FactCheckOutlinedIcon, adminOnly: true },
 ]
 

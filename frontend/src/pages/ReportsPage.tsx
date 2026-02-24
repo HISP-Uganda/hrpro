@@ -27,6 +27,7 @@ import {
 import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import { saveExportWithDialog } from '../lib/exportSave'
+import { defaultAppSettings, formatPayrollAmount } from '../lib/settings'
 import type { Department } from '../types/departments'
 import type { Employee } from '../types/employees'
 import type { LeaveType } from '../types/leave'
@@ -158,6 +159,13 @@ export function ReportsPage() {
     enabled: Boolean(accessToken) && canAudit,
   })
 
+  const settingsQuery = useQuery({
+    queryKey: ['settings', 'app'],
+    queryFn: () => router.options.context.api.getSettings(accessToken),
+    enabled: Boolean(accessToken),
+  })
+  const appSettings = settingsQuery.data ?? defaultAppSettings
+
   const employeeReportQuery = useQuery({
     queryKey: ['reports', 'employee', employeeFilters, employeePager.page, employeePager.pageSize],
     queryFn: () =>
@@ -288,10 +296,10 @@ export function ReportsPage() {
         headerName: 'Base Salary',
         minWidth: 140,
         flex: 0.7,
-        valueFormatter: (params) => (params.value === null || params.value === undefined ? '-' : Number(params.value).toFixed(2)),
+        valueFormatter: (params) => (params.value === null || params.value === undefined ? '-' : formatPayrollAmount(Number(params.value), appSettings)),
       },
     ],
-    [],
+    [appSettings],
   )
 
   const leaveColumns = useMemo<GridColDef<LeaveRequestsReportRow>[]>(
@@ -336,10 +344,10 @@ export function ReportsPage() {
         headerName: 'Total Net Pay',
         minWidth: 140,
         flex: 0.8,
-        valueFormatter: (params) => Number(params.value ?? 0).toFixed(2),
+        valueFormatter: (params) => formatPayrollAmount(Number(params.value ?? 0), appSettings),
       },
     ],
-    [],
+    [appSettings],
   )
 
   const auditColumns = useMemo<GridColDef<AuditLogReportRow>[]>(

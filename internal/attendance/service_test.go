@@ -67,10 +67,10 @@ func (f *fakeRepository) GetLunchDaily(_ context.Context, _ time.Time) (*LunchDa
 	return f.lunchDaily, nil
 }
 
-func (f *fakeRepository) UpsertLunchVisitors(_ context.Context, _ time.Time, visitorsCount int, _ int64) (*LunchDaily, error) {
+func (f *fakeRepository) UpsertLunchVisitors(_ context.Context, _ time.Time, visitorsCount int, _ int64, plateCostAmount int, staffContributionAmount int) (*LunchDaily, error) {
 	f.upsertVisitorsCount = visitorsCount
 	if f.lunchDaily == nil {
-		f.lunchDaily = &LunchDaily{VisitorsCount: visitorsCount, PlateCostAmount: 12000, StaffContributionAmount: 4000}
+		f.lunchDaily = &LunchDaily{VisitorsCount: visitorsCount, PlateCostAmount: plateCostAmount, StaffContributionAmount: staffContributionAmount}
 	} else {
 		f.lunchDaily.VisitorsCount = visitorsCount
 	}

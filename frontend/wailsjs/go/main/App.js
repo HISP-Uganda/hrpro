@@ -74,6 +74,10 @@ export function GeneratePayrollEntries(arg1) {
   return window['go']['main']['App']['GeneratePayrollEntries'](arg1);
 }
 
+export function GetCompanyLogo(arg1) {
+  return window['go']['main']['App']['GetCompanyLogo'](arg1);
+}
+
 export function GetDashboardSummary(arg1) {
   return window['go']['main']['App']['GetDashboardSummary'](arg1);
 }
@@ -108,6 +112,10 @@ export function GetMyLeaveBalance(arg1) {
 
 export function GetPayrollBatch(arg1) {
   return window['go']['main']['App']['GetPayrollBatch'](arg1);
+}
+
+export function GetSettings(arg1) {
+  return window['go']['main']['App']['GetSettings'](arg1);
 }
 
 export function GetUser(arg1) {
@@ -202,6 +210,10 @@ export function ResetUserPassword(arg1) {
   return window['go']['main']['App']['ResetUserPassword'](arg1);
 }
 
+export function SaveFileWithDialog(arg1) {
+  return window['go']['main']['App']['SaveFileWithDialog'](arg1);
+}
+
 export function SetLeaveTypeActive(arg1) {
   return window['go']['main']['App']['SetLeaveTypeActive'](arg1);
 }
@@ -230,8 +242,16 @@ export function UpdatePayrollEntryAmounts(arg1) {
   return window['go']['main']['App']['UpdatePayrollEntryAmounts'](arg1);
 }
 
+export function UpdateSettings(arg1) {
+  return window['go']['main']['App']['UpdateSettings'](arg1);
+}
+
 export function UpdateUser(arg1) {
   return window['go']['main']['App']['UpdateUser'](arg1);
+}
+
+export function UploadCompanyLogo(arg1) {
+  return window['go']['main']['App']['UploadCompanyLogo'](arg1);
 }
 
 export function UpsertAttendance(arg1) {

@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage).
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Settings module completed.
 
 ---
 
@@ -34,14 +34,15 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/dashboard`: SQLX-backed summary aggregation repository/service with role-aware response shaping and Wails binding integration.
 - `internal/attendance`: daily register + lunch/catering repository/service/rules with SQLX, lock handling, RBAC enforcement, absent-to-leave orchestration, and audit events.
 - `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
-- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, and reports bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, and reports; shared audit recorder wired into key services.
+- `internal/settings`: app settings key/value JSONB repository/service, logo file storage, settings DTO retrieval/update, and settings-backed formatting/default integrations.
+- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; shared audit recorder wired into key services.
 
 ## Frontend
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/audit`, and `/access-denied`.
+- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/settings`, `/audit`, and `/access-denied`.
 - Auth guards and root `notFoundComponent` remain intact.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
@@ -82,12 +83,17 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - filter bar + run action + server paginated MUI DataGrid per report
   - CSV export mutations with native Wails save dialog flow and snackbar feedback for save/cancel/error
   - loading skeletons, empty/error handling, and access-denied mapping on forbidden responses
+- `/settings`:
+  - admin-only route guard with non-admin redirect to `/access-denied`
+  - cards for Company Profile (name + logo upload/preview), Currency, Lunch defaults, and Payroll display defaults
+  - backend-connected settings query/mutations with validation, loading skeletons, and snackbar feedback
 - Cross-app stabilization:
   - Standardized DataGrid styling (bold + sticky headers) and fixed CSV exports using Wails Save dialog.
 - Theme system added (light/dark/system + accent presets + persistence).
 - App shell now supports responsive MUI Drawer variants: desktop permanent + collapsible mini mode, mobile temporary overlay with auto-close on route click.
 - Desktop shell drawer collapsed preference is now persisted and restored from localStorage.
-- Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, `/attendance`, and `/reports` route checks.
+- Settings-backed currency formatting now applies in Payroll/Attendance UI and report/payroll CSV currency columns; lunch defaults source values from settings.
+- Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/settings`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
 
@@ -108,13 +114,14 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Dashboard Enhancement      | Completed                                  | Data-driven dashboard summary, role-adaptive visibility, backend aggregation service, and frontend operational cards/table/actions completed. |
 | Daily Attendance           | Completed                                  | Daily register, lock/override flow, lunch/catering totals, absent-to-leave integration, RBAC, audit events, `/attendance` route, and tests completed. |
 | Reports Module (MVP)       | Completed                                  | `/reports` route + sidebar integration, five required reports end-to-end, server-side RBAC, filters/pagination, CSV exports, and tests completed. |
+| Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
 | Hardening Phase            | Not Started                                | Next planned module after reports milestone. |
 
 ---
 
 # 4. In Progress
 
-Completed hardening update: standardized export save flow and DataGrid behavior across modules. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Next module remains Hardening Phase stabilization follow-ups.
+Completed hardening update: standardized export save flow and DataGrid behavior across modules. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Settings module completed. Next module remains Hardening Phase stabilization follow-ups.
 
 ---
 
@@ -122,7 +129,7 @@ Completed hardening update: standardized export save flow and DataGrid behavior 
 
 - Implement Hardening Phase tasks.
 - Add integration/regression coverage for report exports, large-result safeguards, and cross-role access checks.
-- Validate shell responsiveness and navigation behavior in full desktop/mobile QA pass.
+- Validate settings management UX and logo lifecycle behavior in full desktop/mobile QA pass.
 
 ---
 

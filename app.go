@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"hrpro/internal/reports"
 	"hrpro/internal/repositories"
 	"hrpro/internal/services"
+	"hrpro/internal/settings"
 	"hrpro/internal/users"
 
 	"github.com/jmoiron/sqlx"
@@ -51,6 +53,7 @@ type App struct {
 	dashboardHandler   *handlers.DashboardHandler
 	attendanceHandler  *handlers.AttendanceHandler
 	reportsHandler     *handlers.ReportsHandler
+	settingsHandler    *handlers.SettingsHandler
 }
 
 // NewApp creates a new App application struct
@@ -137,12 +140,28 @@ func (a *App) bootstrap(ctx context.Context) error {
 	attendanceService := attendance.NewService(attendanceRepo, leaveService)
 	attendanceService.SetAuditRecorder(auditService)
 	a.attendanceHandler = handlers.NewAttendanceHandler(authService, attendanceService)
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		_ = database.Close()
+		return fmt.Errorf("resolve user config dir: %w", err)
+	}
+	logoStore, err := settings.NewLocalLogoStore(filepath.Join(configDir, "hrpro", "logos"))
+	if err != nil {
+		_ = database.Close()
+		return fmt.Errorf("create logo store: %w", err)
+	}
+	settingsRepo := settings.NewRepository(database)
+	settingsService := settings.NewService(settingsRepo, logoStore)
+	a.settingsHandler = handlers.NewSettingsHandler(authService, settingsService)
+	attendanceService.SetLunchDefaultsProvider(settingsService)
 	reportsRepo := reports.NewRepository(database)
 	reportsService := reports.NewService(reportsRepo)
+	reportsService.SetFormattingProvider(settingsService)
 	a.reportsHandler = handlers.NewReportsHandler(authService, reportsService)
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
 	payrollService.SetAuditRecorder(auditService)
+	payrollService.SetFormattingProvider(settingsService)
 	a.payrollHandler = handlers.NewPayrollHandler(authService, payrollService)
 	usersRepo := users.NewRepository(database)
 	usersService := users.NewService(usersRepo)
@@ -558,4 +577,28 @@ func (a *App) ExportAuditLogReportCSV(request handlers.ExportAuditLogReportReque
 	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
 	defer cancel()
 	return a.reportsHandler.ExportAuditLogReportCSV(ctx, request)
+}
+
+func (a *App) GetSettings(request handlers.GetSettingsRequest) (*settings.SettingsDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.settingsHandler.GetSettings(ctx, request)
+}
+
+func (a *App) UpdateSettings(request handlers.UpdateSettingsRequest) (*settings.SettingsDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.settingsHandler.UpdateSettings(ctx, request)
+}
+
+func (a *App) UploadCompanyLogo(request handlers.UploadCompanyLogoRequest) (string, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.settingsHandler.UploadCompanyLogo(ctx, request)
+}
+
+func (a *App) GetCompanyLogo(request handlers.GetCompanyLogoRequest) (*settings.CompanyLogo, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.settingsHandler.GetCompanyLogo(ctx, request)
 }
