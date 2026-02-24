@@ -68,3 +68,9 @@ type EmployeeSalary struct {
 	EmployeeName string  `db:"employee_name"`
 	BaseSalary   float64 `db:"base_salary"`
 }
+
+type CSVExport struct {
+	Filename string `json:"filename"`
+	Data     string `json:"data"`
+	MimeType string `json:"mimeType"`
+}

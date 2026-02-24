@@ -168,19 +168,19 @@ func (h *PayrollHandler) LockPayrollBatch(ctx context.Context, request PayrollBa
 	return batch, nil
 }
 
-func (h *PayrollHandler) ExportPayrollBatchCSV(ctx context.Context, request PayrollBatchActionRequest) (string, error) {
+func (h *PayrollHandler) ExportPayrollBatchCSV(ctx context.Context, request PayrollBatchActionRequest) (*payroll.CSVExport, error) {
 	claims, err := h.validateClaims(request.AccessToken)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if err := middleware.RequireRoles(claims, "Admin", "Finance Officer"); err != nil {
-		return "", err
+		return nil, err
 	}
 	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
 	csvText, err := h.service.ExportPayrollBatchCSV(ctx, request.BatchID)
 	if err != nil {
-		return "", mapPayrollError(err)
+		return nil, mapPayrollError(err)
 	}
 	return csvText, nil
 }

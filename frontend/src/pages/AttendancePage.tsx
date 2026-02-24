@@ -24,11 +24,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import { type GridColDef } from '@mui/x-data-grid'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { isAttendanceManagerRole, isStaffRole } from '../auth/roles'
+import { AppDataGrid } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import type { AttendanceRow, AttendanceStatus } from '../types/attendance'
 
@@ -226,7 +227,7 @@ export function AttendancePage() {
 
                 {!attendanceQuery.isLoading && !attendanceQuery.isError ? (
                   <Box sx={{ height: 460, width: '100%' }}>
-                    <DataGrid
+                    <AppDataGrid
                       rows={rows}
                       columns={columns}
                       getRowId={(row) => row.employeeId}

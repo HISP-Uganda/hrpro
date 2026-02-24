@@ -68,7 +68,11 @@ func (s *Service) ExportEmployeeReportCSV(ctx context.Context, claims *models.Cl
 		return nil, err
 	}
 
-	return &CSVExport{Filename: fmt.Sprintf("employee-list-%s.csv", time.Now().Format("2006-01-02")), Data: csvData}, nil
+	return &CSVExport{
+		Filename: fmt.Sprintf("employee-list-%s.csv", time.Now().Format("2006-01-02")),
+		Data:     csvData,
+		MimeType: "text/csv;charset=utf-8",
+	}, nil
 }
 
 func (s *Service) ListLeaveRequestsReport(ctx context.Context, claims *models.Claims, filter LeaveRequestsFilter, pager PagerInput) (*LeaveRequestsReportListResult, error) {
@@ -118,7 +122,7 @@ func (s *Service) ExportLeaveRequestsReportCSV(ctx context.Context, claims *mode
 	}
 
 	filename := fmt.Sprintf("leave-requests-%s_to_%s.csv", dateFrom.Format("2006-01-02"), dateTo.Format("2006-01-02"))
-	return &CSVExport{Filename: filename, Data: csvData}, nil
+	return &CSVExport{Filename: filename, Data: csvData, MimeType: "text/csv;charset=utf-8"}, nil
 }
 
 func (s *Service) ListAttendanceSummaryReport(ctx context.Context, claims *models.Claims, filter AttendanceSummaryFilter, pager PagerInput) (*AttendanceSummaryReportListResult, error) {
@@ -170,7 +174,7 @@ func (s *Service) ExportAttendanceSummaryReportCSV(ctx context.Context, claims *
 	}
 
 	filename := fmt.Sprintf("attendance-summary-%s_to_%s.csv", dateFrom.Format("2006-01-02"), dateTo.Format("2006-01-02"))
-	return &CSVExport{Filename: filename, Data: csvData}, nil
+	return &CSVExport{Filename: filename, Data: csvData, MimeType: "text/csv;charset=utf-8"}, nil
 }
 
 func (s *Service) ListPayrollBatchesReport(ctx context.Context, claims *models.Claims, filter PayrollBatchesFilter, pager PagerInput) (*PayrollBatchesReportListResult, error) {
@@ -210,7 +214,11 @@ func (s *Service) ExportPayrollBatchesReportCSV(ctx context.Context, claims *mod
 		return nil, err
 	}
 
-	return &CSVExport{Filename: fmt.Sprintf("payroll-batches-%s.csv", time.Now().Format("2006-01-02")), Data: csvData}, nil
+	return &CSVExport{
+		Filename: fmt.Sprintf("payroll-batches-%s.csv", time.Now().Format("2006-01-02")),
+		Data:     csvData,
+		MimeType: "text/csv;charset=utf-8",
+	}, nil
 }
 
 func (s *Service) ListAuditLogReport(ctx context.Context, claims *models.Claims, filter AuditLogFilter, pager PagerInput) (*AuditLogReportListResult, error) {
@@ -261,7 +269,7 @@ func (s *Service) ExportAuditLogReportCSV(ctx context.Context, claims *models.Cl
 	}
 
 	filename := fmt.Sprintf("audit-log-%s_to_%s.csv", dateFrom.Format("2006-01-02"), dateTo.Format("2006-01-02"))
-	return &CSVExport{Filename: filename, Data: csvData}, nil
+	return &CSVExport{Filename: filename, Data: csvData, MimeType: "text/csv;charset=utf-8"}, nil
 }
 
 func validateEmployeeFilter(filter EmployeeListFilter) error {

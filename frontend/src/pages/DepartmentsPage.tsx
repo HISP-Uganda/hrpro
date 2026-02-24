@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { DataGrid, GridActionsCellItem, GridColDef, GridPaginationModel, GridToolbar } from '@mui/x-data-grid'
+import { GridActionsCellItem, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -20,6 +20,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { isHROrAdminRole } from '../auth/roles'
 import type { Department, UpsertDepartmentInput } from '../types/departments'
 
@@ -199,7 +200,7 @@ export function DepartmentsPage() {
         {listQuery.isError ? <Alert severity="error">Failed to load departments</Alert> : null}
 
         <Box sx={{ height: 560, bgcolor: 'background.paper', borderRadius: 2, p: 1, boxShadow: 1 }}>
-          <DataGrid
+          <AppDataGrid
             rows={rows}
             columns={columns}
             loading={listQuery.isLoading}
@@ -216,16 +217,7 @@ export function DepartmentsPage() {
                 },
               },
             }}
-            slots={{ toolbar: GridToolbar }}
-            sx={{
-              border: 0,
-              '& .MuiDataGrid-columnHeaders': {
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-                backgroundColor: 'background.paper',
-              },
-            }}
+            slots={{ toolbar: AppDataGridToolbar }}
           />
         </Box>
       </Stack>

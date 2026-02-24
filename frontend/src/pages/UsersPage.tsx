@@ -20,9 +20,7 @@ import LockResetIcon from '@mui/icons-material/LockReset'
 import ToggleOnIcon from '@mui/icons-material/ToggleOn'
 import ToggleOffIcon from '@mui/icons-material/ToggleOff'
 import {
-  DataGrid,
   GridActionsCellItem,
-  GridToolbar,
   type GridColDef,
   type GridColumnVisibilityModel,
   type GridPaginationModel,
@@ -31,6 +29,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
 import { isAdminRole } from '../auth/roles'
+import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import type { CreateUserInput, ManagedUser, UpdateUserInput, UserRole } from '../types/users'
 
@@ -288,7 +287,7 @@ export function UsersPage() {
         {listQuery.isError ? <Alert severity="error">Failed to load users</Alert> : null}
 
         <Box sx={{ height: 580, width: '100%', bgcolor: 'background.paper', borderRadius: 2, p: 1, boxShadow: 1 }}>
-          <DataGrid<ManagedUser>
+          <AppDataGrid<ManagedUser>
             rows={listQuery.data?.items ?? []}
             columns={columns}
             loading={listQuery.isLoading}
@@ -298,18 +297,9 @@ export function UsersPage() {
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             pageSizeOptions={[10, 20, 50]}
-            slots={{ toolbar: GridToolbar }}
+            slots={{ toolbar: AppDataGridToolbar }}
             columnVisibilityModel={columnVisibilityModel}
             onColumnVisibilityModelChange={(model) => setColumnVisibilityModel(model)}
-            sx={{
-              border: 0,
-              '& .MuiDataGrid-columnHeaders': {
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-                backgroundColor: 'background.paper',
-              },
-            }}
           />
         </Box>
       </Stack>

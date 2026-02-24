@@ -87,7 +87,8 @@ export type AppGateway = {
   ) => Promise<PayrollEntry>
   approvePayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
   lockPayrollBatch: (accessToken: string, batchId: number) => Promise<PayrollBatch>
-  exportPayrollBatchCSV: (accessToken: string, batchId: number) => Promise<string>
+  exportPayrollBatchCSV: (accessToken: string, batchId: number) => Promise<CSVExportResult>
+  saveFileWithDialog: (suggestedFilename: string, dataBytes: number[], mimeType: string) => Promise<{ savedPath: string; cancelled: boolean }>
 
   listUsers: (accessToken: string, query: ListUsersQuery) => Promise<ListUsersResult>
   getUser: (accessToken: string, id: number) => Promise<ManagedUser>

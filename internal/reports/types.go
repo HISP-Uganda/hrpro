@@ -131,4 +131,5 @@ type AuditLogReportListResult struct {
 type CSVExport struct {
 	Filename string `json:"filename"`
 	Data     string `json:"data"`
+	MimeType string `json:"mimeType"`
 }

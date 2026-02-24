@@ -100,7 +100,12 @@ type WailsAppBinding = {
   }) => Promise<PayrollEntry>
   ApprovePayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
   LockPayrollBatch: (input: { accessToken: string; batchId: number }) => Promise<PayrollBatch>
-  ExportPayrollBatchCSV: (input: { accessToken: string; batchId: number }) => Promise<string>
+  ExportPayrollBatchCSV: (input: { accessToken: string; batchId: number }) => Promise<CSVExportResult>
+  SaveFileWithDialog: (input: {
+    suggestedFilename: string
+    dataBytes: number[]
+    mimeType: string
+  }) => Promise<{ savedPath: string; cancelled: boolean }>
 
   ListUsers: (input: { accessToken: string; page: number; pageSize: number; q?: string }) => Promise<ListUsersResult>
   GetUser: (input: { accessToken: string; id: number }) => Promise<ManagedUser>
@@ -328,8 +333,16 @@ export class WailsGateway implements AppGateway {
     return getAppBinding().LockPayrollBatch({ accessToken, batchId })
   }
 
-  async exportPayrollBatchCSV(accessToken: string, batchId: number): Promise<string> {
+  async exportPayrollBatchCSV(accessToken: string, batchId: number): Promise<CSVExportResult> {
     return getAppBinding().ExportPayrollBatchCSV({ accessToken, batchId })
+  }
+
+  async saveFileWithDialog(
+    suggestedFilename: string,
+    dataBytes: number[],
+    mimeType: string,
+  ): Promise<{ savedPath: string; cancelled: boolean }> {
+    return getAppBinding().SaveFileWithDialog({ suggestedFilename, dataBytes, mimeType })
   }
 
   async listUsers(accessToken: string, query: ListUsersQuery): Promise<ListUsersResult> {

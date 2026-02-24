@@ -264,25 +264,25 @@ func (s *Service) LockPayrollBatch(ctx context.Context, batchID int64) (*Payroll
 	return updated, nil
 }
 
-func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (string, error) {
+func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (*CSVExport, error) {
 	if batchID <= 0 {
-		return "", fmt.Errorf("%w: batch id must be positive", ErrValidation)
+		return nil, fmt.Errorf("%w: batch id must be positive", ErrValidation)
 	}
 
 	batch, err := s.repository.GetBatchByID(ctx, batchID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if batch == nil {
-		return "", ErrNotFound
+		return nil, ErrNotFound
 	}
 	if batch.Status != StatusApproved && batch.Status != StatusLocked {
-		return "", ErrExportNotAllowed
+		return nil, ErrExportNotAllowed
 	}
 
 	entries, err := s.repository.ListEntriesByBatchID(ctx, batchID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var buf bytes.Buffer
@@ -297,7 +297,7 @@ func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (str
 		"Gross Pay",
 		"Net Pay",
 	}); err != nil {
-		return "", fmt.Errorf("write payroll csv header: %w", err)
+		return nil, fmt.Errorf("write payroll csv header: %w", err)
 	}
 
 	for _, entry := range entries {
@@ -312,16 +312,20 @@ func (s *Service) ExportPayrollBatchCSV(ctx context.Context, batchID int64) (str
 			formatMoney(entry.NetPay),
 		}
 		if err := writer.Write(record); err != nil {
-			return "", fmt.Errorf("write payroll csv record: %w", err)
+			return nil, fmt.Errorf("write payroll csv record: %w", err)
 		}
 	}
 
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		return "", fmt.Errorf("flush payroll csv: %w", err)
+		return nil, fmt.Errorf("flush payroll csv: %w", err)
 	}
 
-	return buf.String(), nil
+	return &CSVExport{
+		Filename: fmt.Sprintf("payroll-%s.csv", batch.Month),
+		Data:     buf.String(),
+		MimeType: "text/csv;charset=utf-8",
+	}, nil
 }
 
 func isAllowedStatus(status string) bool {

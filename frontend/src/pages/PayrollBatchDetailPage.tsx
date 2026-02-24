@@ -13,12 +13,14 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import { type GridColDef } from '@mui/x-data-grid'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router'
 
+import { AppDataGrid } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import { isFinanceOrAdminRole } from '../auth/roles'
+import { saveExportWithDialog } from '../lib/exportSave'
 import type { PayrollBatchStatus, PayrollEntry } from '../types/payroll'
 
 function formatMoney(value: number): string {
@@ -36,19 +38,6 @@ function statusChipColor(status: PayrollBatchStatus): 'default' | 'warning' | 's
   if (status === 'Draft') return 'warning'
   if (status === 'Approved') return 'success'
   return 'default'
-}
-
-function downloadCSV(filename: string, text: string) {
-  const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.setAttribute('href', url)
-  link.setAttribute('download', filename)
-  link.style.display = 'none'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }
 
 function toNumber(value: unknown): number {
@@ -69,7 +58,7 @@ export function PayrollBatchDetailPage() {
 
   const batchId = Number(params.batchId)
   const [confirm, setConfirm] = useState<null | 'generate' | 'approve' | 'lock'>(null)
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null)
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' | 'info' } | null>(null)
 
   const detailQuery = useQuery({
     queryKey: ['payroll', 'batch', batchId],
@@ -117,10 +106,13 @@ export function PayrollBatchDetailPage() {
 
   const exportMutation = useMutation({
     mutationFn: () => router.options.context.api.exportPayrollBatchCSV(accessToken, batchId),
-    onSuccess: (csvText) => {
-      const month = detailQuery.data?.batch.month ?? 'batch'
-      downloadCSV(`payroll-${month}.csv`, csvText)
-      setSnackbar({ message: 'Payroll CSV exported', severity: 'success' })
+    onSuccess: async (result) => {
+      const saveResult = await saveExportWithDialog(router.options.context.api, result)
+      if (saveResult.cancelled) {
+        setSnackbar({ message: 'Save cancelled', severity: 'info' })
+        return
+      }
+      setSnackbar({ message: `Saved: ${saveResult.savedPath || result.filename}`, severity: 'success' })
     },
     onError: (error: Error) => {
       setSnackbar({ message: error.message || 'Failed to export payroll', severity: 'error' })
@@ -333,7 +325,7 @@ export function PayrollBatchDetailPage() {
               <Alert severity="info">No entries generated yet. Use Generate Entries to populate this batch.</Alert>
             ) : (
               <Box sx={{ height: 540, width: '100%' }}>
-                <DataGrid<PayrollEntry>
+                <AppDataGrid<PayrollEntry>
                   rows={detailQuery.data.entries}
                   columns={columns}
                   disableRowSelectionOnClick
@@ -341,15 +333,7 @@ export function PayrollBatchDetailPage() {
                   onProcessRowUpdateError={(error) => {
                     setSnackbar({ message: (error as Error).message || 'Failed to update row', severity: 'error' })
                   }}
-                  sx={{
-                    borderRadius: 2,
-                    '& .MuiDataGrid-columnHeaders': {
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1,
-                      backgroundColor: 'background.paper',
-                    },
-                  }}
+                  sx={{ borderRadius: 2 }}
                 />
               </Box>
             )}

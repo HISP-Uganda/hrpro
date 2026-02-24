@@ -13,7 +13,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { DataGrid, GridToolbar, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
+import { type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 
@@ -24,7 +24,9 @@ import {
   canAccessLeaveReportRole,
   canAccessPayrollReportRole,
 } from '../auth/roles'
+import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
+import { saveExportWithDialog } from '../lib/exportSave'
 import type { Department } from '../types/departments'
 import type { Employee } from '../types/employees'
 import type { LeaveType } from '../types/leave'
@@ -64,18 +66,6 @@ function isAccessDeniedError(error: unknown): boolean {
     return false
   }
   return /forbidden|access denied/i.test(error.message)
-}
-
-function downloadCSV(filename: string, data: string) {
-  const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  URL.revokeObjectURL(url)
 }
 
 type ReportTab = 'employees' | 'leave' | 'attendance' | 'payroll' | 'audit'
@@ -133,7 +123,16 @@ export function ReportsPage() {
   const [payrollPager, setPayrollPager] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
   const [auditPager, setAuditPager] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
 
-  const [snackbar, setSnackbar] = useState<{ severity: 'success' | 'error'; message: string } | null>(null)
+  const [snackbar, setSnackbar] = useState<{ severity: 'success' | 'error' | 'info'; message: string } | null>(null)
+
+  const saveExport = async (result: { filename: string; data: string; mimeType: string }) => {
+    const saveResult = await saveExportWithDialog(router.options.context.api, result)
+    if (saveResult.cancelled) {
+      setSnackbar({ severity: 'info', message: 'Save cancelled' })
+      return
+    }
+    setSnackbar({ severity: 'success', message: `Saved: ${saveResult.savedPath || result.filename}` })
+  }
 
   const departmentsQuery = useQuery({
     queryKey: ['reports', 'departments'],
@@ -211,46 +210,31 @@ export function ReportsPage() {
 
   const exportEmployeeMutation = useMutation({
     mutationFn: () => router.options.context.api.exportEmployeeReportCSV(accessToken, employeeFilters),
-    onSuccess: (result) => {
-      downloadCSV(result.filename, result.data)
-      setSnackbar({ severity: 'success', message: 'Employee report exported.' })
-    },
+    onSuccess: (result) => saveExport(result),
     onError: (error: Error) => setSnackbar({ severity: 'error', message: error.message || 'Export failed' }),
   })
 
   const exportLeaveMutation = useMutation({
     mutationFn: () => router.options.context.api.exportLeaveRequestsReportCSV(accessToken, leaveFilters),
-    onSuccess: (result) => {
-      downloadCSV(result.filename, result.data)
-      setSnackbar({ severity: 'success', message: 'Leave report exported.' })
-    },
+    onSuccess: (result) => saveExport(result),
     onError: (error: Error) => setSnackbar({ severity: 'error', message: error.message || 'Export failed' }),
   })
 
   const exportAttendanceMutation = useMutation({
     mutationFn: () => router.options.context.api.exportAttendanceSummaryReportCSV(accessToken, attendanceFilters),
-    onSuccess: (result) => {
-      downloadCSV(result.filename, result.data)
-      setSnackbar({ severity: 'success', message: 'Attendance report exported.' })
-    },
+    onSuccess: (result) => saveExport(result),
     onError: (error: Error) => setSnackbar({ severity: 'error', message: error.message || 'Export failed' }),
   })
 
   const exportPayrollMutation = useMutation({
     mutationFn: () => router.options.context.api.exportPayrollBatchesReportCSV(accessToken, payrollFilters),
-    onSuccess: (result) => {
-      downloadCSV(result.filename, result.data)
-      setSnackbar({ severity: 'success', message: 'Payroll report exported.' })
-    },
+    onSuccess: (result) => saveExport(result),
     onError: (error: Error) => setSnackbar({ severity: 'error', message: error.message || 'Export failed' }),
   })
 
   const exportAuditMutation = useMutation({
     mutationFn: () => router.options.context.api.exportAuditLogReportCSV(accessToken, auditFilters),
-    onSuccess: (result) => {
-      downloadCSV(result.filename, result.data)
-      setSnackbar({ severity: 'success', message: 'Audit report exported.' })
-    },
+    onSuccess: (result) => saveExport(result),
     onError: (error: Error) => setSnackbar({ severity: 'error', message: error.message || 'Export failed' }),
   })
 
@@ -444,7 +428,7 @@ export function ReportsPage() {
                   <Skeleton variant="rounded" height={420} />
                 </Stack>
               ) : (
-                <DataGrid
+                <AppDataGrid
                   rows={employeeReportQuery.data?.rows ?? []}
                   getRowId={(row) => `${row.employeeName}-${row.email}-${row.position}`}
                   columns={employeeColumns}
@@ -454,7 +438,7 @@ export function ReportsPage() {
                   onPaginationModelChange={setEmployeePager}
                   pageSizeOptions={[10, 20, 50]}
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{ toolbar: AppDataGridToolbar }}
                 />
               )}
             </Box>
@@ -504,7 +488,7 @@ export function ReportsPage() {
                   <Skeleton variant="rounded" height={420} />
                 </Stack>
               ) : (
-                <DataGrid
+                <AppDataGrid
                   rows={leaveReportQuery.data?.rows ?? []}
                   getRowId={(row) => `${row.employeeName}-${row.startDate}-${row.leaveType}-${row.status}`}
                   columns={leaveColumns}
@@ -514,7 +498,7 @@ export function ReportsPage() {
                   onPaginationModelChange={setLeavePager}
                   pageSizeOptions={[10, 20, 50]}
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{ toolbar: AppDataGridToolbar }}
                 />
               )}
             </Box>
@@ -551,7 +535,7 @@ export function ReportsPage() {
                   <Skeleton variant="rounded" height={420} />
                 </Stack>
               ) : (
-                <DataGrid
+                <AppDataGrid
                   rows={attendanceReportQuery.data?.rows ?? []}
                   getRowId={(row) => row.employeeId}
                   columns={attendanceColumns}
@@ -561,7 +545,7 @@ export function ReportsPage() {
                   onPaginationModelChange={setAttendancePager}
                   pageSizeOptions={[10, 20, 50]}
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{ toolbar: AppDataGridToolbar }}
                 />
               )}
             </Box>
@@ -592,7 +576,7 @@ export function ReportsPage() {
                   <Skeleton variant="rounded" height={420} />
                 </Stack>
               ) : (
-                <DataGrid
+                <AppDataGrid
                   rows={payrollReportQuery.data?.rows ?? []}
                   getRowId={(row) => `${row.month}-${row.status}`}
                   columns={payrollColumns}
@@ -602,7 +586,7 @@ export function ReportsPage() {
                   onPaginationModelChange={setPayrollPager}
                   pageSizeOptions={[10, 20, 50]}
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{ toolbar: AppDataGridToolbar }}
                 />
               )}
             </Box>
@@ -635,7 +619,7 @@ export function ReportsPage() {
                   <Skeleton variant="rounded" height={420} />
                 </Stack>
               ) : (
-                <DataGrid
+                <AppDataGrid
                   rows={auditReportQuery.data?.rows ?? []}
                   getRowId={(row) => `${row.createdAt}-${row.action}-${row.entityId ?? 0}`}
                   columns={auditColumns}
@@ -645,7 +629,7 @@ export function ReportsPage() {
                   onPaginationModelChange={setAuditPager}
                   pageSizeOptions={[10, 20, 50]}
                   disableRowSelectionOnClick
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{ toolbar: AppDataGridToolbar }}
                 />
               )}
             </Box>

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Alert, Box, Stack, TextField, Typography } from '@mui/material'
-import { DataGrid, GridColDef, GridPaginationModel, GridToolbar } from '@mui/x-data-grid'
+import { GridColDef, GridPaginationModel } from '@mui/x-data-grid'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 
+import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { AppShell } from '../components/AppShell'
 import type { AuditLog } from '../types/audit'
 
@@ -93,7 +94,7 @@ export function AuditPage() {
         />
         {listQuery.isError ? <Alert severity="error">Failed to load audit logs.</Alert> : null}
         <Box sx={{ height: 620, bgcolor: 'background.paper', borderRadius: 2, p: 1, boxShadow: 1 }}>
-          <DataGrid
+          <AppDataGrid
             rows={listQuery.data?.items ?? []}
             columns={columns}
             loading={listQuery.isLoading}
@@ -103,16 +104,7 @@ export function AuditPage() {
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             disableRowSelectionOnClick
-            slots={{ toolbar: GridToolbar }}
-            sx={{
-              border: 0,
-              '& .MuiDataGrid-columnHeaders': {
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-                backgroundColor: 'background.paper',
-              },
-            }}
+            slots={{ toolbar: AppDataGridToolbar }}
           />
         </Box>
       </Stack>

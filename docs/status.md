@@ -2,7 +2,7 @@
 ## Development Status Tracker (Template)
 ## Phase A – Online-First (JWT + SQLX + golang-migrate)
 
-Last Updated: 2026-02-21
+Last Updated: 2026-02-24
 
 ---
 
@@ -80,8 +80,10 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 - `/reports`:
   - role-aware report tabs (Employees, Leave, Attendance, Payroll, Audit)
   - filter bar + run action + server paginated MUI DataGrid per report
-  - CSV export mutations with desktop Blob download, filename usage from backend, and snackbar feedback
+  - CSV export mutations with native Wails save dialog flow and snackbar feedback for save/cancel/error
   - loading skeletons, empty/error handling, and access-denied mapping on forbidden responses
+- Cross-app stabilization:
+  - Standardized DataGrid styling (bold + sticky headers) and fixed CSV exports using Wails Save dialog.
 - Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
@@ -109,7 +111,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
 # 4. In Progress
 
-No active in-progress work at this milestone close. Next module is Hardening Phase stabilization.
+Completed hardening update: standardized export save flow and DataGrid behavior across modules. Next module remains Hardening Phase stabilization follow-ups.
 
 ---
 

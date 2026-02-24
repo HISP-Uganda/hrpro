@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"hrpro/internal/attendance"
@@ -23,6 +25,17 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+type SaveFileWithDialogRequest struct {
+	SuggestedFilename string `json:"suggestedFilename"`
+	DataBytes         []byte `json:"dataBytes"`
+	MimeType          string `json:"mimeType"`
+}
+
+type SaveFileWithDialogResult struct {
+	SavedPath string `json:"savedPath"`
+	Cancelled bool   `json:"cancelled"`
+}
 
 // App struct
 type App struct {
@@ -358,10 +371,49 @@ func (a *App) LockPayrollBatch(request handlers.PayrollBatchActionRequest) (*pay
 	return a.payrollHandler.LockPayrollBatch(ctx, request)
 }
 
-func (a *App) ExportPayrollBatchCSV(request handlers.PayrollBatchActionRequest) (string, error) {
+func (a *App) ExportPayrollBatchCSV(request handlers.PayrollBatchActionRequest) (*payroll.CSVExport, error) {
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
 	return a.payrollHandler.ExportPayrollBatchCSV(ctx, request)
+}
+
+func (a *App) SaveFileWithDialog(request SaveFileWithDialogRequest) (*SaveFileWithDialogResult, error) {
+	filename := strings.TrimSpace(request.SuggestedFilename)
+	if filename == "" {
+		filename = "export.csv"
+	}
+
+	options := runtime.SaveDialogOptions{
+		Title:           "Save File",
+		DefaultFilename: filename,
+	}
+
+	if strings.Contains(strings.ToLower(request.MimeType), "text/csv") {
+		options.Filters = []runtime.FileFilter{
+			{
+				DisplayName: "CSV Files (*.csv)",
+				Pattern:     "*.csv",
+			},
+		}
+	}
+
+	path, err := runtime.SaveFileDialog(a.ctx, options)
+	if err != nil {
+		return nil, fmt.Errorf("open save dialog: %w", err)
+	}
+
+	if strings.TrimSpace(path) == "" {
+		return &SaveFileWithDialogResult{Cancelled: true}, nil
+	}
+
+	if err := os.WriteFile(path, request.DataBytes, 0o600); err != nil {
+		return nil, fmt.Errorf("write file: %w", err)
+	}
+
+	return &SaveFileWithDialogResult{
+		SavedPath: path,
+		Cancelled: false,
+	}, nil
 }
 
 func (a *App) ListUsers(request handlers.ListUsersRequest) (*users.ListUsersResult, error) {

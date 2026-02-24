@@ -16,8 +16,6 @@ import {
   MenuItem,
 } from '@mui/material'
 import {
-  DataGrid,
-  GridToolbar,
   type GridColDef,
   type GridColumnVisibilityModel,
   type GridPaginationModel,
@@ -26,6 +24,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 
 import { AppShell } from '../components/AppShell'
+import { AppDataGrid, AppDataGridToolbar } from '../components/AppDataGrid'
 import { isFinanceOrAdminRole } from '../auth/roles'
 import type { PayrollBatch, PayrollBatchStatus } from '../types/payroll'
 
@@ -200,7 +199,7 @@ export function PayrollBatchesPage() {
           ) : null}
 
           {!batchesQuery.isLoading ? (
-            <DataGrid<PayrollBatch>
+            <AppDataGrid<PayrollBatch>
               rows={batchesQuery.data?.items ?? []}
               columns={columns}
               disableRowSelectionOnClick
@@ -212,17 +211,11 @@ export function PayrollBatchesPage() {
                 setPageSize(model.pageSize)
               }}
               pageSizeOptions={[5, 10, 20, 50]}
-              slots={{ toolbar: GridToolbar }}
+              slots={{ toolbar: AppDataGridToolbar }}
               columnVisibilityModel={columnVisibilityModel}
               onColumnVisibilityModelChange={(model) => setColumnVisibilityModel(model)}
               sx={{
                 borderRadius: 2,
-                '& .MuiDataGrid-columnHeaders': {
-                  position: 'sticky',
-                  top: 0,
-                  zIndex: 1,
-                  backgroundColor: 'background.paper',
-                },
                 '& .MuiDataGrid-cell': { alignItems: 'center' },
               }}
             />

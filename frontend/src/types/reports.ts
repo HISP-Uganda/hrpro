@@ -127,4 +127,5 @@ export type AuditLogReportResult = {
 export type CSVExportResult = {
   filename: string
   data: string
+  mimeType: string
 }
