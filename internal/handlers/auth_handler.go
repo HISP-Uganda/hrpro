@@ -35,6 +35,10 @@ type LogoutRequest struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type RefreshRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
 type GetMeResponse struct {
 	User UserDTO `json:"user"`
 }
@@ -66,6 +70,31 @@ func (h *AuthHandler) Login(ctx context.Context, request LoginRequest) (*LoginRe
 
 func (h *AuthHandler) Logout(ctx context.Context, request LogoutRequest) error {
 	return h.authService.Logout(ctx, request.RefreshToken)
+}
+
+func (h *AuthHandler) Refresh(ctx context.Context, request RefreshRequest) (*LoginResponse, error) {
+	result, err := h.authService.Refresh(ctx, request.RefreshToken)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrRefreshInvalid):
+			return nil, fmt.Errorf("auth.refresh_invalid")
+		case errors.Is(err, services.ErrRefreshExpired):
+			return nil, fmt.Errorf("auth.refresh_expired")
+		case errors.Is(err, services.ErrRefreshReused):
+			return nil, fmt.Errorf("auth.refresh_reused")
+		}
+		return nil, err
+	}
+
+	return &LoginResponse{
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+		User: UserDTO{
+			ID:       result.User.ID,
+			Username: result.User.Username,
+			Role:     result.User.Role,
+		},
+	}, nil
 }
 
 func (h *AuthHandler) GetMe(ctx context.Context, accessToken string) (*GetMeResponse, error) {

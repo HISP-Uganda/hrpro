@@ -21,6 +21,9 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInactiveUser       = errors.New("user is inactive")
+	ErrRefreshInvalid     = errors.New("auth.refresh_invalid")
+	ErrRefreshExpired     = errors.New("auth.refresh_expired")
+	ErrRefreshReused      = errors.New("auth.refresh_reused")
 )
 
 type AuthService struct {
@@ -141,7 +144,78 @@ func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 		return nil
 	}
 
-	return s.refreshTokens.RevokeByHash(ctx, hashToken(refreshToken))
+	_, err := s.refreshTokens.RevokeByHash(ctx, hashToken(refreshToken))
+	return err
+}
+
+func (s *AuthService) Refresh(ctx context.Context, refreshToken string) (*LoginResult, error) {
+	token := strings.TrimSpace(refreshToken)
+	if token == "" {
+		return nil, ErrRefreshInvalid
+	}
+
+	tokenHash := hashToken(token)
+	stored, err := s.refreshTokens.GetByHash(ctx, tokenHash)
+	if err != nil {
+		return nil, err
+	}
+	if stored == nil {
+		return nil, ErrRefreshInvalid
+	}
+	if stored.RevokedAt != nil {
+		_ = s.refreshTokens.RevokeAllByUserID(ctx, stored.UserID)
+		s.auditRecorder.RecordAuditEvent(ctx, &stored.UserID, "token.refresh.reuse", strPtr("user"), &stored.UserID, nil)
+		return nil, ErrRefreshReused
+	}
+	if time.Now().After(stored.ExpiresAt) {
+		_, _ = s.refreshTokens.RevokeByHash(ctx, tokenHash)
+		return nil, ErrRefreshExpired
+	}
+
+	user, err := s.users.GetByID(ctx, stored.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil || !user.IsActive {
+		return nil, ErrRefreshInvalid
+	}
+
+	revoked, err := s.refreshTokens.RevokeByHash(ctx, tokenHash)
+	if err != nil {
+		return nil, err
+	}
+	if !revoked {
+		_ = s.refreshTokens.RevokeAllByUserID(ctx, stored.UserID)
+		s.auditRecorder.RecordAuditEvent(ctx, &stored.UserID, "token.refresh.reuse", strPtr("user"), &stored.UserID, nil)
+		return nil, ErrRefreshReused
+	}
+
+	accessToken, err := s.tokenService.CreateAccessToken(*user, s.accessTokenExpiry)
+	if err != nil {
+		return nil, err
+	}
+
+	nextRefreshToken, err := generateSecureToken()
+	if err != nil {
+		return nil, fmt.Errorf("generate refresh token: %w", err)
+	}
+
+	nextTokenHash := hashToken(nextRefreshToken)
+	expiresAt := time.Now().Add(s.refreshTokenExpiry)
+	if err := s.refreshTokens.Store(ctx, user.ID, nextTokenHash, expiresAt); err != nil {
+		return nil, err
+	}
+
+	s.auditRecorder.RecordAuditEvent(ctx, &user.ID, "token.refresh", strPtr("user"), &user.ID, map[string]any{
+		"username": user.Username,
+		"source":   "refresh",
+	})
+
+	return &LoginResult{
+		AccessToken:  accessToken,
+		RefreshToken: nextRefreshToken,
+		User:         *user,
+	}, nil
 }
 
 func (s *AuthService) GetMe(ctx context.Context, accessToken string) (*models.User, error) {

@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, and database setup gate are implemented. Reports include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer), shell drawer collapsed state persisted (localStorage), and startup DB health now gates `/login` behind `/setup-db` when DB config is missing/invalid. DB setup save was hardened and `APP_JWT_SECRET` is now auto-generated/persisted locally when missing.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, and Hardening Phase — Milestone 1 are implemented. Hardening milestone 1 added refresh-token rotation with reuse detection (`auth.refresh_reused` typed error), startup session recovery with forced logout + cache clear on refresh failures, and routing regression coverage for unknown routes/notFound behavior while preserving `/setup-db` vs `/login` startup gating.
 
 ---
 
@@ -24,7 +24,7 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
   - users, refresh tokens, audit logs (+ users `last_login_at`)
   - employees
   - departments table + employees FK (`ON DELETE RESTRICT`)
-- `internal/services`: JWT/auth services and admin seeding.
+- `internal/services`: JWT/auth services and admin seeding, including refresh rotation and refresh reuse detection handling.
 - `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
 - `internal/departments`: CRUD/list/search with duplicate-name protection and delete-with-employees prevention in service layer.
 - `internal/leave`: leave types, entitlements, locked dates, request lifecycle, pure rules, and typed errors.
@@ -35,8 +35,8 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/attendance`: daily register + lunch/catering repository/service/rules with SQLX, lock handling, RBAC enforcement, absent-to-leave orchestration, and audit events.
 - `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
 - `internal/settings`: app settings key/value JSONB repository/service, logo file storage, settings DTO retrieval/update, and settings-backed formatting/default integrations.
-- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; startup health and DB setup bindings (`GetStartupHealth`, `TestDatabaseConnection`, `SaveDatabaseConfig`, `ReloadConfigAndReconnect`) include separated DB/runtime health and lazy reconnect behavior; shared audit recorder wired into key services.
+- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement; auth now includes typed refresh error mapping (`auth.refresh_invalid`, `auth.refresh_expired`, `auth.refresh_reused`).
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; startup health and DB setup bindings (`GetStartupHealth`, `TestDatabaseConnection`, `SaveDatabaseConfig`, `ReloadConfigAndReconnect`) include separated DB/runtime health and lazy reconnect behavior; shared audit recorder wired into key services. Added `Refresh` binding for rotated JWT session renewal.
 
 ## Frontend
 
@@ -44,6 +44,9 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
 - Router includes root, `/setup-db`, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/settings`, `/audit`, and `/access-denied`.
 - Startup health is loaded before router mount; `dbOk=false` redirects root/login/protected routes to `/setup-db` and blocks login until DB setup succeeds.
+- Startup session recovery hardening:
+  - if access token is invalid, frontend attempts `refresh`.
+  - refresh failures force logout, clear TanStack Query cache, redirect to `/login`, and display a clear message on the login page.
 - Setup page now surfaces separate statuses for Database Config and Runtime Security (JWT readiness without exposing secret value).
 - `/setup-db`:
   - DB connection form: host, port, database, user, password, sslmode
@@ -51,6 +54,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
   - test connection + save local config + reconnect flow
   - redirect to `/login` after successful reconnect
 - Auth guards and root `notFoundComponent` remain intact.
+- Unknown routes now have explicit regression coverage to ensure `notFoundComponent` renders without TanStack notFound warnings.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
   - department select integrated in create/edit form
@@ -123,21 +127,21 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Reports Module (MVP)       | Completed                                  | `/reports` route + sidebar integration, five required reports end-to-end, server-side RBAC, filters/pagination, CSV exports, and tests completed. |
 | Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
 | Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
-| Hardening Phase            | Not Started                                | Next planned module after database setup flow milestone. |
+| Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
 
 ---
 
 # 4. In Progress
 
-Completed database setup hardening update: setup save path is atomic and reliable with detailed error propagation, startup health separates DB/runtime status, and JWT secret is auto-generated/persisted when missing. Next module remains Hardening Phase stabilization follow-ups.
+Hardening Phase — Milestone 1 completed. Next milestone: Hardening Phase — Milestone 2.
 
 ---
 
 # 5. Next Steps
 
-- Implement Hardening Phase tasks.
-- Add integration/regression coverage for report exports, large-result safeguards, and cross-role access checks.
-- Validate settings management UX and logo lifecycle behavior in full desktop/mobile QA pass.
+- Implement Hardening Phase — Milestone 2 tasks.
+- Expand auth/session coverage for token expiry windows and concurrent refresh race scenarios.
+- Continue regression hardening for reports/access-control edge cases in cross-role QA.
 
 ---
 

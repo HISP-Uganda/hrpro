@@ -134,11 +134,14 @@ export function AppShell({ title, children }: { title: string; children: React.R
 
   const onLogout = async () => {
     const refreshToken = session?.refreshToken
-    if (refreshToken) {
-      await router.options.context.api.logout(refreshToken)
+    try {
+      if (refreshToken) {
+        await router.options.context.api.logout(refreshToken)
+      }
+    } finally {
+      router.options.context.auth.clear()
+      router.options.context.queryClient.clear()
     }
-
-    router.options.context.auth.clear()
     await navigate({ to: '/login' })
   }
 

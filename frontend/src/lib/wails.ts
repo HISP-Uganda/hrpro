@@ -49,6 +49,7 @@ type WailsAppBinding = {
   ReloadConfigAndReconnect: () => Promise<{ ok: boolean }>
 
   Login: (input: LoginInput) => Promise<LoginResult>
+  Refresh: (input: { refreshToken: string }) => Promise<LoginResult>
   Logout: (input: { refreshToken: string }) => Promise<void>
   GetMe: (accessToken: string) => Promise<{ user: User }>
 
@@ -202,6 +203,10 @@ export class WailsGateway implements AppGateway {
 
   async login(input: LoginInput): Promise<LoginResult> {
     return getAppBinding().Login(input)
+  }
+
+  async refresh(refreshToken: string): Promise<LoginResult> {
+    return getAppBinding().Refresh({ refreshToken })
   }
 
   async logout(refreshToken: string): Promise<void> {

@@ -368,6 +368,16 @@ func (a *App) Logout(request handlers.LogoutRequest) error {
 	return authHandler.Logout(ctx, request)
 }
 
+func (a *App) Refresh(request handlers.RefreshRequest) (*handlers.LoginResponse, error) {
+	authHandler, err := a.getAuthHandler()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return authHandler.Refresh(ctx, request)
+}
+
 func (a *App) GetMe(accessToken string) (*handlers.GetMeResponse, error) {
 	authHandler, err := a.getAuthHandler()
 	if err != nil {

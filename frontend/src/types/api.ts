@@ -48,6 +48,7 @@ export type AppGateway = {
   reloadConfigAndReconnect: () => Promise<void>
 
   login: (input: LoginInput) => Promise<LoginResult>
+  refresh: (refreshToken: string) => Promise<LoginResult>
   logout: (refreshToken: string) => Promise<void>
   getMe: (accessToken: string) => Promise<User>
 

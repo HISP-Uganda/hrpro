@@ -1632,6 +1632,18 @@ export namespace handlers {
 	        this.employeeId = source["employeeId"];
 	    }
 	}
+	export class RefreshRequest {
+	    refreshToken: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RefreshRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.refreshToken = source["refreshToken"];
+	    }
+	}
 	export class RejectLeaveRequest {
 	    accessToken: string;
 	    id: number;

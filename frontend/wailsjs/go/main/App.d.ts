@@ -115,6 +115,8 @@ export function Logout(arg1:handlers.LogoutRequest):Promise<void>;
 
 export function PostAbsentToLeave(arg1:handlers.PostAbsentToLeaveRequest):Promise<attendance.PostAbsentToLeaveResult>;
 
+export function Refresh(arg1:handlers.RefreshRequest):Promise<handlers.LoginResponse>;
+
 export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.LeaveRequest>;
 
 export function ReloadConfigAndReconnect():Promise<main.ActionResult>;

@@ -206,6 +206,10 @@ export function PostAbsentToLeave(arg1) {
   return window['go']['main']['App']['PostAbsentToLeave'](arg1);
 }
 
+export function Refresh(arg1) {
+  return window['go']['main']['App']['Refresh'](arg1);
+}
+
 export function RejectLeave(arg1) {
   return window['go']['main']['App']['RejectLeave'](arg1);
 }

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 
 import { authStore } from './auth/authStore'
+import { recoverSessionOnStartup } from './auth/sessionRecovery'
 import { WailsGateway } from './lib/wails'
 import { createAppRouter } from './router'
 import { StartupStore } from './startup/startupStore'
@@ -66,6 +67,20 @@ function App() {
       }),
     [queryClient, startup],
   )
+
+  useEffect(() => {
+    if (!startupReady || !startup.getSnapshot().dbOk) {
+      return
+    }
+    void recoverSessionOnStartup({
+      auth: authStore,
+      api: appApi,
+      queryClient,
+      navigateToLogin: async () => {
+        await router.navigate({ to: '/login' })
+      },
+    })
+  }, [queryClient, router, startup, startupReady])
 
   if (!startupReady) {
     return (

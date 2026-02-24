@@ -45,6 +45,11 @@ function createMockApi(): AppGateway {
     testDatabaseConnection: vi.fn(async () => {}),
     saveDatabaseConfig: vi.fn(async () => {}),
     reloadConfigAndReconnect: vi.fn(async () => {}),
+    refresh: vi.fn(async () => ({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      user: { id: 1, username: 'admin', role: 'Admin' },
+    })),
     getDashboardSummary: vi.fn(async () => ({
       totalEmployees: 0,
       activeEmployees: 0,
@@ -310,6 +315,32 @@ describe('Router navigation logic', () => {
     await router.load()
     renderWithQueryClient(<RouterProvider router={router} />, queryClient)
     expect(await screen.findByRole('heading', { name: 'Attendance' })).toBeInTheDocument()
+  })
+
+  it('unknown route renders notFoundComponent without TanStack notFound warnings', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const history = createMemoryHistory({ initialEntries: ['/unknown-route'] })
+    const router = createAppRouter(
+      {
+        auth: createAuth(false),
+        startup: createStartup(true),
+        api: createMockApi(),
+        queryClient: new QueryClient(),
+      },
+      history,
+    )
+    const queryClient = router.options.context.queryClient
+
+    await router.load()
+    renderWithQueryClient(<RouterProvider router={router} />, queryClient)
+    expect(await screen.findByRole('heading', { name: /page not found/i })).toBeInTheDocument()
+    const warnMessages = warnSpy.mock.calls.map((call) => call.map(String).join(' '))
+    const errorMessages = errorSpy.mock.calls.map((call) => call.map(String).join(' '))
+    expect(warnMessages.some((message) => message.includes('notFoundComponent'))).toBe(false)
+    expect(errorMessages.some((message) => message.includes('notFoundComponent'))).toBe(false)
+    warnSpy.mockRestore()
+    errorSpy.mockRestore()
   })
 
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Alert,
   Box,
@@ -13,6 +13,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 
+import { consumeAuthNotice } from '../auth/sessionRecovery'
 import { getPostLoginRedirectPath } from '../router/guards'
 
 export function LoginPage() {
@@ -21,6 +22,13 @@ export function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    const notice = consumeAuthNotice()
+    if (notice) {
+      setErrorMessage(notice)
+    }
+  }, [])
 
   const loginMutation = useMutation({
     mutationFn: () =>
