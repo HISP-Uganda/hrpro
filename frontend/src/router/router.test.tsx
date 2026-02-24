@@ -7,10 +7,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { AuthStore } from '../auth/authStore'
 import { appShellNavItems } from '../components/AppShell'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { StartupStore } from '../startup/startupStore'
 import { AppThemeProvider } from '../theme/ThemeProvider'
 import type { AppGateway } from '../types/api'
 import {
   getPostLoginRedirectPath,
+  resolveLoginRedirect,
   resolveReportsRouteRedirect,
   resolveAdminRouteRedirect,
   resolveDashboardRedirect,
@@ -39,6 +41,10 @@ function createAuth(isAuthenticated: boolean, role = 'Admin'): AuthStore {
 
 function createMockApi(): AppGateway {
   return {
+    getStartupHealth: vi.fn(async () => ({ dbOk: true, runtimeOk: true })),
+    testDatabaseConnection: vi.fn(async () => {}),
+    saveDatabaseConfig: vi.fn(async () => {}),
+    reloadConfigAndReconnect: vi.fn(async () => {}),
     getDashboardSummary: vi.fn(async () => ({
       totalEmployees: 0,
       activeEmployees: 0,
@@ -102,30 +108,67 @@ function renderWithQueryClient(element: JSX.Element, queryClient: QueryClient) {
   )
 }
 
+function createStartup(dbOk: boolean): StartupStore {
+  const startup = new StartupStore()
+  startup.setHealth({
+    dbOk,
+    runtimeOk: true,
+    dbError: dbOk ? '' : 'Database connection is not configured',
+  })
+  return startup
+}
+
 describe('Router navigation logic', () => {
   it('"/" redirects to login when unauthenticated', () => {
-    expect(resolveRootRedirect(createAuth(false))).toBe('/login')
+    expect(resolveRootRedirect(createAuth(false), createStartup(true))).toBe('/login')
   })
 
   it('"/" redirects to dashboard when authenticated', () => {
-    expect(resolveRootRedirect(createAuth(true))).toBe('/dashboard')
+    expect(resolveRootRedirect(createAuth(true), createStartup(true))).toBe('/dashboard')
+  })
+
+  it('"/" redirects to setup-db when database is not configured', () => {
+    expect(resolveRootRedirect(createAuth(false), createStartup(false))).toBe('/setup-db')
+  })
+
+  it('smoke: dbOk false routes root to setup-db', () => {
+    expect(resolveRootRedirect(createAuth(false), createStartup(false))).toBe('/setup-db')
+  })
+
+  it('smoke: dbOk true routes root to login', () => {
+    expect(resolveRootRedirect(createAuth(false), createStartup(true))).toBe('/login')
   })
 
   it('"/dashboard" requires authentication', () => {
-    expect(resolveDashboardRedirect(createAuth(false))).toBe('/login')
-    expect(resolveDashboardRedirect(createAuth(true))).toBeNull()
+    expect(resolveDashboardRedirect(createAuth(false), createStartup(true))).toBe('/login')
+    expect(resolveDashboardRedirect(createAuth(true), createStartup(true))).toBeNull()
+  })
+
+  it('"/login" requires database setup first when db health is false', () => {
+    expect(resolveLoginRedirect(createAuth(false), createStartup(false))).toBe('/setup-db')
+    expect(resolveLoginRedirect(createAuth(false), createStartup(true))).toBeNull()
+  })
+
+  it('"/login" remains allowed when db is configured even if runtime flag is false', () => {
+    const startup = new StartupStore()
+    startup.setHealth({
+      dbOk: true,
+      runtimeOk: false,
+      runtimeError: 'temporary runtime state',
+    })
+    expect(resolveLoginRedirect(createAuth(false), startup)).toBeNull()
   })
 
   it('admin-only route guard redirects non-admin to access denied', () => {
-    expect(resolveAdminRouteRedirect(createAuth(false))).toBe('/login')
-    expect(resolveAdminRouteRedirect(createAuth(true, 'Viewer'))).toBe('/access-denied')
-    expect(resolveAdminRouteRedirect(createAuth(true, 'admin'))).toBeNull()
+    expect(resolveAdminRouteRedirect(createAuth(false), createStartup(true))).toBe('/login')
+    expect(resolveAdminRouteRedirect(createAuth(true, 'Viewer'), createStartup(true))).toBe('/access-denied')
+    expect(resolveAdminRouteRedirect(createAuth(true, 'admin'), createStartup(true))).toBeNull()
   })
 
   it('reports route guard redirects users without report permissions', () => {
-    expect(resolveReportsRouteRedirect(createAuth(false))).toBe('/login')
-    expect(resolveReportsRouteRedirect(createAuth(true, 'Staff'))).toBe('/access-denied')
-    expect(resolveReportsRouteRedirect(createAuth(true, 'viewer'))).toBeNull()
+    expect(resolveReportsRouteRedirect(createAuth(false), createStartup(true))).toBe('/login')
+    expect(resolveReportsRouteRedirect(createAuth(true, 'Staff'), createStartup(true))).toBe('/access-denied')
+    expect(resolveReportsRouteRedirect(createAuth(true, 'viewer'), createStartup(true))).toBeNull()
   })
 
   it('login success redirects to dashboard', () => {
@@ -166,6 +209,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'admin'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },
@@ -183,6 +227,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'admin'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },
@@ -200,6 +245,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'admin'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },
@@ -217,6 +263,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'admin'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },
@@ -234,6 +281,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'viewer'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },
@@ -251,6 +299,7 @@ describe('Router navigation logic', () => {
     const router = createAppRouter(
       {
         auth: createAuth(true, 'viewer'),
+        startup: createStartup(true),
         api: createMockApi(),
         queryClient: new QueryClient(),
       },

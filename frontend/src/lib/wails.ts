@@ -39,9 +39,15 @@ import type {
   PayrollBatchesReportResult,
 } from '../types/reports'
 import type { AppSettings, CompanyLogo, UpdateSettingsInput } from '../types/settings'
+import type { DatabaseConfigInput, StartupHealth } from '../types/startup'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from '../types/users'
 
 type WailsAppBinding = {
+  GetStartupHealth: () => Promise<StartupHealth>
+  TestDatabaseConnection: (input: DatabaseConfigInput) => Promise<{ ok: boolean }>
+  SaveDatabaseConfig: (input: DatabaseConfigInput) => Promise<{ ok: boolean }>
+  ReloadConfigAndReconnect: () => Promise<{ ok: boolean }>
+
   Login: (input: LoginInput) => Promise<LoginResult>
   Logout: (input: { refreshToken: string }) => Promise<void>
   GetMe: (accessToken: string) => Promise<{ user: User }>
@@ -178,6 +184,22 @@ function getAppBinding(): WailsAppBinding {
 }
 
 export class WailsGateway implements AppGateway {
+  async getStartupHealth(): Promise<StartupHealth> {
+    return getAppBinding().GetStartupHealth()
+  }
+
+  async testDatabaseConnection(input: DatabaseConfigInput): Promise<void> {
+    await getAppBinding().TestDatabaseConnection(input)
+  }
+
+  async saveDatabaseConfig(input: DatabaseConfigInput): Promise<void> {
+    await getAppBinding().SaveDatabaseConfig(input)
+  }
+
+  async reloadConfigAndReconnect(): Promise<void> {
+    await getAppBinding().ReloadConfigAndReconnect()
+  }
+
   async login(input: LoginInput): Promise<LoginResult> {
     return getAppBinding().Login(input)
   }

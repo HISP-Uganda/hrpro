@@ -2321,6 +2321,40 @@ export namespace leave {
 
 export namespace main {
 	
+	export class ActionResult {
+	    ok: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActionResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ok = source["ok"];
+	    }
+	}
+	export class DatabaseConfigParams {
+	    host: string;
+	    port: number;
+	    database: string;
+	    user: string;
+	    password: string;
+	    sslmode: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseConfigParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.host = source["host"];
+	        this.port = source["port"];
+	        this.database = source["database"];
+	        this.user = source["user"];
+	        this.password = source["password"];
+	        this.sslmode = source["sslmode"];
+	    }
+	}
 	export class SaveFileWithDialogRequest {
 	    suggestedFilename: string;
 	    dataBytes: number[];
@@ -2349,6 +2383,24 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.savedPath = source["savedPath"];
 	        this.cancelled = source["cancelled"];
+	    }
+	}
+	export class StartupHealthResponse {
+	    dbOk: boolean;
+	    runtimeOk: boolean;
+	    dbError?: string;
+	    runtimeError?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StartupHealthResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dbOk = source["dbOk"];
+	        this.runtimeOk = source["runtimeOk"];
+	        this.dbError = source["dbError"];
+	        this.runtimeError = source["runtimeError"];
 	    }
 	}
 

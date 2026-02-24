@@ -38,9 +38,15 @@ import type {
   PayrollBatchesReportResult,
 } from './reports'
 import type { AppSettings, CompanyLogo, UpdateSettingsInput } from './settings'
+import type { DatabaseConfigInput, StartupHealth } from './startup'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from './users'
 
 export type AppGateway = {
+  getStartupHealth: () => Promise<StartupHealth>
+  testDatabaseConnection: (input: DatabaseConfigInput) => Promise<void>
+  saveDatabaseConfig: (input: DatabaseConfigInput) => Promise<void>
+  reloadConfigAndReconnect: () => Promise<void>
+
   login: (input: LoginInput) => Promise<LoginResult>
   logout: (refreshToken: string) => Promise<void>
   getMe: (accessToken: string) => Promise<User>

@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, and MVP reports modules are implemented. Reports now include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Settings module completed.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, and database setup gate are implemented. Reports include `/reports` route integration, role-aware sidebar visibility, server-side RBAC-enforced report queries, and CSV exports for employee list, leave requests, attendance summary, payroll batches, and audit logs. Responsive collapsible navigation implemented (mini variant + mobile drawer), shell drawer collapsed state persisted (localStorage), and startup DB health now gates `/login` behind `/setup-db` when DB config is missing/invalid. DB setup save was hardened and `APP_JWT_SECRET` is now auto-generated/persisted locally when missing.
 
 ---
 
@@ -18,7 +18,7 @@ Phase A foundation, authentication, shell, employees, departments, leave, payrol
 
 Implemented packages follow clean layering: `handlers -> services -> repositories -> db`.
 
-- `internal/config`: env-driven config loader for DB connection string, JWT secret, token expiry, and initial admin seed variables.
+- `internal/config`: env+local-file config loader with precedence (`APP_DB_CONNECTION_STRING` / `APP_JWT_SECRET` env overrides local file), JWT auto-generation/persistence when env secret is missing, startup health evaluation (`dbOk`, `runtimeOk`, separated errors), and JSON persistence in OS config/app-data directory (`hrpro/config.json`) with restricted permissions (`0600` file, `0700` dir).
 - `internal/db`: SQLX pool creation + ping validation and golang-migrate runner with embedded migrations.
 - `internal/db/migrations`:
   - users, refresh tokens, audit logs (+ users `last_login_at`)
@@ -36,13 +36,20 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
 - `internal/settings`: app settings key/value JSONB repository/service, logo file storage, settings DTO retrieval/update, and settings-backed formatting/default integrations.
 - `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement.
-- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; shared audit recorder wired into key services.
+- `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; startup health and DB setup bindings (`GetStartupHealth`, `TestDatabaseConnection`, `SaveDatabaseConfig`, `ReloadConfigAndReconnect`) include separated DB/runtime health and lazy reconnect behavior; shared audit recorder wired into key services.
 
 ## Frontend
 
 Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
-- Router includes root, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/settings`, `/audit`, and `/access-denied`.
+- Router includes root, `/setup-db`, `/login`, `/dashboard`, `/employees`, `/departments`, `/leave`, `/attendance`, `/payroll`, `/payroll/:batchId`, `/reports`, `/users`, `/settings`, `/audit`, and `/access-denied`.
+- Startup health is loaded before router mount; `dbOk=false` redirects root/login/protected routes to `/setup-db` and blocks login until DB setup succeeds.
+- Setup page now surfaces separate statuses for Database Config and Runtime Security (JWT readiness without exposing secret value).
+- `/setup-db`:
+  - DB connection form: host, port, database, user, password, sslmode
+  - masked connection string preview
+  - test connection + save local config + reconnect flow
+  - redirect to `/login` after successful reconnect
 - Auth guards and root `notFoundComponent` remain intact.
 - `/employees`:
   - DataGrid with CRUD, search, status filter, department filter, pagination
@@ -93,7 +100,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 - App shell now supports responsive MUI Drawer variants: desktop permanent + collapsible mini mode, mobile temporary overlay with auto-close on route click.
 - Desktop shell drawer collapsed preference is now persisted and restored from localStorage.
 - Settings-backed currency formatting now applies in Payroll/Attendance UI and report/payroll CSV currency columns; lunch defaults source values from settings.
-- Navigation tests pass and include `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/settings`, `/audit`, `/attendance`, and `/reports` route checks.
+- Navigation tests pass and include root/login/setup-db guard behavior, `/dashboard`, `/employees`, `/departments`, `/leave`, `/payroll`, `/users`, `/settings`, `/audit`, `/attendance`, and `/reports` route checks.
 
 ---
 
@@ -115,13 +122,14 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Daily Attendance           | Completed                                  | Daily register, lock/override flow, lunch/catering totals, absent-to-leave integration, RBAC, audit events, `/attendance` route, and tests completed. |
 | Reports Module (MVP)       | Completed                                  | `/reports` route + sidebar integration, five required reports end-to-end, server-side RBAC, filters/pagination, CSV exports, and tests completed. |
 | Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
-| Hardening Phase            | Not Started                                | Next planned module after reports milestone. |
+| Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
+| Hardening Phase            | Not Started                                | Next planned module after database setup flow milestone. |
 
 ---
 
 # 4. In Progress
 
-Completed hardening update: standardized export save flow and DataGrid behavior across modules. Responsive collapsible navigation implemented (mini variant + mobile drawer). Shell drawer collapsed state persisted (localStorage). Settings module completed. Next module remains Hardening Phase stabilization follow-ups.
+Completed database setup hardening update: setup save path is atomic and reliable with detailed error propagation, startup health separates DB/runtime status, and JWT secret is auto-generated/persisted when missing. Next module remains Hardening Phase stabilization follow-ups.
 
 ---
 

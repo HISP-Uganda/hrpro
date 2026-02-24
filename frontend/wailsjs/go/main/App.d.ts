@@ -10,8 +10,8 @@ import {reports} from '../models';
 import {settings} from '../models';
 import {dashboard} from '../models';
 import {attendance} from '../models';
-import {audit} from '../models';
 import {main} from '../models';
+import {audit} from '../models';
 
 export function ApplyLeave(arg1:handlers.ApplyLeaveRequest):Promise<leave.LeaveRequest>;
 
@@ -71,6 +71,8 @@ export function GetPayrollBatch(arg1:handlers.GetPayrollBatchRequest):Promise<pa
 
 export function GetSettings(arg1:handlers.GetSettingsRequest):Promise<settings.SettingsDTO>;
 
+export function GetStartupHealth():Promise<main.StartupHealthResponse>;
+
 export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
 
 export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
@@ -115,13 +117,19 @@ export function PostAbsentToLeave(arg1:handlers.PostAbsentToLeaveRequest):Promis
 
 export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.LeaveRequest>;
 
+export function ReloadConfigAndReconnect():Promise<main.ActionResult>;
+
 export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
+
+export function SaveDatabaseConfig(arg1:main.DatabaseConfigParams):Promise<main.ActionResult>;
 
 export function SaveFileWithDialog(arg1:main.SaveFileWithDialogRequest):Promise<main.SaveFileWithDialogResult>;
 
 export function SetLeaveTypeActive(arg1:handlers.SetLeaveTypeActiveRequest):Promise<leave.LeaveType>;
 
 export function SetUserActive(arg1:handlers.SetUserActiveRequest):Promise<users.User>;
+
+export function TestDatabaseConnection(arg1:main.DatabaseConfigParams):Promise<main.ActionResult>;
 
 export function UnlockDate(arg1:handlers.UnlockDateRequest):Promise<void>;
 

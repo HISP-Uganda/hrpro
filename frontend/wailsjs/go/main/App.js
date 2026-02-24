@@ -118,6 +118,10 @@ export function GetSettings(arg1) {
   return window['go']['main']['App']['GetSettings'](arg1);
 }
 
+export function GetStartupHealth() {
+  return window['go']['main']['App']['GetStartupHealth']();
+}
+
 export function GetUser(arg1) {
   return window['go']['main']['App']['GetUser'](arg1);
 }
@@ -206,8 +210,16 @@ export function RejectLeave(arg1) {
   return window['go']['main']['App']['RejectLeave'](arg1);
 }
 
+export function ReloadConfigAndReconnect() {
+  return window['go']['main']['App']['ReloadConfigAndReconnect']();
+}
+
 export function ResetUserPassword(arg1) {
   return window['go']['main']['App']['ResetUserPassword'](arg1);
+}
+
+export function SaveDatabaseConfig(arg1) {
+  return window['go']['main']['App']['SaveDatabaseConfig'](arg1);
 }
 
 export function SaveFileWithDialog(arg1) {
@@ -220,6 +232,10 @@ export function SetLeaveTypeActive(arg1) {
 
 export function SetUserActive(arg1) {
   return window['go']['main']['App']['SetUserActive'](arg1);
+}
+
+export function TestDatabaseConnection(arg1) {
+  return window['go']['main']['App']['TestDatabaseConnection'](arg1);
 }
 
 export function UnlockDate(arg1) {

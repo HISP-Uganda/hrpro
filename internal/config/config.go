@@ -31,8 +31,7 @@ func Load() (Config, error) {
 
 	cfg := Config{
 		Env:                  readStringEnv("APP_ENV", "development"),
-		DBConnectionString:   os.Getenv("APP_DB_CONNECTION_STRING"),
-		JWTSecret:            os.Getenv("APP_JWT_SECRET"),
+		DBConnectionString:   readStringEnv("APP_DB_CONNECTION_STRING", ""),
 		AccessTokenExpiry:    time.Duration(accessMinutes) * time.Minute,
 		RefreshTokenExpiry:   time.Duration(refreshHours) * time.Hour,
 		InitialAdminUsername: os.Getenv("APP_INITIAL_ADMIN_USERNAME"),
@@ -41,14 +40,62 @@ func Load() (Config, error) {
 	}
 
 	if cfg.DBConnectionString == "" {
-		return Config{}, fmt.Errorf("APP_DB_CONNECTION_STRING is required")
+		localDB, err := LoadLocalDatabaseConfig()
+		if err != nil && !os.IsNotExist(err) {
+			return Config{}, fmt.Errorf("load local database config: %w", err)
+		}
+		if err == nil {
+			cfg.DBConnectionString = localDB.ConnectionString()
+		}
 	}
 
-	if cfg.JWTSecret == "" {
-		return Config{}, fmt.Errorf("APP_JWT_SECRET is required")
+	secret, err := EnsureJWTSecret()
+	if err != nil {
+		return Config{}, fmt.Errorf("resolve jwt secret: %w", err)
 	}
+	cfg.JWTSecret = secret
 
 	return cfg, nil
+}
+
+type StartupHealth struct {
+	DBOk         bool
+	RuntimeOK    bool
+	DBError      string
+	RuntimeError string
+}
+
+func EvaluateStartupHealth() StartupHealth {
+	health := StartupHealth{}
+
+	dbConnectionString := readStringEnv("APP_DB_CONNECTION_STRING", "")
+	if dbConnectionString != "" {
+		health.DBOk = true
+	} else {
+		localDB, err := LoadLocalDatabaseConfig()
+		if err != nil {
+			if os.IsNotExist(err) {
+				health.DBError = "database connection is not configured"
+			} else {
+				health.DBError = err.Error()
+			}
+		} else {
+			health.DBOk = true
+			dbConnectionString = localDB.ConnectionString()
+		}
+	}
+
+	if dbConnectionString == "" && health.DBError == "" {
+		health.DBError = "database connection is not configured"
+	}
+
+	if _, err := EnsureJWTSecret(); err != nil {
+		health.RuntimeError = err.Error()
+	} else {
+		health.RuntimeOK = true
+	}
+
+	return health
 }
 
 func readIntEnv(key string, fallback int) (int, error) {

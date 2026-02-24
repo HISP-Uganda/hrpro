@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"hrpro/internal/attendance"
@@ -39,10 +40,32 @@ type SaveFileWithDialogResult struct {
 	Cancelled bool   `json:"cancelled"`
 }
 
+type StartupHealthResponse struct {
+	DBOk         bool   `json:"dbOk"`
+	RuntimeOk    bool   `json:"runtimeOk"`
+	DBError      string `json:"dbError,omitempty"`
+	RuntimeError string `json:"runtimeError,omitempty"`
+}
+
+type DatabaseConfigParams struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Database string `json:"database"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	SSLMode  string `json:"sslmode"`
+}
+
+type ActionResult struct {
+	OK bool `json:"ok"`
+}
+
 // App struct
 type App struct {
+	mu                 sync.RWMutex
 	ctx                context.Context
 	db                 *sqlx.DB
+	startupHealth      StartupHealthResponse
 	authHandler        *handlers.AuthHandler
 	employeesHandler   *handlers.EmployeesHandler
 	departmentsHandler *handlers.DepartmentsHandler
@@ -65,15 +88,27 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.refreshStartupHealth()
+
+	a.mu.RLock()
+	startupHealth := a.startupHealth
+	a.mu.RUnlock()
+	if !startupHealth.DBOk || !startupHealth.RuntimeOk {
+		return
+	}
+
 	if err := a.bootstrap(ctx); err != nil {
-		runtime.LogErrorf(ctx, "startup failed: %v", err)
-		panic(err)
+		runtime.LogWarningf(ctx, "startup runtime bootstrap failed: %v", err)
 	}
 }
 
 func (a *App) shutdown(_ context.Context) {
-	if a.db != nil {
-		_ = a.db.Close()
+	a.mu.RLock()
+	database := a.db
+	a.mu.RUnlock()
+
+	if database != nil {
+		_ = database.Close()
 	}
 }
 
@@ -81,6 +116,9 @@ func (a *App) bootstrap(ctx context.Context) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
+	}
+	if strings.TrimSpace(cfg.DBConnectionString) == "" {
+		return fmt.Errorf("database connection is not configured")
 	}
 
 	database, err := db.NewPool(cfg.DBConnectionString)
@@ -124,22 +162,20 @@ func (a *App) bootstrap(ctx context.Context) error {
 		return fmt.Errorf("seed initial admin: %w", err)
 	}
 
-	a.db = database
-	a.authHandler = handlers.NewAuthHandler(authService)
 	employeesRepo := employees.NewRepository(database)
 	employeesService := employees.NewService(employeesRepo)
-	a.employeesHandler = handlers.NewEmployeesHandler(authService, employeesService)
+	employeesHandler := handlers.NewEmployeesHandler(authService, employeesService)
 	departmentsRepo := departments.NewRepository(database)
 	departmentsService := departments.NewService(departmentsRepo)
-	a.departmentsHandler = handlers.NewDepartmentsHandler(authService, departmentsService)
+	departmentsHandler := handlers.NewDepartmentsHandler(authService, departmentsService)
 	leaveRepo := leave.NewRepository(database)
 	leaveService := leave.NewService(leaveRepo)
 	leaveService.SetAuditRecorder(auditService)
-	a.leaveHandler = handlers.NewLeaveHandler(authService, leaveService)
+	leaveHandler := handlers.NewLeaveHandler(authService, leaveService)
 	attendanceRepo := attendance.NewRepository(database)
 	attendanceService := attendance.NewService(attendanceRepo, leaveService)
 	attendanceService.SetAuditRecorder(auditService)
-	a.attendanceHandler = handlers.NewAttendanceHandler(authService, attendanceService)
+	attendanceHandler := handlers.NewAttendanceHandler(authService, attendanceService)
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		_ = database.Close()
@@ -152,44 +188,194 @@ func (a *App) bootstrap(ctx context.Context) error {
 	}
 	settingsRepo := settings.NewRepository(database)
 	settingsService := settings.NewService(settingsRepo, logoStore)
-	a.settingsHandler = handlers.NewSettingsHandler(authService, settingsService)
+	settingsHandler := handlers.NewSettingsHandler(authService, settingsService)
 	attendanceService.SetLunchDefaultsProvider(settingsService)
 	reportsRepo := reports.NewRepository(database)
 	reportsService := reports.NewService(reportsRepo)
 	reportsService.SetFormattingProvider(settingsService)
-	a.reportsHandler = handlers.NewReportsHandler(authService, reportsService)
+	reportsHandler := handlers.NewReportsHandler(authService, reportsService)
 	payrollRepo := payroll.NewRepository(database)
 	payrollService := payroll.NewService(payrollRepo)
 	payrollService.SetAuditRecorder(auditService)
 	payrollService.SetFormattingProvider(settingsService)
-	a.payrollHandler = handlers.NewPayrollHandler(authService, payrollService)
+	payrollHandler := handlers.NewPayrollHandler(authService, payrollService)
 	usersRepo := users.NewRepository(database)
 	usersService := users.NewService(usersRepo)
 	usersService.SetAuditRecorder(auditService)
-	a.usersHandler = handlers.NewUsersHandler(authService, usersService)
-	a.auditHandler = handlers.NewAuditHandler(authService, auditService)
+	usersHandler := handlers.NewUsersHandler(authService, usersService)
+	auditHandler := handlers.NewAuditHandler(authService, auditService)
 	dashboardRepo := dashboard.NewRepository(database)
 	dashboardService := dashboard.NewService(dashboardRepo)
-	a.dashboardHandler = handlers.NewDashboardHandler(authService, dashboardService)
+	dashboardHandler := handlers.NewDashboardHandler(authService, dashboardService)
+
+	authHandler := handlers.NewAuthHandler(authService)
+
+	a.mu.Lock()
+	oldDB := a.db
+	a.db = database
+	a.authHandler = authHandler
+	a.employeesHandler = employeesHandler
+	a.departmentsHandler = departmentsHandler
+	a.leaveHandler = leaveHandler
+	a.payrollHandler = payrollHandler
+	a.usersHandler = usersHandler
+	a.auditHandler = auditHandler
+	a.dashboardHandler = dashboardHandler
+	a.attendanceHandler = attendanceHandler
+	a.reportsHandler = reportsHandler
+	a.settingsHandler = settingsHandler
+	a.mu.Unlock()
+
+	if oldDB != nil && oldDB != database {
+		_ = oldDB.Close()
+	}
+
 	return nil
 }
 
-func (a *App) Login(request handlers.LoginRequest) (*handlers.LoginResponse, error) {
+func (a *App) setStartupHealth(health StartupHealthResponse) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.startupHealth = health
+}
+
+func (a *App) refreshStartupHealth() StartupHealthResponse {
+	health := config.EvaluateStartupHealth()
+	response := StartupHealthResponse{
+		DBOk:         health.DBOk,
+		RuntimeOk:    health.RuntimeOK,
+		DBError:      strings.TrimSpace(health.DBError),
+		RuntimeError: strings.TrimSpace(health.RuntimeError),
+	}
+	a.setStartupHealth(response)
+	return response
+}
+
+func (a *App) GetStartupHealth() StartupHealthResponse {
+	return a.refreshStartupHealth()
+}
+
+func (a *App) TestDatabaseConnection(params DatabaseConfigParams) (*ActionResult, error) {
+	connectionParams := config.DatabaseConnectionParams{
+		Host:     strings.TrimSpace(params.Host),
+		Port:     params.Port,
+		Database: strings.TrimSpace(params.Database),
+		User:     strings.TrimSpace(params.User),
+		Password: params.Password,
+		SSLMode:  strings.TrimSpace(params.SSLMode),
+	}
+	if err := connectionParams.Validate(); err != nil {
+		return nil, err
+	}
+
+	database, err := db.NewPool(connectionParams.ConnectionString())
+	if err != nil {
+		return nil, fmt.Errorf("create database pool: %w", err)
+	}
+	defer func() {
+		_ = database.Close()
+	}()
+
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
-	return a.authHandler.Login(ctx, request)
+	if err := db.ValidateConnection(ctx, database); err != nil {
+		return nil, err
+	}
+
+	return &ActionResult{OK: true}, nil
+}
+
+func (a *App) SaveDatabaseConfig(params DatabaseConfigParams) (*ActionResult, error) {
+	connectionParams := config.DatabaseConnectionParams{
+		Host:     strings.TrimSpace(params.Host),
+		Port:     params.Port,
+		Database: strings.TrimSpace(params.Database),
+		User:     strings.TrimSpace(params.User),
+		Password: params.Password,
+		SSLMode:  strings.TrimSpace(params.SSLMode),
+	}
+
+	if err := config.SaveLocalDatabaseConfig(connectionParams); err != nil {
+		return nil, fmt.Errorf("save database config: %w", err)
+	}
+
+	if _, err := config.EnsureJWTSecret(); err != nil {
+		return nil, fmt.Errorf("ensure runtime secret: %w", err)
+	}
+	a.refreshStartupHealth()
+
+	return &ActionResult{OK: true}, nil
+}
+
+func (a *App) ReloadConfigAndReconnect() (*ActionResult, error) {
+	health := a.refreshStartupHealth()
+	if !health.RuntimeOk {
+		return nil, fmt.Errorf("runtime configuration is invalid: %s", health.RuntimeError)
+	}
+	if !health.DBOk {
+		return nil, fmt.Errorf("database configuration is invalid: %s", health.DBError)
+	}
+
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+
+	if err := a.bootstrap(ctx); err != nil {
+		return nil, fmt.Errorf("reload config and reconnect: %w", err)
+	}
+	a.refreshStartupHealth()
+	return &ActionResult{OK: true}, nil
+}
+
+func (a *App) getAuthHandler() (*handlers.AuthHandler, error) {
+	a.mu.RLock()
+	authHandler := a.authHandler
+	a.mu.RUnlock()
+	if authHandler != nil {
+		return authHandler, nil
+	}
+
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	if err := a.bootstrap(ctx); err != nil {
+		return nil, fmt.Errorf("database is not connected: %w", err)
+	}
+
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	if a.authHandler == nil {
+		return nil, fmt.Errorf("database is not connected")
+	}
+	return a.authHandler, nil
+}
+
+func (a *App) Login(request handlers.LoginRequest) (*handlers.LoginResponse, error) {
+	authHandler, err := a.getAuthHandler()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return authHandler.Login(ctx, request)
 }
 
 func (a *App) Logout(request handlers.LogoutRequest) error {
+	authHandler, err := a.getAuthHandler()
+	if err != nil {
+		return err
+	}
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
-	return a.authHandler.Logout(ctx, request)
+	return authHandler.Logout(ctx, request)
 }
 
 func (a *App) GetMe(accessToken string) (*handlers.GetMeResponse, error) {
+	authHandler, err := a.getAuthHandler()
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
 	defer cancel()
-	return a.authHandler.GetMe(ctx, accessToken)
+	return authHandler.GetMe(ctx, accessToken)
 }
 
 func (a *App) CreateEmployee(request handlers.CreateEmployeeRequest) (*employees.Employee, error) {
