@@ -41,20 +41,17 @@ function createAuthStore(): AuthStore {
   return auth
 }
 
-function createMockRouter(companyName: string, logoPath?: string, logoData?: number[]) {
+function createMockRouter(companyName: string, logoDataUrl?: string) {
   const auth = createAuthStore()
   const queryClient = new QueryClient()
   const api = {
-    getSettings: vi.fn(async () => ({
-      company: {
-        name: companyName,
-        logoPath,
-      },
-    })),
-    getCompanyLogo: vi.fn(async () => ({
-      filename: 'logo.png',
-      mimeType: 'image/png',
-      data: logoData ?? [],
+    getCompanyProfile: vi.fn(async () => ({
+      name: companyName,
+      logoDataUrl,
+      supportEmail: '',
+      supportPhone: '',
+      supportWebsite: '',
+      copyrightHolder: '',
     })),
     logout: vi.fn(async () => {}),
   }
@@ -119,17 +116,19 @@ describe('AppShell branding', () => {
 
   it('updates app bar title after company profile query invalidation', async () => {
     const router = createMockRouter('Acme')
-    const api = router.options.context.api as { getSettings: ReturnType<typeof vi.fn> }
+    const api = router.options.context.api as { getCompanyProfile: ReturnType<typeof vi.fn> }
     renderShell(router)
 
     await waitFor(() => {
       expect(screen.getByTestId('app-shell-brand-title')).toHaveTextContent('Acme HR System')
     })
 
-    api.getSettings.mockResolvedValueOnce({
-      company: {
-        name: 'Globex',
-      },
+    api.getCompanyProfile.mockResolvedValueOnce({
+      name: 'Globex',
+      supportEmail: '',
+      supportPhone: '',
+      supportWebsite: '',
+      copyrightHolder: '',
     })
 
     await act(async () => {
@@ -138,6 +137,28 @@ describe('AppShell branding', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('app-shell-brand-title')).toHaveTextContent('Globex HR System')
+    })
+  })
+
+  it('renders footer with current year and configured support fields', async () => {
+    const router = createMockRouter('Acme')
+    const api = router.options.context.api as { getCompanyProfile: ReturnType<typeof vi.fn> }
+    api.getCompanyProfile.mockResolvedValueOnce({
+      name: 'Acme',
+      supportEmail: 'help@acme.test',
+      supportPhone: '+1 555 0100',
+      supportWebsite: 'https://acme.test',
+      copyrightHolder: '',
+    })
+    renderShell(router)
+
+    const currentYear = new Date().getFullYear()
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell-footer-left')).toHaveTextContent(`© ${currentYear} Acme`)
+      expect(screen.getByTestId('app-shell-footer-support')).toHaveTextContent(
+        'Support: help@acme.test | +1 555 0100 | https://acme.test',
+      )
+      expect(screen.getByTestId('app-shell-footer-build')).toHaveTextContent('v0.0.0 (desktop)')
     })
   })
 })

@@ -32,11 +32,22 @@ type UpdateSettingsRequest struct {
 type UploadCompanyLogoRequest struct {
 	AccessToken string `json:"accessToken"`
 	Filename    string `json:"filename"`
+	MimeType    string `json:"mimeType"`
 	Data        []byte `json:"data"`
 }
 
 type GetCompanyLogoRequest struct {
 	AccessToken string `json:"accessToken"`
+}
+
+type SaveCompanyProfileRequest struct {
+	AccessToken string                           `json:"accessToken"`
+	Payload     settings.SaveCompanyProfileInput `json:"payload"`
+}
+
+type ImportCompanyLogoFromURLRequest struct {
+	AccessToken string `json:"accessToken"`
+	URL         string `json:"url"`
 }
 
 func NewSettingsHandler(authService SettingsAuthService, service *settings.Service) *SettingsHandler {
@@ -71,18 +82,74 @@ func (h *SettingsHandler) UpdateSettings(ctx context.Context, request UpdateSett
 	return item, nil
 }
 
-func (h *SettingsHandler) UploadCompanyLogo(ctx context.Context, request UploadCompanyLogoRequest) (string, error) {
+func (h *SettingsHandler) GetCompanyProfile(ctx context.Context, request GetSettingsRequest) (*settings.CompanyProfileDTO, error) {
 	claims, err := h.validateClaims(request.AccessToken)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	ctx = audit.WithActorUserID(ctx, claims.UserID)
 
-	logoPath, err := h.service.UploadCompanyLogo(ctx, claims, request.Filename, request.Data)
+	item, err := h.service.GetCompanyProfile(ctx, claims)
 	if err != nil {
-		return "", mapSettingsError(err)
+		return nil, mapSettingsError(err)
 	}
-	return logoPath, nil
+	return item, nil
+}
+
+func (h *SettingsHandler) SaveCompanyProfile(ctx context.Context, request SaveCompanyProfileRequest) (*settings.CompanyProfileDTO, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
+
+	item, err := h.service.SaveCompanyProfile(ctx, claims, request.Payload)
+	if err != nil {
+		return nil, mapSettingsError(err)
+	}
+	return item, nil
+}
+
+func (h *SettingsHandler) UploadCompanyLogo(ctx context.Context, request UploadCompanyLogoRequest) (*settings.CompanyProfileDTO, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
+
+	item, err := h.service.UploadCompanyLogo(ctx, claims, request.Filename, request.MimeType, request.Data)
+	if err != nil {
+		return nil, mapSettingsError(err)
+	}
+	return item, nil
+}
+
+func (h *SettingsHandler) ImportCompanyLogoFromURL(ctx context.Context, request ImportCompanyLogoFromURLRequest) (*settings.CompanyProfileDTO, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
+
+	item, err := h.service.ImportCompanyLogoFromURL(ctx, claims, request.URL)
+	if err != nil {
+		return nil, mapSettingsError(err)
+	}
+	return item, nil
+}
+
+func (h *SettingsHandler) RemoveCompanyLogo(ctx context.Context, request GetSettingsRequest) (*settings.CompanyProfileDTO, error) {
+	claims, err := h.validateClaims(request.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	ctx = audit.WithActorUserID(ctx, claims.UserID)
+
+	item, err := h.service.RemoveCompanyLogo(ctx, claims)
+	if err != nil {
+		return nil, mapSettingsError(err)
+	}
+	return item, nil
 }
 
 func (h *SettingsHandler) GetCompanyLogo(ctx context.Context, request GetCompanyLogoRequest) (*settings.CompanyLogo, error) {

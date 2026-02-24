@@ -1144,6 +1144,20 @@ export namespace handlers {
 	        this.id = source["id"];
 	    }
 	}
+	export class ImportCompanyLogoFromURLRequest {
+	    accessToken: string;
+	    url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ImportCompanyLogoFromURLRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.url = source["url"];
+	    }
+	}
 	export class LeaveActionRequest {
 	    accessToken: string;
 	    id: number;
@@ -1694,6 +1708,38 @@ export namespace handlers {
 		    return a;
 		}
 	}
+	export class SaveCompanyProfileRequest {
+	    accessToken: string;
+	    payload: settings.SaveCompanyProfileInput;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveCompanyProfileRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.accessToken = source["accessToken"];
+	        this.payload = this.convertValues(source["payload"], settings.SaveCompanyProfileInput);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class SetLeaveTypeActiveRequest {
 	    accessToken: string;
 	    id: number;
@@ -1945,6 +1991,7 @@ export namespace handlers {
 	export class UploadCompanyLogoRequest {
 	    accessToken: string;
 	    filename: string;
+	    mimeType: string;
 	    data: number[];
 	
 	    static createFrom(source: any = {}) {
@@ -1955,6 +2002,7 @@ export namespace handlers {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.accessToken = source["accessToken"];
 	        this.filename = source["filename"];
+	        this.mimeType = source["mimeType"];
 	        this.data = source["data"];
 	    }
 	}
@@ -3190,9 +3238,39 @@ export namespace settings {
 	        this.data = source["data"];
 	    }
 	}
+	export class CompanyProfileDTO {
+	    name: string;
+	    logoPath?: string;
+	    logoDataUrl?: string;
+	    supportEmail?: string;
+	    supportPhone?: string;
+	    supportWebsite?: string;
+	    copyrightHolder?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CompanyProfileDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.logoPath = source["logoPath"];
+	        this.logoDataUrl = source["logoDataUrl"];
+	        this.supportEmail = source["supportEmail"];
+	        this.supportPhone = source["supportPhone"];
+	        this.supportWebsite = source["supportWebsite"];
+	        this.copyrightHolder = source["copyrightHolder"];
+	    }
+	}
 	export class CompanyProfileSettings {
 	    name: string;
 	    logoPath?: string;
+	    // Go type: time
+	    logoUpdatedAt?: any;
+	    supportEmail?: string;
+	    supportPhone?: string;
+	    supportWebsite?: string;
+	    copyrightHolder?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new CompanyProfileSettings(source);
@@ -3202,11 +3280,38 @@ export namespace settings {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
 	        this.logoPath = source["logoPath"];
+	        this.logoUpdatedAt = this.convertValues(source["logoUpdatedAt"], null);
+	        this.supportEmail = source["supportEmail"];
+	        this.supportPhone = source["supportPhone"];
+	        this.supportWebsite = source["supportWebsite"];
+	        this.copyrightHolder = source["copyrightHolder"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class CompanyProfileSettingsInput {
 	    name: string;
 	    logoPath?: string;
+	    supportEmail?: string;
+	    supportPhone?: string;
+	    supportWebsite?: string;
+	    copyrightHolder?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new CompanyProfileSettingsInput(source);
@@ -3216,6 +3321,10 @@ export namespace settings {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
 	        this.logoPath = source["logoPath"];
+	        this.supportEmail = source["supportEmail"];
+	        this.supportPhone = source["supportPhone"];
+	        this.supportWebsite = source["supportWebsite"];
+	        this.copyrightHolder = source["copyrightHolder"];
 	    }
 	}
 	export class CurrencySettings {
@@ -3260,6 +3369,26 @@ export namespace settings {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.decimals = source["decimals"];
 	        this.roundingEnabled = source["roundingEnabled"];
+	    }
+	}
+	export class SaveCompanyProfileInput {
+	    name: string;
+	    supportEmail?: string;
+	    supportPhone?: string;
+	    supportWebsite?: string;
+	    copyrightHolder?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveCompanyProfileInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.supportEmail = source["supportEmail"];
+	        this.supportPhone = source["supportPhone"];
+	        this.supportWebsite = source["supportWebsite"];
+	        this.copyrightHolder = source["copyrightHolder"];
 	    }
 	}
 	export class SettingsDTO {

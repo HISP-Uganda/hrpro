@@ -37,7 +37,7 @@ import type {
   PayrollBatchesReportFilter,
   PayrollBatchesReportResult,
 } from './reports'
-import type { AppSettings, CompanyLogo, UpdateSettingsInput } from './settings'
+import type { AppSettings, CompanyLogo, CompanyProfile, SaveCompanyProfileInput, UpdateSettingsInput } from './settings'
 import type { DatabaseConfigInput, StartupHealth } from './startup'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from './users'
 
@@ -136,6 +136,10 @@ export type AppGateway = {
 
   getSettings: (accessToken: string) => Promise<AppSettings>
   updateSettings: (accessToken: string, payload: UpdateSettingsInput) => Promise<AppSettings>
-  uploadCompanyLogo: (accessToken: string, filename: string, data: number[]) => Promise<string>
+  getCompanyProfile: (accessToken: string) => Promise<CompanyProfile>
+  saveCompanyProfile: (accessToken: string, payload: SaveCompanyProfileInput) => Promise<CompanyProfile>
+  uploadCompanyLogo: (accessToken: string, filename: string, mimeType: string, data: number[]) => Promise<CompanyProfile>
+  importCompanyLogoFromURL: (accessToken: string, url: string) => Promise<CompanyProfile>
+  removeCompanyLogo: (accessToken: string) => Promise<CompanyProfile>
   getCompanyLogo: (accessToken: string) => Promise<CompanyLogo>
 }

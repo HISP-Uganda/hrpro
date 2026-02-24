@@ -77,6 +77,9 @@ export const appShellNavItems = [
   { to: '/audit', label: 'Audit Logs', icon: FactCheckOutlinedIcon, adminOnly: true },
 ]
 
+const APP_VERSION = 'v0.0.0'
+const APP_BUILD = 'desktop'
+
 export function AppShell({ title, children }: { title: string; children: React.ReactNode }) {
   const router = useRouter()
   const navigate = useNavigate()
@@ -97,6 +100,14 @@ export function AppShell({ title, children }: { title: string; children: React.R
   const companyDisplayName = companyName || 'HR System'
   const appBarBrandTitle = companyName ? `${companyName} HR System` : 'HR System'
   const companyLogoDataUrl = companyProfileQuery.data?.logoDataUrl ?? null
+  const supportEmail = companyProfileQuery.data?.supportEmail ?? ''
+  const supportPhone = companyProfileQuery.data?.supportPhone ?? ''
+  const supportWebsite = companyProfileQuery.data?.supportWebsite ?? ''
+  const configuredCopyrightHolder = companyProfileQuery.data?.copyrightHolder ?? ''
+  const copyrightHolder = configuredCopyrightHolder || companyDisplayName || 'HR System'
+  const currentYear = new Date().getFullYear()
+  const supportParts = [supportEmail, supportPhone, supportWebsite].filter((part) => part.trim() !== '')
+  const supportLabel = supportParts.length > 0 ? `Support: ${supportParts.join(' | ')}` : ''
   const visibleItems = appShellNavItems.filter((item) => {
     if (item.adminOnly && !isAdminRole(session?.user.role)) {
       return false
@@ -389,13 +400,41 @@ export function AppShell({ title, children }: { title: string; children: React.R
           minWidth: 0,
           bgcolor: 'background.default',
           p: { xs: 2, sm: 3, md: 4 },
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Toolbar />
         <Typography variant="h4" sx={{ mb: 3 }}>
           {title}
         </Typography>
-        {children}
+        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+        <Stack
+          data-testid="app-shell-footer"
+          direction={{ xs: 'column', md: 'row' }}
+          justifyContent="space-between"
+          spacing={1}
+          sx={{
+            mt: 4,
+            pt: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography data-testid="app-shell-footer-left" variant="body2" color="text.secondary">
+            {`© ${currentYear} ${copyrightHolder}`}
+          </Typography>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }}>
+            {supportLabel ? (
+              <Typography data-testid="app-shell-footer-support" variant="body2" color="text.secondary">
+                {supportLabel}
+              </Typography>
+            ) : null}
+            <Typography data-testid="app-shell-footer-build" variant="body2" color="text.secondary">
+              {`${APP_VERSION} (${APP_BUILD})`}
+            </Typography>
+          </Stack>
+        </Stack>
       </Box>
 
       <Dialog open={appearanceOpen} onClose={() => setAppearanceOpen(false)} fullWidth maxWidth="sm">

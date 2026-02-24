@@ -42,11 +42,15 @@ func (f *fakeSettingsRepository) Upsert(_ context.Context, key string, valueJSON
 type fakeLogoStore struct{}
 
 func (f *fakeLogoStore) SaveLogo(_ context.Context, _ string, _ []byte) (string, error) {
-	return "logo.png", nil
+	return "branding/logo.png", nil
 }
 
 func (f *fakeLogoStore) ReadLogo(_ context.Context, _ string) (*settings.CompanyLogo, error) {
 	return &settings.CompanyLogo{Filename: "logo.png", MimeType: "image/png", Data: []byte{1, 2, 3}}, nil
+}
+
+func (f *fakeLogoStore) DeleteLogo(_ context.Context, _ string) error {
+	return nil
 }
 
 func TestSettingsHandlerUpdateSettingsRequiresAdmin(t *testing.T) {

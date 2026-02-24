@@ -78,6 +78,10 @@ export function GetCompanyLogo(arg1) {
   return window['go']['main']['App']['GetCompanyLogo'](arg1);
 }
 
+export function GetCompanyProfile(arg1) {
+  return window['go']['main']['App']['GetCompanyProfile'](arg1);
+}
+
 export function GetDashboardSummary(arg1) {
   return window['go']['main']['App']['GetDashboardSummary'](arg1);
 }
@@ -124,6 +128,10 @@ export function GetStartupHealth() {
 
 export function GetUser(arg1) {
   return window['go']['main']['App']['GetUser'](arg1);
+}
+
+export function ImportCompanyLogoFromURL(arg1) {
+  return window['go']['main']['App']['ImportCompanyLogoFromURL'](arg1);
 }
 
 export function ListAllLeaveRequests(arg1) {
@@ -218,8 +226,16 @@ export function ReloadConfigAndReconnect() {
   return window['go']['main']['App']['ReloadConfigAndReconnect']();
 }
 
+export function RemoveCompanyLogo(arg1) {
+  return window['go']['main']['App']['RemoveCompanyLogo'](arg1);
+}
+
 export function ResetUserPassword(arg1) {
   return window['go']['main']['App']['ResetUserPassword'](arg1);
+}
+
+export function SaveCompanyProfile(arg1) {
+  return window['go']['main']['App']['SaveCompanyProfile'](arg1);
 }
 
 export function SaveDatabaseConfig(arg1) {

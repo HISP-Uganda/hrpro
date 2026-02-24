@@ -8,7 +8,7 @@ Last Updated: 2026-02-24
 
 # 1. Context Recovery Summary
 
-Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, Hardening Phase — Milestone 1, and UI polish for company branding are implemented. Company Profile branding now propagates across AppShell: AppBar title uses company name (`{Company} HR System` with `HR System` fallback), and sidebar header shows company logo/name placeholder data sourced from persisted settings/logo with query invalidation updates after save/upload.
+Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, Hardening Phase — Milestone 1, and UI polish for company branding are implemented. Company Profile branding now propagates across AppShell: AppBar title uses company name (`{Company} HR System` with `HR System` fallback), sidebar header shows company logo/name placeholder data sourced from persisted settings/logo, and footer support/copyright info is settings-driven with static app version/build display.
 
 ---
 
@@ -133,7 +133,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
 | Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
 | Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
-| Phase A UI Polish — Company Branding | Completed                        | Company Profile now updates AppBar title and sidebar logo header, with immediate UI propagation after settings save/upload. |
+| Phase A UI Polish — Company Branding | Completed                        | Branding: company name in AppBar, logo upload/remove/url-import, footer with support info. |
 
 ---
 

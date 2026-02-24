@@ -38,7 +38,7 @@ import type {
   PayrollBatchesReportFilter,
   PayrollBatchesReportResult,
 } from '../types/reports'
-import type { AppSettings, CompanyLogo, UpdateSettingsInput } from '../types/settings'
+import type { AppSettings, CompanyLogo, CompanyProfile, SaveCompanyProfileInput, UpdateSettingsInput } from '../types/settings'
 import type { DatabaseConfigInput, StartupHealth } from '../types/startup'
 import type { CreateUserInput, ListUsersQuery, ListUsersResult, ManagedUser, UpdateUserInput } from '../types/users'
 
@@ -161,7 +161,11 @@ type WailsAppBinding = {
 
   GetSettings: (input: { accessToken: string }) => Promise<AppSettings>
   UpdateSettings: (input: { accessToken: string; payload: UpdateSettingsInput }) => Promise<AppSettings>
-  UploadCompanyLogo: (input: { accessToken: string; filename: string; data: number[] }) => Promise<string>
+  GetCompanyProfile: (input: { accessToken: string }) => Promise<CompanyProfile>
+  SaveCompanyProfile: (input: { accessToken: string; payload: SaveCompanyProfileInput }) => Promise<CompanyProfile>
+  UploadCompanyLogo: (input: { accessToken: string; filename: string; mimeType: string; data: number[] }) => Promise<CompanyProfile>
+  ImportCompanyLogoFromURL: (input: { accessToken: string; url: string }) => Promise<CompanyProfile>
+  RemoveCompanyLogo: (input: { accessToken: string }) => Promise<CompanyProfile>
   GetCompanyLogo: (input: { accessToken: string }) => Promise<CompanyLogo>
 }
 
@@ -510,8 +514,24 @@ export class WailsGateway implements AppGateway {
     return getAppBinding().UpdateSettings({ accessToken, payload })
   }
 
-  async uploadCompanyLogo(accessToken: string, filename: string, data: number[]): Promise<string> {
-    return getAppBinding().UploadCompanyLogo({ accessToken, filename, data })
+  async getCompanyProfile(accessToken: string): Promise<CompanyProfile> {
+    return getAppBinding().GetCompanyProfile({ accessToken })
+  }
+
+  async saveCompanyProfile(accessToken: string, payload: SaveCompanyProfileInput): Promise<CompanyProfile> {
+    return getAppBinding().SaveCompanyProfile({ accessToken, payload })
+  }
+
+  async uploadCompanyLogo(accessToken: string, filename: string, mimeType: string, data: number[]): Promise<CompanyProfile> {
+    return getAppBinding().UploadCompanyLogo({ accessToken, filename, mimeType, data })
+  }
+
+  async importCompanyLogoFromURL(accessToken: string, url: string): Promise<CompanyProfile> {
+    return getAppBinding().ImportCompanyLogoFromURL({ accessToken, url })
+  }
+
+  async removeCompanyLogo(accessToken: string): Promise<CompanyProfile> {
+    return getAppBinding().RemoveCompanyLogo({ accessToken })
   }
 
   async getCompanyLogo(accessToken: string): Promise<CompanyLogo> {

@@ -30,8 +30,13 @@ type StoredSetting struct {
 }
 
 type CompanyProfileSettings struct {
-	Name     string `json:"name"`
-	LogoPath string `json:"logoPath,omitempty"`
+	Name            string     `json:"name"`
+	LogoPath        string     `json:"logoPath,omitempty"`
+	LogoUpdatedAt   *time.Time `json:"logoUpdatedAt,omitempty"`
+	SupportEmail    string     `json:"supportEmail,omitempty"`
+	SupportPhone    string     `json:"supportPhone,omitempty"`
+	SupportWebsite  string     `json:"supportWebsite,omitempty"`
+	CopyrightHolder string     `json:"copyrightHolder,omitempty"`
 }
 
 type CurrencySettings struct {
@@ -58,8 +63,12 @@ type SettingsDTO struct {
 }
 
 type CompanyProfileSettingsInput struct {
-	Name     string  `json:"name"`
-	LogoPath *string `json:"logoPath,omitempty"`
+	Name            string  `json:"name"`
+	LogoPath        *string `json:"logoPath,omitempty"`
+	SupportEmail    string  `json:"supportEmail,omitempty"`
+	SupportPhone    string  `json:"supportPhone,omitempty"`
+	SupportWebsite  string  `json:"supportWebsite,omitempty"`
+	CopyrightHolder string  `json:"copyrightHolder,omitempty"`
 }
 
 type UpdateSettingsInput struct {
@@ -73,4 +82,22 @@ type CompanyLogo struct {
 	Filename string `json:"filename"`
 	MimeType string `json:"mimeType"`
 	Data     []byte `json:"data"`
+}
+
+type CompanyProfileDTO struct {
+	Name            string `json:"name"`
+	LogoPath        string `json:"logoPath,omitempty"`
+	LogoDataURL     string `json:"logoDataUrl,omitempty"`
+	SupportEmail    string `json:"supportEmail,omitempty"`
+	SupportPhone    string `json:"supportPhone,omitempty"`
+	SupportWebsite  string `json:"supportWebsite,omitempty"`
+	CopyrightHolder string `json:"copyrightHolder,omitempty"`
+}
+
+type SaveCompanyProfileInput struct {
+	Name            string `json:"name"`
+	SupportEmail    string `json:"supportEmail,omitempty"`
+	SupportPhone    string `json:"supportPhone,omitempty"`
+	SupportWebsite  string `json:"supportWebsite,omitempty"`
+	CopyrightHolder string `json:"copyrightHolder,omitempty"`
 }

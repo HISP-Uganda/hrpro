@@ -3,6 +3,10 @@ import type { AppSettings } from '../types/settings'
 export const defaultAppSettings: AppSettings = {
   company: {
     name: 'HISP HR System',
+    supportEmail: '',
+    supportPhone: '',
+    supportWebsite: '',
+    copyrightHolder: '',
   },
   currency: {
     code: 'TZS',

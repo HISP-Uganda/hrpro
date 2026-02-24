@@ -51,6 +51,8 @@ export function GeneratePayrollEntries(arg1:handlers.PayrollBatchActionRequest):
 
 export function GetCompanyLogo(arg1:handlers.GetCompanyLogoRequest):Promise<settings.CompanyLogo>;
 
+export function GetCompanyProfile(arg1:handlers.GetSettingsRequest):Promise<settings.CompanyProfileDTO>;
+
 export function GetDashboardSummary(arg1:handlers.GetDashboardSummaryRequest):Promise<dashboard.SummaryDTO>;
 
 export function GetDepartment(arg1:handlers.GetDepartmentRequest):Promise<departments.Department>;
@@ -74,6 +76,8 @@ export function GetSettings(arg1:handlers.GetSettingsRequest):Promise<settings.S
 export function GetStartupHealth():Promise<main.StartupHealthResponse>;
 
 export function GetUser(arg1:handlers.GetUserRequest):Promise<users.User>;
+
+export function ImportCompanyLogoFromURL(arg1:handlers.ImportCompanyLogoFromURLRequest):Promise<settings.CompanyProfileDTO>;
 
 export function ListAllLeaveRequests(arg1:handlers.ListLeaveRequestsRequest):Promise<Array<leave.LeaveRequest>>;
 
@@ -121,7 +125,11 @@ export function RejectLeave(arg1:handlers.RejectLeaveRequest):Promise<leave.Leav
 
 export function ReloadConfigAndReconnect():Promise<main.ActionResult>;
 
+export function RemoveCompanyLogo(arg1:handlers.GetSettingsRequest):Promise<settings.CompanyProfileDTO>;
+
 export function ResetUserPassword(arg1:handlers.ResetUserPasswordRequest):Promise<void>;
+
+export function SaveCompanyProfile(arg1:handlers.SaveCompanyProfileRequest):Promise<settings.CompanyProfileDTO>;
 
 export function SaveDatabaseConfig(arg1:main.DatabaseConfigParams):Promise<main.ActionResult>;
 
@@ -147,7 +155,7 @@ export function UpdateSettings(arg1:handlers.UpdateSettingsRequest):Promise<sett
 
 export function UpdateUser(arg1:handlers.UpdateUserRequest):Promise<users.User>;
 
-export function UploadCompanyLogo(arg1:handlers.UploadCompanyLogoRequest):Promise<string>;
+export function UploadCompanyLogo(arg1:handlers.UploadCompanyLogoRequest):Promise<settings.CompanyProfileDTO>;
 
 export function UpsertAttendance(arg1:handlers.UpsertAttendanceRequest):Promise<attendance.AttendanceRecord>;
 

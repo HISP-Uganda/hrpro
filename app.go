@@ -176,12 +176,12 @@ func (a *App) bootstrap(ctx context.Context) error {
 	attendanceService := attendance.NewService(attendanceRepo, leaveService)
 	attendanceService.SetAuditRecorder(auditService)
 	attendanceHandler := handlers.NewAttendanceHandler(authService, attendanceService)
-	configDir, err := os.UserConfigDir()
+	appDataDir, err := os.UserConfigDir()
 	if err != nil {
 		_ = database.Close()
-		return fmt.Errorf("resolve user config dir: %w", err)
+		return fmt.Errorf("resolve user app data dir: %w", err)
 	}
-	logoStore, err := settings.NewLocalLogoStore(filepath.Join(configDir, "hrpro", "logos"))
+	logoStore, err := settings.NewLocalLogoStore(filepath.Join(appDataDir, "hrpro"))
 	if err != nil {
 		_ = database.Close()
 		return fmt.Errorf("create logo store: %w", err)
@@ -787,10 +787,34 @@ func (a *App) UpdateSettings(request handlers.UpdateSettingsRequest) (*settings.
 	return a.settingsHandler.UpdateSettings(ctx, request)
 }
 
-func (a *App) UploadCompanyLogo(request handlers.UploadCompanyLogoRequest) (string, error) {
+func (a *App) GetCompanyProfile(request handlers.GetSettingsRequest) (*settings.CompanyProfileDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.settingsHandler.GetCompanyProfile(ctx, request)
+}
+
+func (a *App) SaveCompanyProfile(request handlers.SaveCompanyProfileRequest) (*settings.CompanyProfileDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.settingsHandler.SaveCompanyProfile(ctx, request)
+}
+
+func (a *App) UploadCompanyLogo(request handlers.UploadCompanyLogoRequest) (*settings.CompanyProfileDTO, error) {
 	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
 	defer cancel()
 	return a.settingsHandler.UploadCompanyLogo(ctx, request)
+}
+
+func (a *App) ImportCompanyLogoFromURL(request handlers.ImportCompanyLogoFromURLRequest) (*settings.CompanyProfileDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return a.settingsHandler.ImportCompanyLogoFromURL(ctx, request)
+}
+
+func (a *App) RemoveCompanyLogo(request handlers.GetSettingsRequest) (*settings.CompanyProfileDTO, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 10*time.Second)
+	defer cancel()
+	return a.settingsHandler.RemoveCompanyLogo(ctx, request)
 }
 
 func (a *App) GetCompanyLogo(request handlers.GetCompanyLogoRequest) (*settings.CompanyLogo, error) {
