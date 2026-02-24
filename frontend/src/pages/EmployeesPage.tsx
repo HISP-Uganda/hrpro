@@ -77,11 +77,12 @@ const initialFormState: FormState = {
 }
 
 function toPayload(state: FormState): UpsertEmployeeInput {
+  const normalizedGender = state.gender === 'Male' || state.gender === 'Female' ? state.gender : undefined
   return {
     firstName: state.firstName,
     lastName: state.lastName,
     otherName: state.otherName || undefined,
-    gender: state.gender || undefined,
+    gender: normalizedGender,
     dateOfBirth: state.dateOfBirth || undefined,
     phone: state.phone || undefined,
     email: state.email || undefined,
@@ -136,11 +137,28 @@ function validateForm(state: FormState) {
     errors.email = 'Enter a valid email address'
   }
 
-  if (state.phone && !/^[0-9+()\-\s]{7,24}$/.test(state.phone)) {
-    errors.phone = 'Enter a valid phone number'
+  if (!state.gender.trim()) {
+    errors.gender = 'Gender is required'
+  } else if (state.gender !== 'Male' && state.gender !== 'Female') {
+    errors.gender = 'Select Male or Female'
+  }
+
+  if (state.phone) {
+    const trimmed = state.phone.trim()
+    if (!/^\+?[0-9 ]+$/.test(trimmed)) {
+      errors.phone = 'Use digits and an optional leading +'
+    }
   }
 
   return errors
+}
+
+function parseValidationFieldError(message: string): { field: string; detail: string } | null {
+  const match = /validation error \[field=([A-Za-z0-9_]+)\]:\s*(.+)$/i.exec(message.trim())
+  if (!match) {
+    return null
+  }
+  return { field: match[1], detail: match[2] }
 }
 
 function contractNameFromPath(path?: string): string {
@@ -309,8 +327,14 @@ export function EmployeesPage() {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save employee'
-      if (message.toLowerCase().includes('phone')) {
+      const fieldError = parseValidationFieldError(message)
+      if (fieldError?.field === 'phone') {
         setFormErrors((prev) => ({ ...prev, phone: 'Enter a valid phone number for the configured default country' }))
+        return
+      }
+      if (fieldError?.field === 'gender') {
+        setFormErrors((prev) => ({ ...prev, gender: fieldError.detail }))
+        return
       }
       setSnackbar({ message, severity: 'error' })
     }
@@ -549,20 +573,39 @@ export function EmployeesPage() {
                 fullWidth
                 disabled={dialogMode === 'view'}
               />
-              <TextField
-                label="Gender"
-                value={formState.gender}
-                onChange={(event) => setFormState((prev) => ({ ...prev, gender: event.target.value }))}
-                fullWidth
-                disabled={dialogMode === 'view'}
-              />
+              <FormControl fullWidth disabled={dialogMode === 'view'} error={Boolean(formErrors.gender)}>
+                <InputLabel id="employee-gender-label">Gender</InputLabel>
+                <Select
+                  labelId="employee-gender-label"
+                  label="Gender"
+                  value={formState.gender}
+                  onChange={(event) => {
+                    setFormState((prev) => ({ ...prev, gender: event.target.value }))
+                    setFormErrors((prev) => ({ ...prev, gender: '' }))
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Select gender</em>
+                  </MenuItem>
+                  <MenuItem value="Male">Male</MenuItem>
+                  <MenuItem value="Female">Female</MenuItem>
+                </Select>
+                {formErrors.gender ? (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                    {formErrors.gender}
+                  </Typography>
+                ) : null}
+              </FormControl>
             </Stack>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
                 label="Phone"
                 value={formState.phone}
-                onChange={(event) => setFormState((prev) => ({ ...prev, phone: event.target.value }))}
+                onChange={(event) => {
+                  setFormState((prev) => ({ ...prev, phone: event.target.value }))
+                  setFormErrors((prev) => ({ ...prev, phone: '' }))
+                }}
                 error={Boolean(formErrors.phone)}
                 helperText={formErrors.phone || `Use national format or ${phoneHint}...`}
                 fullWidth

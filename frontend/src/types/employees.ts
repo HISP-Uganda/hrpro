@@ -1,9 +1,11 @@
+export type EmployeeGender = 'Male' | 'Female'
+
 export type Employee = {
   id: number
   firstName: string
   lastName: string
   otherName?: string
-  gender?: string
+  gender?: EmployeeGender | '' | null
   dateOfBirth?: string
   phone?: string
   phoneE164?: string
@@ -12,7 +14,7 @@ export type Employee = {
   address?: string
   jobDescription?: string
   contractUrl?: string
-  contractFilePath?: string
+  contractFilePath?: string | null
   departmentId?: number
   departmentName?: string
   position: string
@@ -27,7 +29,7 @@ export type UpsertEmployeeInput = {
   firstName: string
   lastName: string
   otherName?: string
-  gender?: string
+  gender?: EmployeeGender
   dateOfBirth?: string
   phone?: string
   email?: string

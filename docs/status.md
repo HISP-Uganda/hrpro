@@ -10,6 +10,9 @@ Last Updated: 2026-02-24
 
 Phase A foundation, authentication, shell, employees, departments, leave, payroll, user management, audit logging, dashboard enhancement, daily attendance, MVP reports, settings, database setup gate, Hardening Phase — Milestone 1, and UI polish for company branding are implemented. Company Profile branding now propagates across AppShell: AppBar title uses company name (`{Company} HR System` with `HR System` fallback), sidebar header shows company logo/name placeholder data sourced from persisted settings/logo, and footer support/copyright info is settings-driven with static app version/build display.
 Employee enhancement completed: employee job description + contract URL/upload/remove support, settings-backed default country fields for phone normalization, and backend E.164 phone normalization at employee create/update.
+Phone normalization now uses github.com/nyaruka/phonenumbers (local fallback removed).
+Employee form: strict phone validation + gender dropdown enforced.
+Fixed EmployeesPage test typings after Employee model changes (contractFilePath + gender typing).
 
 ---
 
@@ -28,7 +31,8 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
   - employee enhancement migration: `job_description`, `contract_url`, `contract_file_path`, `phone_e164` (+ index)
 - `internal/services`: JWT/auth services and admin seeding, including refresh rotation and refresh reuse detection handling.
 - `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
-- `internal/employees`: now includes job description, contract URL/path persistence, local contract file storage in app data directory (`hrpro/employees/<employeeId>/contract/<generatedFilename>`), upload/remove contract bindings, and backend phone normalization to E.164 using settings defaults.
+- `internal/employees`: now includes job description, contract URL/path persistence, local contract file storage in app data directory (`hrpro/employees/<employeeId>/contract/<generatedFilename>`), upload/remove contract bindings, and backend phone normalization to E.164 using settings defaults via `github.com/nyaruka/phonenumbers`.
+- `internal/employees`: validation now returns typed field errors for create/update (e.g. `phone`, `gender`) and enforces gender enum (`Male`/`Female`) server-side.
 - `internal/departments`: CRUD/list/search with duplicate-name protection and delete-with-employees prevention in service layer.
 - `internal/leave`: leave types, entitlements, locked dates, request lifecycle, pure rules, and typed errors.
 - `internal/payroll`: payroll batches/entries lifecycle, server-side calculations, transactional regenerate strategy (delete + recreate in one transaction), and CSV export.
@@ -141,12 +145,14 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
 | Phase A UI Polish — Company Branding | Completed                        | Branding: company name in AppBar, logo upload/remove/url-import, footer with support info. |
 | Phase A Enhancement — Employee Contract + Phone Defaults | Completed      | Employee: job description + contract link/upload/remove; Settings: default country values for phone parsing; backend phone normalization to E.164 and tests. |
+| Phone Normalization Library Migration | Completed                         | Replaced local fallback normalization logic with `github.com/nyaruka/phonenumbers`; employee create/update now parse/validate/format via library only. |
+| Employee Form Validation Hardening | Completed                          | Strict phone validation field errors + gender dropdown/enum enforcement across frontend/backend, with DB gender constraint migration. |
 
 ---
 
 # 4. In Progress
 
-Phase A Enhancement — Employee Contract + Phone Defaults completed. Next milestone: Hardening Phase — Milestone 2.
+Employee form validation hardening completed. Next milestone: Hardening Phase — Milestone 2.
 
 ---
 
