@@ -15,6 +15,7 @@ Employee form: strict phone validation + gender dropdown enforced.
 Fixed EmployeesPage test typings after Employee model changes (contractFilePath + gender typing).
 Client-side phone validation added using libphonenumber-js (Employee form).
 Fixed libphonenumber-js CountryCode typing in phone helper.
+Global auth-expiry handling: session expired errors force re-login on save/update.
 
 ---
 
@@ -32,6 +33,7 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
   - departments table + employees FK (`ON DELETE RESTRICT`)
   - employee enhancement migration: `job_description`, `contract_url`, `contract_file_path`, `phone_e164` (+ index)
 - `internal/services`: JWT/auth services and admin seeding, including refresh rotation and refresh reuse detection handling.
+- `internal/services`: access-token validation now maps missing/expired/invalid to typed auth token errors consumed by handlers.
 - `internal/employees`: CRUD/list/search/pagination + validation and RBAC-enforced handlers.
 - `internal/employees`: now includes job description, contract URL/path persistence, local contract file storage in app data directory (`hrpro/employees/<employeeId>/contract/<generatedFilename>`), upload/remove contract bindings, and backend phone normalization to E.164 using settings defaults via `github.com/nyaruka/phonenumbers`.
 - `internal/employees`: validation now returns typed field errors for create/update (e.g. `phone`, `gender`) and enforces gender enum (`Male`/`Female`) server-side.
@@ -45,7 +47,7 @@ Implemented packages follow clean layering: `handlers -> services -> repositorie
 - `internal/reports`: report filters/DTOs, SQLX query repository, RBAC + validation service orchestration, CSV export generation, typed errors, and report tests.
 - `internal/settings`: app settings key/value JSONB repository/service, logo file storage, settings DTO retrieval/update, and settings-backed formatting/default integrations.
 - `internal/settings`: includes phone defaults (`defaultCountryName`, `defaultCountryISO2`, `defaultCountryCallingCode`) with env override support for defaults resolution.
-- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement; auth now includes typed refresh error mapping (`auth.refresh_invalid`, `auth.refresh_expired`, `auth.refresh_reused`).
+- `internal/handlers`: auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings bindings with server-side RBAC enforcement; auth now includes typed refresh error mapping (`auth.refresh_invalid`, `auth.refresh_expired`, `auth.refresh_reused`) and standardized protected-route auth token mapping (`AUTH_EXPIRED`, `AUTH_UNAUTHORIZED`).
 - `app.go`: startup bootstrap + Wails bindings for auth, employees, departments, leave, payroll, users, audit, dashboard, attendance, reports, and settings; startup health and DB setup bindings (`GetStartupHealth`, `TestDatabaseConnection`, `SaveDatabaseConfig`, `ReloadConfigAndReconnect`) include separated DB/runtime health and lazy reconnect behavior; shared audit recorder wired into key services. Added `Refresh` binding for rotated JWT session renewal.
 
 ## Frontend
@@ -57,6 +59,9 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 - Startup session recovery hardening:
   - if access token is invalid, frontend attempts `refresh`.
   - refresh failures force logout, clear TanStack Query cache, redirect to `/login`, and display a clear message on the login page.
+- Mutation auth-expiry hardening:
+  - global TanStack Query mutation error interception now detects auth expiry/unauthorized errors and forces relogin.
+  - shows `Session expired. Please log in again.`, clears auth store + query cache, then redirects to `/login`.
 - Setup page now surfaces separate statuses for Database Config and Runtime Security (JWT readiness without exposing secret value).
 - `/setup-db`:
   - DB connection form: host, port, database, user, password, sslmode
@@ -145,6 +150,7 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 | Settings Module            | Completed                                  | Admin-only `/settings` route + settings bindings/service/repository, logo upload + retrieval, settings persistence, and cross-module formatting/default integrations completed. |
 | Database Setup Flow        | Completed                                  | Startup DB health gate + `/setup-db` screen + local DB config persistence + reconnect/test bindings + routing smoke tests completed. Save failure fixed and `APP_JWT_SECRET` auto-generated/persisted when missing. |
 | Hardening Phase — Milestone 1 | Completed                               | Routing/auth/setup gating hardening complete: refresh rotation + reuse handling, startup session recovery, unknown-route notFound regression coverage, and navigation test reruns passed. |
+| Hardening Phase — Milestone 2 | Completed                               | Global auth-expiry write-mutation handling added with standardized backend auth error codes (`AUTH_EXPIRED`/`AUTH_UNAUTHORIZED`) and centralized frontend forced re-login UX. |
 | Phase A UI Polish — Company Branding | Completed                        | Branding: company name in AppBar, logo upload/remove/url-import, footer with support info. |
 | Phase A Enhancement — Employee Contract + Phone Defaults | Completed      | Employee: job description + contract link/upload/remove; Settings: default country values for phone parsing; backend phone normalization to E.164 and tests. |
 | Phone Normalization Library Migration | Completed                         | Replaced local fallback normalization logic with `github.com/nyaruka/phonenumbers`; employee create/update now parse/validate/format via library only. |
@@ -155,13 +161,12 @@ Frontend stack: React + TypeScript + MUI + TanStack Router + TanStack Query.
 
 # 4. In Progress
 
-Phase A fix for client-side phone validation completed. Next milestone: Hardening Phase — Milestone 2.
+Hardening Phase — Milestone 2 completed. Next milestone: cross-role QA and additional auth edge-case hardening.
 
 ---
 
 # 5. Next Steps
 
-- Implement Hardening Phase — Milestone 2 tasks.
 - Expand auth/session coverage for token expiry windows and concurrent refresh race scenarios.
 - Continue regression hardening for reports/access-control edge cases in cross-role QA.
 

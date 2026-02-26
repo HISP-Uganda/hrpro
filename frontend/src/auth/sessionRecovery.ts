@@ -5,7 +5,7 @@ import type { User } from '../types/auth'
 import type { AuthStore } from './authStore'
 
 const AUTH_NOTICE_KEY = 'hrpro.auth.notice'
-const DEFAULT_SIGN_IN_NOTICE = 'Your session has ended. Please sign in again.'
+const DEFAULT_SIGN_IN_NOTICE = 'Session expired. Please log in again.'
 const REFRESH_REUSE_NOTICE = 'Session security issue detected. Please sign in again.'
 
 export function parseAuthErrorCode(error: unknown): string {
@@ -41,7 +41,7 @@ export function consumeAuthNotice(): string {
   return value
 }
 
-function setAuthNotice(message: string): void {
+export function setAuthNotice(message: string): void {
   localStorage.setItem(AUTH_NOTICE_KEY, message)
 }
 

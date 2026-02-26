@@ -186,11 +186,7 @@ func (h *PayrollHandler) ExportPayrollBatchCSV(ctx context.Context, request Payr
 }
 
 func (h *PayrollHandler) validateClaims(accessToken string) (*models.Claims, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
-	if err != nil {
-		return nil, err
-	}
-	return claims, nil
+	return validateAuthClaims(h.authService, accessToken)
 }
 
 func mapPayrollError(err error) error {

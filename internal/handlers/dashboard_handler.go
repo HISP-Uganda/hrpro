@@ -27,7 +27,7 @@ func NewDashboardHandler(authService DashboardAuthService, service *dashboard.Se
 }
 
 func (h *DashboardHandler) GetDashboardSummary(ctx context.Context, request GetDashboardSummaryRequest) (*dashboard.SummaryDTO, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(request.AccessToken))
+	claims, err := validateAuthClaims(h.authService, request.AccessToken)
 	if err != nil {
 		return nil, err
 	}

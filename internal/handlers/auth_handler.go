@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"hrpro/internal/middleware"
 	"hrpro/internal/services"
 )
 
@@ -98,17 +97,12 @@ func (h *AuthHandler) Refresh(ctx context.Context, request RefreshRequest) (*Log
 }
 
 func (h *AuthHandler) GetMe(ctx context.Context, accessToken string) (*GetMeResponse, error) {
-	token := extractBearerToken(accessToken)
-	if token == "" {
-		return nil, fmt.Errorf("access token is required")
-	}
-
-	claims, err := middleware.ValidateJWT(h.authService, token)
+	claims, err := validateAuthClaims(h.authService, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := h.authService.GetMe(ctx, token)
+	user, err := h.authService.GetMe(ctx, extractBearerToken(accessToken))
 	if err != nil {
 		return nil, err
 	}

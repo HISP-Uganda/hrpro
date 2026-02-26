@@ -3,8 +3,9 @@ import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/ma
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 
+import { createAuthExpiryMutationHandler } from './auth/authExpiry'
 import { authStore } from './auth/authStore'
-import { recoverSessionOnStartup } from './auth/sessionRecovery'
+import { recoverSessionOnStartup, setAuthNotice } from './auth/sessionRecovery'
 import { WailsGateway } from './lib/wails'
 import { createAppRouter } from './router'
 import { StartupStore } from './startup/startupStore'
@@ -67,6 +68,28 @@ function App() {
       }),
     [queryClient, startup],
   )
+
+  const handleAuthExpiryMutationError = useMemo(
+    () =>
+      createAuthExpiryMutationHandler({
+        auth: authStore,
+        queryClient,
+        navigateToLogin: async () => {
+          await router.navigate({ to: '/login' })
+        },
+        setAuthNotice,
+      }),
+    [queryClient, router],
+  )
+
+  useEffect(() => {
+    queryClient.getMutationCache().config.onError = (error) => {
+      void handleAuthExpiryMutationError(error)
+    }
+    return () => {
+      queryClient.getMutationCache().config.onError = undefined
+    }
+  }, [handleAuthExpiryMutationError, queryClient])
 
   useEffect(() => {
     if (!startupReady || !startup.getSnapshot().dbOk) {

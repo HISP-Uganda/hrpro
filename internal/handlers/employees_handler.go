@@ -200,12 +200,7 @@ func (h *EmployeesHandler) RemoveEmployeeContract(ctx context.Context, request R
 }
 
 func (h *EmployeesHandler) validateClaims(accessToken string) (*models.Claims, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
-	if err != nil {
-		return nil, err
-	}
-
-	return claims, nil
+	return validateAuthClaims(h.authService, accessToken)
 }
 
 func mapEmployeeError(err error) error {

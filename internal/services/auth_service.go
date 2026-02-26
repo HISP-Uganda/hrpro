@@ -24,6 +24,9 @@ var (
 	ErrRefreshInvalid     = errors.New("auth.refresh_invalid")
 	ErrRefreshExpired     = errors.New("auth.refresh_expired")
 	ErrRefreshReused      = errors.New("auth.refresh_reused")
+	ErrAccessTokenMissing = errors.New("auth.access_token_missing")
+	ErrAccessTokenExpired = errors.New("auth.access_token_expired")
+	ErrAccessTokenInvalid = errors.New("auth.access_token_invalid")
 )
 
 type AuthService struct {

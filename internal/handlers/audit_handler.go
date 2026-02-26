@@ -28,7 +28,7 @@ func NewAuditHandler(authService AuditAuthService, service *audit.Service) *Audi
 }
 
 func (h *AuditHandler) ListAuditLogs(ctx context.Context, request ListAuditLogsRequest) (*audit.ListAuditLogsResult, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(request.AccessToken))
+	claims, err := validateAuthClaims(h.authService, request.AccessToken)
 	if err != nil {
 		return nil, err
 	}

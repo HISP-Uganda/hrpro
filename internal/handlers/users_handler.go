@@ -161,11 +161,7 @@ func (h *UsersHandler) SetUserActive(ctx context.Context, request SetUserActiveR
 }
 
 func (h *UsersHandler) validateClaims(accessToken string) (*models.Claims, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
-	if err != nil {
-		return nil, err
-	}
-	return claims, nil
+	return validateAuthClaims(h.authService, accessToken)
 }
 
 func mapUsersError(err error) error {

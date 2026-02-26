@@ -157,12 +157,7 @@ func (h *DepartmentsHandler) ListDepartments(ctx context.Context, request ListDe
 }
 
 func (h *DepartmentsHandler) validateClaims(accessToken string) (*models.Claims, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
-	if err != nil {
-		return nil, err
-	}
-
-	return claims, nil
+	return validateAuthClaims(h.authService, accessToken)
 }
 
 func mapDepartmentError(err error) error {

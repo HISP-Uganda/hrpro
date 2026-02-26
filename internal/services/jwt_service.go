@@ -1,7 +1,9 @@
 package services
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"hrpro/internal/models"
@@ -46,7 +48,12 @@ func (s *TokenService) CreateAccessToken(user models.User, expiry time.Duration)
 }
 
 func (s *TokenService) ValidateAccessToken(rawToken string) (*AccessTokenClaims, error) {
-	token, err := jwt.ParseWithClaims(rawToken, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+	tokenValue := strings.TrimSpace(rawToken)
+	if tokenValue == "" {
+		return nil, ErrAccessTokenMissing
+	}
+
+	token, err := jwt.ParseWithClaims(tokenValue, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
@@ -54,12 +61,15 @@ func (s *TokenService) ValidateAccessToken(rawToken string) (*AccessTokenClaims,
 		return s.secret, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("parse access token: %w", err)
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrAccessTokenExpired
+		}
+		return nil, ErrAccessTokenInvalid
 	}
 
 	claims, ok := token.Claims.(*AccessTokenClaims)
 	if !ok || !token.Valid {
-		return nil, fmt.Errorf("invalid access token")
+		return nil, ErrAccessTokenInvalid
 	}
 
 	return claims, nil

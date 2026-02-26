@@ -220,11 +220,7 @@ func (h *ReportsHandler) ExportAuditLogReportCSV(ctx context.Context, request Ex
 }
 
 func (h *ReportsHandler) validateClaims(accessToken string) (*models.Claims, error) {
-	claims, err := h.authService.ValidateAccessToken(extractBearerToken(accessToken))
-	if err != nil {
-		return nil, err
-	}
-	return claims, nil
+	return validateAuthClaims(h.authService, accessToken)
 }
 
 func mapReportsError(err error) error {
